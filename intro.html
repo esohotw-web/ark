@@ -1,0 +1,389 @@
+import React, { useState } from 'react';
+import { 
+  Menu, 
+  X, 
+  MapPin, 
+  Phone, 
+  Facebook, 
+  Instagram, 
+  BookOpen, 
+  Heart, 
+  Music, 
+  Users, 
+  Globe, 
+  Flame, 
+  Mic,
+  PenTool, 
+  Shield
+} from 'lucide-react';
+
+const ArkActionChurch = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const navLinks = [
+    { name: '關於我們', href: '#about' },
+    { name: '教會異象', href: '#vision' },
+    { name: '教會出版', href: '#publications' },
+    { name: '聚會時間', href: '#schedule' },
+    { name: '聯絡資訊', href: '#contact' },
+  ];
+
+  const functions = [
+    { icon: <Globe className="w-8 h-8 text-blue-600" />, title: '宣教', desc: '傳揚福音，擴展神國疆界' },
+    { icon: <BookOpen className="w-8 h-8 text-blue-600" />, title: '教導', desc: '紮根真理，生命更新' },
+    { icon: <Heart className="w-8 h-8 text-blue-600" />, title: '關懷', desc: '彼此相愛，扶持同行' },
+    { icon: <Music className="w-8 h-8 text-blue-600" />, title: '敬拜', desc: '心靈誠實，榮耀主名' },
+    { icon: <Users className="w-8 h-8 text-blue-600" />, title: '事工', desc: '各盡其職，建立基督身體' },
+  ];
+
+  // 出版品資料
+  const publications = [
+    { 
+      title: '箴言手抄聖經', 
+      category: '手抄聖經', 
+      desc: '透過親手抄寫，將智慧的話語刻在心版上。',
+      icon: <PenTool className="w-6 h-6" />, 
+      color: 'bg-emerald-100 text-emerald-600',
+      borderColor: 'border-emerald-200'
+    },
+    { 
+      title: '馬可福音手抄聖經', 
+      category: '手抄聖經', 
+      desc: '跟隨耶穌的腳蹤，細讀福音書的奇妙作為。',
+      icon: <PenTool className="w-6 h-6" />, 
+      color: 'bg-emerald-100 text-emerald-600',
+      borderColor: 'border-emerald-200'
+    },
+    { 
+      title: '以弗所書靈修書', 
+      category: '靈修書籍', 
+      desc: '深入探索教會的奧祕與基督裡的豐盛產業。',
+      icon: <BookOpen className="w-6 h-6" />, 
+      color: 'bg-amber-100 text-amber-600',
+      borderColor: 'border-amber-200'
+    },
+    { 
+      title: '信耶穌有什麼好', 
+      category: '福音小冊', 
+      desc: '簡明易懂的福音真理，傳福音的最佳利器。',
+      icon: <Heart className="w-6 h-6" />, 
+      color: 'bg-rose-100 text-rose-600',
+      borderColor: 'border-rose-200'
+    },
+    { 
+      title: '末世信徒裝備手冊', 
+      subtitle: '－聖經篇',
+      category: '裝備教材', 
+      desc: '在末後的世代，穿戴神所賜的全副軍裝。',
+      icon: <Shield className="w-6 h-6" />, 
+      color: 'bg-blue-100 text-blue-600',
+      borderColor: 'border-blue-200'
+    },
+  ];
+
+  const schedules = [
+    { day: '週日', time: '10:00', title: '主日聚會', type: 'main', icon: <Users /> },
+    { day: '週日', time: '10:00', title: '兒童主日學', type: 'kids', icon: <Heart /> },
+    { day: '週日', time: '09:30', title: '主日禱告會', type: 'prayer', icon: <Flame /> },
+    { day: '週五', time: '20:00', title: '門徒訓練', sub: '(馬可福音)', type: 'training', icon: <BookOpen /> },
+    { day: '每日', time: '07:00', title: '屬靈裝備', sub: '(Podcast末世信徒裝備手冊)', type: 'online', icon: <Mic /> },
+    { day: '不定', time: '時間', title: '小組事工', sub: '各小組設定', type: 'group', icon: <Users /> },
+  ];
+
+  return (
+    <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
+      
+      {/* Navigation */}
+      <nav className="fixed w-full bg-white/95 backdrop-blur-md shadow-sm z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo 更新區域 - 導覽列 */}
+            <div className="flex-shrink-0 flex items-center gap-3">
+              <img 
+                src="方舟正式LOGO色多.png" 
+                alt="台宣方舟行動教會 Logo" 
+                className="h-12 w-auto object-contain"
+              />
+              <span className="font-bold text-xl tracking-tight text-slate-900">台宣方舟行動教會</span>
+            </div>
+            
+            {/* Desktop Menu */}
+            <div className="hidden md:flex space-x-8">
+              {navLinks.map((link) => (
+                <a key={link.name} href={link.href} className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
+                  {link.name}
+                </a>
+              ))}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button onClick={toggleMenu} className="text-slate-600 hover:text-blue-600 focus:outline-none">
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-t border-slate-100">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {navLinks.map((link) => (
+                <a 
+                  key={link.name} 
+                  href={link.href} 
+                  className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero Section */}
+      <section id="about" className="relative pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 z-0">
+          <svg className="absolute bottom-0 left-0 w-full h-24 md:h-48 text-slate-50 fill-current opacity-100" viewBox="0 0 1440 320">
+            <path fillOpacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,261.3C960,256,1056,224,1152,197.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+          </svg>
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="animate-fade-in-up">
+            <h2 className="text-blue-200 font-medium tracking-widest text-sm md:text-base mb-4 uppercase">Ark Action Church</h2>
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+              傳義道、救靈魂
+            </h1>
+            <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto mb-10 font-light">
+              歡迎來到台宣方舟行動教會，<br/>一個聖經與聖靈並重的屬靈家園。
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <a href="#schedule" className="px-8 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                參加聚會
+              </a>
+              <a href="#contact" className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-full font-semibold hover:bg-white/20 transition">
+                聯絡我們
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Vision & DNA Section */}
+      <section id="vision" className="py-16 md:py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase">Our DNA</span>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900">核心特色與功能</h2>
+            <div className="w-20 h-1 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+            <p className="mt-4 text-xl text-slate-600">聖經與聖靈並重</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+            {functions.map((func, index) => (
+              <div key={index} className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 border-t-4 border-blue-600 text-center group">
+                <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
+                  {func.icon}
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{func.title}</h3>
+                <p className="text-sm text-slate-500">{func.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Publications Section */}
+      <section id="publications" className="py-16 md:py-24 bg-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="text-amber-500 font-semibold tracking-wider text-sm uppercase">Resources</span>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900">教會出版品</h2>
+            <p className="mt-4 text-xl text-slate-600 max-w-2xl mx-auto">
+              我們製作了多樣化的屬靈書籍與教材，幫助弟兄姊妹在真理上扎根。
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {publications.map((pub, index) => (
+              <div key={index} className={`relative p-6 rounded-2xl border ${pub.borderColor} bg-white shadow-sm hover:shadow-lg transition-all duration-300 group`}>
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-xl shrink-0 ${pub.color}`}>
+                    {pub.icon}
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold tracking-wide uppercase text-slate-500 mb-1 block">
+                      {pub.category}
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                      {pub.title}
+                      {pub.subtitle && <span className="block text-sm font-normal text-slate-600 mt-1">{pub.subtitle}</span>}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                      {pub.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-12 text-center">
+             <p className="text-slate-500 text-sm">欲索取或購買相關出版品，歡迎於主日服務台洽詢</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Schedule Section */}
+      <section id="schedule" className="py-16 md:py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            {/* Left Content */}
+            <div>
+              <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase">Weekly Schedule</span>
+              <h2 className="mt-2 text-3xl md:text-4xl font-bold text-slate-900 mb-6">聚會時間表</h2>
+              <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+                我們提供多元的聚會與裝備課程，無論您處於生命的哪個階段，都能在這裡找到屬靈的餵養與肢體的連結。
+              </p>
+              
+              <div className="bg-white p-6 rounded-2xl border border-blue-100 mb-8 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-600 text-white p-2 rounded-lg mt-1">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900">特別推薦：Podcast 裝備</h4>
+                    <p className="text-slate-600 mt-1">
+                      每日 07:00《末世信徒裝備手冊》，隨時隨地領受神的話語。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Grid */}
+            <div className="grid gap-4">
+              {schedules.map((item, index) => (
+                <div key={index} className="flex items-center p-4 bg-white hover:bg-blue-50 rounded-xl border border-slate-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
+                  <div className={`p-3 rounded-full mr-4 shrink-0 
+                    ${item.type === 'main' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                    {item.icon}
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="font-bold text-slate-800">{item.title}</h3>
+                      <span className="text-sm font-semibold px-2 py-1 bg-slate-50 rounded border border-slate-100 text-slate-600 whitespace-nowrap">
+                        {item.day} {item.time}
+                      </span>
+                    </div>
+                    {item.sub && (
+                      <p className="text-sm text-slate-500">{item.sub}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-blue-900 text-white text-center px-4 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pattern-dots"></div>
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">尋找屬靈的家？</h2>
+          <p className="text-blue-100 mb-8 text-lg">
+            台宣方舟行動教會歡迎您的加入，讓我們一起在真理與聖靈中成長。
+          </p>
+          <a href="#contact" className="inline-block px-8 py-3 bg-white text-blue-900 rounded-full font-bold hover:bg-blue-50 transition shadow-lg">
+            聯絡我們
+          </a>
+        </div>
+      </section>
+
+      {/* Footer / Contact */}
+      <footer id="contact" className="bg-slate-900 text-slate-300 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            
+            {/* Church Info */}
+            <div>
+              {/* Logo 更新區域 - 頁尾 */}
+              <div className="flex items-center gap-3 mb-6">
+                <img 
+                  src="方舟正式LOGO色多.png" 
+                  alt="台宣方舟行動教會 Logo" 
+                  className="h-14 w-auto object-contain"
+                />
+                <span className="font-bold text-xl text-white">台宣方舟行動教會</span>
+              </div>
+              <p className="mb-6 leading-relaxed text-slate-400">
+                一個傳義道、救靈魂的教會。<br />
+                重視聖經真理教導，渴慕聖靈大能運行。
+              </p>
+              <div className="flex space-x-4">
+                <a href="https://www.facebook.com/ark.action.church" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a href="https://www.instagram.com/ark_a_church" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-pink-600 hover:text-white transition">
+                  <Instagram className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div>
+              <h3 className="text-white font-bold text-lg mb-6">聯絡資訊</h3>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-amber-500 shrink-0 mt-1" />
+                  <span>桃園市桃園區中正路1067號2F</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-amber-500 shrink-0" />
+                  <a href="tel:033166171" className="hover:text-white transition">03-3166171</a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Map Placeholder */}
+            <div>
+               <h3 className="text-white font-bold text-lg mb-6">教會位置</h3>
+               <div className="w-full h-48 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center border border-slate-700 relative">
+                 {/* Google Map Embed */}
+                  <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3040.2773989724255!2d121.29602630681981!3d25.016437722387607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x34681fb068f8283d%3A0x1e83d3862c40315e!2zMzMw5qGD5ZyS5biC5qGD5ZyS5Y2A5Lit5q2j6LevMTA2N-iZnw!5e0!3m2!1szh-TW!2stw!4v1765717711287!5m2!1szh-TW!2stw" 
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 0 }} 
+                    allowFullScreen 
+                    loading="lazy" 
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Church Location"
+                    className="absolute inset-0 w-full h-full"
+                  ></iframe>
+               </div>
+            </div>
+
+          </div>
+          
+          <div className="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
+            <p>&copy; {new Date().getFullYear()} 台宣方舟行動教會 Ark Action Church. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default ArkActionChurch;
