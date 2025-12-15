@@ -1,314 +1,457 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>感恩隨機抽題小卡（靜態 / 動態版）</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#ff9435" />
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #ffe7c7;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 480px;
-      width: 100%;
-      padding: 20px 16px 40px;
-      box-sizing: border-box;
-    }
-    h1 {
-      text-align: center;
-      color: #9c4f00;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      font-size: 1.7rem;
-    }
-    .subtitle {
-      text-align: center;
-      color: #b26a20;
-      font-size: 0.9rem;
-      margin-bottom: 18px;
-    }
-    .card {
-      background: #fff7ef;
-      border-radius: 18px;
-      padding: 20px 18px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-      min-height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 1.05rem;
-      color: #55331d;
-      line-height: 1.5;
-      margin-bottom: 16px;
-      white-space: pre-line;
-    }
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    label {
-      font-size: 0.9rem;
-      color: #5e3a1a;
-      white-space: nowrap;
-    }
-    select {
-      flex: 1;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #e09b55;
-      font-size: 0.9rem;
-      background: #fffdf8;
-    }
-    button {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #fff;
-      background: #ff9435;
-      cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
-    }
-    button:active {
-      transform: translateY(1px);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-    }
-    .hint {
-      text-align: center;
-      font-size: 0.8rem;
-      color: #86502a;
-      margin-top: 6px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台宣方舟行動教會</title>
+    
+    <!-- 引入 Tailwind CSS (樣式) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 React 和 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- 引入 Babel (讓瀏覽器看懂 JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 自定義 Tailwind 設定 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-  <div class="container">
-    <h1>🧡 感恩隨機抽題小卡</h1>
-    <div class="subtitle">可切換：青少年 / 成人 ＋ 靜態反思 / 動態行動</div>
+    <div id="root"></div>
 
-    <div class="card" id="card">
-      請先選擇題庫類別與題目類型，再按「抽一題」開始！
-    </div>
+    <script type="text/babel">
+        const { useState } = React;
 
-    <div class="controls">
-      <div class="row">
-        <label for="category">題庫類別：</label>
-        <select id="category">
-          <option value="all">全部題庫（青少年＋成人）</option>
-          <option value="teen">青少年題庫</option>
-          <option value="adult">成人題庫</option>
-        </select>
-      </div>
-      <div class="row">
-        <label for="mode">題目類型：</label>
-        <select id="mode">
-          <option value="both">全部題型（靜態＋動態）</option>
-          <option value="static">靜態反思題</option>
-          <option value="dynamic">動態行動題</option>
-        </select>
-      </div>
-      <div class="row">
-        <button onclick="drawQuestion()">抽一題 🙌</button>
-      </div>
-    </div>
+        // --- 圖示組件 (將原本的 lucide-react 內建為 SVG) ---
+        const IconWrapper = ({ children, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
 
-    <div class="hint">
-      建議：抽到靜態題 → 分享；抽到動態題 → 當場實作、祝福別人。
-    </div>
-  </div>
+        const Menu = (props) => <IconWrapper {...props}><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></IconWrapper>;
+        const X = (props) => <IconWrapper {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconWrapper>;
+        const MapPin = (props) => <IconWrapper {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconWrapper>;
+        const Phone = (props) => <IconWrapper {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></IconWrapper>;
+        const Facebook = (props) => <IconWrapper {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></IconWrapper>;
+        const Instagram = (props) => <IconWrapper {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></IconWrapper>;
+        const BookOpen = (props) => <IconWrapper {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconWrapper>;
+        const Heart = (props) => <IconWrapper {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></IconWrapper>;
+        const Music = (props) => <IconWrapper {...props}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></IconWrapper>;
+        const Users = (props) => <IconWrapper {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></IconWrapper>;
+        const Globe = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></IconWrapper>;
+        const Flame = (props) => <IconWrapper {...props}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.31.68.82 1.9 2.9 1.8z"/></IconWrapper>;
+        const Mic = (props) => <IconWrapper {...props}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></IconWrapper>;
+        const PenTool = (props) => <IconWrapper {...props}><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></IconWrapper>;
+        const Shield = (props) => <IconWrapper {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></IconWrapper>;
+        const Anchor = (props) => <IconWrapper {...props}><circle cx="12" cy="5" r="3"/><line x1="12" x2="12" y1="22" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></IconWrapper>;
 
-  <script>
-    // 青少年「靜態反思題」 25 題
-    const teenStatic = [
-      "【青少年・靜態】分享你今年在學校最感恩的一件事。",
-      "【青少年・靜態】說出一位你想向他說「謝謝」的老師，並說明原因。",
-      "【青少年・靜態】你覺得今年神在哪件事上幫助你成長？",
-      "【青少年・靜態】分享一次你覺得被鼓勵、重新得到力量的時刻。",
-      "【青少年・靜態】今年你最感謝的一位朋友是誰？為什麼？",
-      "【青少年・靜態】說出一件你覺得神為你開道路的事。",
-      "【青少年・靜態】回想一次你原本很害怕，但神給你勇氣的時刻。",
-      "【青少年・靜態】分享一件你今年覺得很小、卻很溫暖的恩典。",
-      "【青少年・靜態】你覺得神今年最提醒你的是什麼？",
-      "【青少年・靜態】你今年最想感謝家人的哪一件事？",
-      "【青少年・靜態】分享一次你在壓力中經歷神平安的時刻。",
-      "【青少年・靜態】你覺得今年最被神保護的是什麼？",
-      "【青少年・靜態】說出你今年最感謝的青少年團契活動或聚會。",
-      "【青少年・靜態】你曾經想放棄，但神讓你撐下去的是什麼？",
-      "【青少年・靜態】說出讓你成長的一次衝突或不愉快經歷。",
-      "【青少年・靜態】分享你今年學到的一件新的屬靈功課。",
-      "【青少年・靜態】用一句話說出你覺得神是怎麼看你的。",
-      "【青少年・靜態】說出一件讓你意外感恩的事情。",
-      "【青少年・靜態】今年你在敬拜中最被觸動的一次經驗是什麼？",
-      "【青少年・靜態】分享一位你今天想特別祝福的弟兄或姐妹。",
-      "【青少年・靜態】你覺得神今年在你的自信心上做了什麼？",
-      "【青少年・靜態】分享一次你覺得被愛、被接納的時刻。",
-      "【青少年・靜態】你覺得今年最感謝的「小確幸」是什麼？",
-      "【青少年・靜態】若要為自己今年的生命取一個感恩主題，你會取什麼？",
-      "【青少年・靜態】說出一個你今年最期待神繼續動工的領域。"
-    ];
 
-    // 青少年「動態行動題」示例 8 題
-    const teenDynamic = [
-      "【青少年・動態】請轉向你旁邊的一位同學，對他／她說一句真心的「謝謝」，並說出一個你感謝他的地方。",
-      "【青少年・動態】拿出你的手機，傳一則訊息給一位你很久沒聯絡、但想感謝的朋友，告訴他／她你為什麼感謝他／她。",
-      "【青少年・動態】找一位今天在場的輔導或老師，向他／她說：「謝謝你為我們付出」。",
-      "【青少年・動態】和你右手邊的人擊掌，並說出一句祝福他的話。",
-      "【青少年・動態】站起來，說出一句你要大聲感謝神的話，讓全組一起聽見。",
-      "【青少年・動態】為你左手邊的那位同學做一個 30 秒的祝福禱告（可以出聲或在心裡）。",
-      "【青少年・動態】現在請寫下今天你最感謝的一件事，等等分享給全組。",
-      "【青少年・動態】走向一位你平常比較少說話的人，簡單介紹自己，並說一句：「謝謝你在這個團契」。"
-    ];
+        // --- 主應用程式 ---
+        const ArkActionChurch = () => {
+          const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // 成人「靜態反思題」 75 題
-    const adultStatic = [
-      "【成人・靜態】分享你今年最感謝神的三件事。",
-      "【成人・靜態】說出一段你今年特別經歷神信實的故事。",
-      "【成人・靜態】你在哪件事上清楚看見神的供應？",
-      "【成人・靜態】分享你在困難中仍選擇感恩的一個時刻。",
-      "【成人・靜態】今年神如何在你的家庭施恩？",
-      "【成人・靜態】你最感謝小組中的哪一位？為什麼？",
-      "【成人・靜態】今年哪件事讓你重新認識神的慈愛？",
-      "【成人・靜態】分享神如何在你的軟弱上顯出能力。",
-      "【成人・靜態】說出你今年重新站起來的一次經歷。",
-      "【成人・靜態】你在哪段關係中經歷到和好？",
-      "【成人・靜態】分享一節陪你度過艱難的經文，並說為什麼。",
-      "【成人・靜態】你覺得神今年最挑戰你的是什麼？",
-      "【成人・靜態】什麼是你今年最意想不到的祝福？",
-      "【成人・靜態】說出你今年最想感謝的一位屬靈領袖。",
-      "【成人・靜態】分享一次你經歷神保護的時刻。",
-      "【成人・靜態】你在哪個重要決定上最感謝神的帶領？",
-      "【成人・靜態】說出今年你與神關係更親近的一個原因。",
-      "【成人・靜態】分享你今年最感動的一次禱告回應。",
-      "【成人・靜態】你在哪個家庭成員身上看到神的醫治或改變？",
-      "【成人・靜態】說出一件你今年突破自己的地方。",
-      "【成人・靜態】分享一次神透過別人鼓勵你的經驗。",
-      "【成人・靜態】今年哪首詩歌最讓你有感恩的心？",
-      "【成人・靜態】你在哪件事上學會「放手交託」？",
-      "【成人・靜態】分享一次你感受到神非常靠近的片刻。",
-      "【成人・靜態】說出今年你最感謝的一個服事機會。",
-      "【成人・靜態】你在財務上如何經歷神的供應或帶領？",
-      "【成人・靜態】今年哪件事提醒你：神真的在掌權？",
-      "【成人・靜態】說出你今年最想感謝的一位同事或夥伴。",
-      "【成人・靜態】分享一個神讓你重新看見盼望的故事。",
-      "【成人・靜態】你在哪件事上看到神的時間安排剛剛好？",
-      "【成人・靜態】說出今年神讓你特別感動的一個領受。",
-      "【成人・靜態】分享一次你經歷神超自然平安的時刻。",
-      "【成人・靜態】你在哪件事上學到更多的謙卑？",
-      "【成人・靜態】說出一個你今年開始操練的屬靈紀律。",
-      "【成人・靜態】分享一次神讓你恢復力量的經歷。",
-      "【成人・靜態】哪件挫折後來成為祝福？說說看。",
-      "【成人・靜態】說出你今年向誰主動表達過感謝？",
-      "【成人・靜態】分享今年你看見神預備的某一個恩典。",
-      "【成人・靜態】你在哪項服事中看見神親自動工？",
-      "【成人・靜態】說出你今年最感恩的一個「日常小確幸」。",
-      "【成人・靜態】分享一件你最不容易卻仍選擇感恩的事。",
-      "【成人・靜態】你在哪個習慣上看到神在更新你？",
-      "【成人・靜態】說出你今年最感恩的健康相關恩典。",
-      "【成人・靜態】分享一次你被提醒要回到神面前的經歷。",
-      "【成人・靜態】今年你在哪件事上更認識神某一種性情？",
-      "【成人・靜態】說出你今年最常向神感謝的事情。",
-      "【成人・靜態】分享一次你被赦免或學習赦免別人的經歷。",
-      "【成人・靜態】你在哪件工作事務上明顯看到神的幫助？",
-      "【成人・靜態】說出今年你最感謝的一次復原或恢復。",
-      "【成人・靜態】分享一次神在你心裡做的深度安慰。",
-      "【成人・靜態】今年哪件事讓你更依靠聖靈？",
-      "【成人・靜態】說出你今年最感恩的一次人際互動。",
-      "【成人・靜態】分享一次神讓你重新得喜樂的時刻。",
-      "【成人・靜態】你在哪件事上更懂得為別人感恩？",
-      "【成人・靜態】說出今年你學會的一項新的感恩眼光。",
-      "【成人・靜態】分享你看到神如何祝福你身邊的人。",
-      "【成人・靜態】今年你在哪件事上清楚看見神的保守？",
-      "【成人・靜態】說出你今年最感恩的一個事工或服事果效。",
-      "【成人・靜態】分享一次你靠主勝過恐懼的經歷。",
-      "【成人・靜態】你在哪件事上最想把一切榮耀歸給神？",
-      "【成人・靜態】說出今年你覺得神特別在對你說的一個主題。",
-      "【成人・靜態】分享你今年被神更新的一個價值觀。",
-      "【成人・靜態】今年你在哪件事上體驗到神的醫治（身心皆可）？",
-      "【成人・靜態】說出你今年最感恩的一次團契或小組時光。",
-      "【成人・靜態】分享一次你領受上帝安靜聲音的經歷。",
-      "【成人・靜態】你在哪件人生決定上看見神的智慧？",
-      "【成人・靜態】說出今年你覺得自己被神擴張的一個領域。",
-      "【成人・靜態】分享一次你覺得神「早就預備好了」的經驗。",
-      "【成人・靜態】今年你在哪件事上學會從抱怨轉向感恩？",
-      "【成人・靜態】說出你今年最感恩的一個生活小習慣改變。",
-      "【成人・靜態】分享你今年最珍惜的一段屬靈關係。",
-      "【成人・靜態】說出一件你未來仍要憑信心繼續感恩的事情。"
-    ];
+          const toggleMenu = () => {
+            setIsMenuOpen(!isMenuOpen);
+          };
 
-    // 成人「動態行動題」示例 10 題
-    const adultDynamic = [
-      "【成人・動態】請轉向你旁邊的一位弟兄或姐妹，當面向他／她說出一個你真心感謝他的地方。",
-      "【成人・動態】拿出手機，傳一則簡訊或訊息給一位你心中很感謝、卻平常少表達的人。",
-      "【成人・動態】請為你左邊那位弟兄／姐妹做一個 30～60 秒的祝福禱告。",
-      "【成人・動態】走向一位平常較少互動的人，主動關心一句：「最近還好嗎？」並聽他分享。",
-      "【成人・動態】在紙上寫下三件你今天立刻可以為之感恩的事情，並與組員分享其中一件。",
-      "【成人・動態】找一位正在服事（招待、敬拜、音控、兒主等）的同工，向他／她說：「謝謝你今天的服事」。",
-      "【成人・動態】與全組一起大聲說出：「主啊，謝謝祢！」，然後每人輪流用一句話向主獻上感謝。",
-      "【成人・動態】現在請你寫下一個你願意在本週實踐的「感恩行動」，分享給小組。",
-      "【成人・動態】請起立，為你內心最掛念的一個人默禱 30 秒，然後若方便，可邀組員為你一起代禱。",
-      "【成人・動態】選擇一位在信仰路上陪伴過你的人，決定在聚會結束後真的聯繫他／她，向他／她說聲謝謝。"
-    ];
+          const navLinks = [
+            { name: '關於我們', href: '#about' },
+            { name: '教會異象', href: '#vision' },
+            { name: '教會出版', href: '#publications' },
+            { name: '聚會時間', href: '#schedule' },
+            { name: '奉獻支持', href: 'giving.html' },
+            { name: '聯絡資訊', href: '#contact' },
+          ];
 
-    const allStatic = [...teenStatic, ...adultStatic];
-    const allDynamic = [...teenDynamic, ...adultDynamic];
+          const functions = [
+            { icon: <Globe className="w-8 h-8 text-blue-600" />, title: '宣教', desc: '傳揚福音，擴展神國疆界' },
+            { icon: <BookOpen className="w-8 h-8 text-blue-600" />, title: '教導', desc: '紮根真理，生命更新' },
+            { icon: <Heart className="w-8 h-8 text-blue-600" />, title: '關懷', desc: '彼此相愛，扶持同行' },
+            { icon: <Music className="w-8 h-8 text-blue-600" />, title: '敬拜', desc: '心靈誠實，榮耀主名' },
+            { icon: <Users className="w-8 h-8 text-blue-600" />, title: '事工', desc: '各盡其職，建立基督身體' },
+          ];
 
-    function drawQuestion() {
-      const category = document.getElementById('category').value;
-      const mode = document.getElementById('mode').value;
-      let pool = [];
+          const publications = [
+            { 
+              title: '箴言手抄聖經', 
+              category: '手抄聖經', 
+              desc: '透過親手抄寫，將智慧的話語刻在心版上。',
+              icon: <PenTool className="w-6 h-6" />, 
+              color: 'bg-emerald-100 text-emerald-600',
+              borderColor: 'border-emerald-200'
+            },
+            { 
+              title: '馬可福音手抄聖經', 
+              category: '手抄聖經', 
+              desc: '跟隨耶穌的腳蹤，細讀福音書的奇妙作為。',
+              icon: <PenTool className="w-6 h-6" />, 
+              color: 'bg-emerald-100 text-emerald-600',
+              borderColor: 'border-emerald-200'
+            },
+            { 
+              title: '以弗所書靈修書', 
+              category: '靈修書籍', 
+              desc: '深入探索教會的奧祕與基督裡的豐盛產業。',
+              icon: <BookOpen className="w-6 h-6" />, 
+              color: 'bg-amber-100 text-amber-600',
+              borderColor: 'border-amber-200'
+            },
+            { 
+              title: '門徒訓練-信仰篇', 
+              category: '裝備教材', 
+              desc: '建立穩固的信仰根基，清楚明白真理的規模。',
+              icon: <BookOpen className="w-6 h-6" />, 
+              color: 'bg-indigo-100 text-indigo-600',
+              borderColor: 'border-indigo-200'
+            },
+            { 
+              title: '門徒訓練-生命篇', 
+              category: '裝備教材', 
+              desc: '連結於基督，活出得勝與豐盛的屬靈生命。',
+              icon: <Heart className="w-6 h-6" />, 
+              color: 'bg-indigo-100 text-indigo-600',
+              borderColor: 'border-indigo-200'
+            },
+            { 
+              title: '信耶穌有什麼好', 
+              category: '福音小冊', 
+              desc: '簡明易懂的福音真理，傳福音的最佳利器。',
+              icon: <Heart className="w-6 h-6" />, 
+              color: 'bg-rose-100 text-rose-600',
+              borderColor: 'border-rose-200'
+            },
+            { 
+              title: '末世信徒裝備手冊', 
+              subtitle: '－聖經篇',
+              category: '裝備教材', 
+              desc: '在末後的世代，穿戴神所賜的全副軍裝。',
+              icon: <Shield className="w-6 h-6" />, 
+              color: 'bg-blue-100 text-blue-600',
+              borderColor: 'border-blue-200'
+            },
+          ];
 
-      if (category === 'teen') {
-        if (mode === 'static') pool = teenStatic;
-        else if (mode === 'dynamic') pool = teenDynamic;
-        else pool = [...teenStatic, ...teenDynamic];
-      } else if (category === 'adult') {
-        if (mode === 'static') pool = adultStatic;
-        else if (mode === 'dynamic') pool = adultDynamic;
-        else pool = [...adultStatic, ...adultDynamic];
-      } else {
-        if (mode === 'static') pool = allStatic;
-        else if (mode === 'dynamic') pool = allDynamic;
-        else pool = [...allStatic, ...allDynamic];
-      }
+          const schedules = [
+            { day: '週日', time: '10:00', title: '主日聚會', type: 'main', icon: <Users /> },
+            { day: '週日', time: '10:00', title: '兒童主日學', type: 'kids', icon: <Heart /> },
+            { day: '週日', time: '09:30', title: '主日禱告會', type: 'prayer', icon: <Flame /> },
+            { day: '週五', time: '20:00', title: '門徒訓練', sub: '(馬可福音)', type: 'training', icon: <BookOpen /> },
+            { day: '每日', time: '07:00', title: '屬靈裝備', sub: '(Podcast末世信徒裝備手冊)', type: 'online', icon: <Mic /> },
+            { day: '不定', time: '時間', title: '小組事工', sub: '各小組設定', type: 'group', icon: <Users /> },
+          ];
 
-      const card = document.getElementById('card');
-      if (pool.length === 0) {
-        card.textContent = "這個組合目前還沒有題目，可以請同工再補題庫喔～";
-        return;
-      }
+          return (
+            <div className="font-sans text-slate-800 bg-slate-50 min-h-screen">
+              
+              {/* Navigation */}
+              <nav className="fixed w-full bg-white/95 backdrop-blur-md shadow-sm z-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between items-center h-20">
+                    {/* Logo 更新區域 - 導覽列 */}
+                    <div className="flex-shrink-0 flex items-center gap-3">
+                      <img 
+                        src="方舟正式LOGO色多.png" 
+                        alt="台宣方舟行動教會 Logo" 
+                        className="h-12 w-auto object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <span className="font-bold text-xl tracking-tight text-slate-900">台宣方舟行動教會</span>
+                    </div>
+                    
+                    {/* Desktop Menu */}
+                    <div className="hidden md:flex space-x-8">
+                      {navLinks.map((link) => (
+                        <a key={link.name} href={link.href} className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
+                          {link.name}
+                        </a>
+                      ))}
+                    </div>
 
-      const index = Math.floor(Math.random() * pool.length);
-      const question = pool[index];
-      card.textContent = question;
-    }
+                    {/* Mobile Menu Button */}
+                    <div className="md:hidden">
+                      <button onClick={toggleMenu} className="text-slate-600 hover:text-blue-600 focus:outline-none">
+                        {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-    // 註冊 Service Worker（PWA 必備）
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => {
-          console.log('ServiceWorker 註冊失敗：', err);
-        });
-      });
-    }
-  </script>
+                {/* Mobile Menu Dropdown */}
+                {isMenuOpen && (
+                  <div className="md:hidden bg-white border-t border-slate-100">
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                      {navLinks.map((link) => (
+                        <a 
+                          key={link.name} 
+                          href={link.href} 
+                          className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {link.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </nav>
+
+              {/* Hero Section */}
+              <section id="about" className="relative pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 z-0">
+                  <svg className="absolute bottom-0 left-0 w-full h-24 md:h-48 text-slate-50 fill-current opacity-100" viewBox="0 0 1440 320">
+                    <path fillOpacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,261.3C960,256,1056,224,1152,197.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                  </svg>
+                </div>
+                
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                  <div className="animate-fade-in-up">
+                    <h2 className="text-blue-200 font-medium tracking-widest text-sm md:text-base mb-4 uppercase">Ark Action Church</h2>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                      傳義道、救靈魂
+                    </h1>
+                    <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto mb-10 font-light">
+                      歡迎來到台宣方舟行動教會，<br/>一個聖經與聖靈並重的屬靈家園。
+                    </p>
+                    <div className="flex flex-col sm:flex-row justify-center gap-4">
+                      <a href="#schedule" className="px-8 py-3 bg-amber-500 text-white rounded-full font-semibold hover:bg-amber-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        參加聚會
+                      </a>
+                      <a href="#contact" className="px-8 py-3 bg-white/10 backdrop-blur-sm border border-white/30 text-white rounded-full font-semibold hover:bg-white/20 transition">
+                        聯絡我們
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Vision & DNA Section */}
+              <section id="vision" className="py-16 md:py-24 bg-slate-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase">Our DNA</span>
+                    <h2 className="mt-2 text-3xl font-bold text-slate-900">核心特色與功能</h2>
+                    <div className="w-20 h-1 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+                    <p className="mt-4 text-xl text-slate-600">聖經與聖靈並重</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+                    {functions.map((func, index) => (
+                      <div key={index} className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 border-t-4 border-blue-600 text-center group">
+                        <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
+                          {func.icon}
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 mb-2">{func.title}</h3>
+                        <p className="text-sm text-slate-500">{func.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* Publications Section */}
+              <section id="publications" className="py-16 md:py-24 bg-white relative">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <span className="text-amber-500 font-semibold tracking-wider text-sm uppercase">Resources</span>
+                    <h2 className="mt-2 text-3xl font-bold text-slate-900">教會出版品</h2>
+                    <p className="mt-4 text-xl text-slate-600 max-w-2xl mx-auto">
+                      我們製作了多樣化的屬靈書籍與教材，幫助弟兄姊妹在真理上扎根。
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {publications.map((pub, index) => (
+                      <div key={index} className={`relative p-6 rounded-2xl border ${pub.borderColor} bg-white shadow-sm hover:shadow-lg transition-all duration-300 group`}>
+                        <div className="flex items-start gap-4">
+                          <div className={`p-3 rounded-xl shrink-0 ${pub.color}`}>
+                            {pub.icon}
+                          </div>
+                          <div>
+                            <span className="text-xs font-semibold tracking-wide uppercase text-slate-500 mb-1 block">
+                              {pub.category}
+                            </span>
+                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                              {pub.title}
+                              {pub.subtitle && <span className="block text-sm font-normal text-slate-600 mt-1">{pub.subtitle}</span>}
+                            </h3>
+                            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                              {pub.desc}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-12 text-center">
+                     <p className="text-slate-500 text-sm">欲索取或購買相關出版品，歡迎於主日服務台洽詢</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Schedule Section */}
+              <section id="schedule" className="py-16 md:py-24 bg-slate-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    
+                    {/* Left Content */}
+                    <div>
+                      <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase">Weekly Schedule</span>
+                      <h2 className="mt-2 text-3xl md:text-4xl font-bold text-slate-900 mb-6">聚會時間表</h2>
+                      <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+                        我們提供多元的聚會與裝備課程，無論您處於生命的哪個階段，都能在這裡找到屬靈的餵養與肢體的連結。
+                      </p>
+                      
+                      <div className="bg-white p-6 rounded-2xl border border-blue-100 mb-8 shadow-sm">
+                        <div className="flex items-start gap-4">
+                          <div className="bg-blue-600 text-white p-2 rounded-lg mt-1">
+                            <Mic className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-slate-900">特別推薦：Podcast 裝備</h4>
+                            <p className="text-slate-600 mt-1">
+                              每日 07:00《末世信徒裝備手冊》，隨時隨地領受神的話語。
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Grid */}
+                    <div className="grid gap-4">
+                      {schedules.map((item, index) => (
+                        <div key={index} className="flex items-center p-4 bg-white hover:bg-blue-50 rounded-xl border border-slate-200 hover:border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className={`p-3 rounded-full mr-4 shrink-0 
+                            ${item.type === 'main' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                            {item.icon}
+                          </div>
+                          <div className="flex-grow">
+                            <div className="flex justify-between items-center mb-1">
+                              <h3 className="font-bold text-slate-800">{item.title}</h3>
+                              <span className="text-sm font-semibold px-2 py-1 bg-slate-50 rounded border border-slate-100 text-slate-600 whitespace-nowrap">
+                                {item.day} {item.time}
+                              </span>
+                            </div>
+                            {item.sub && (
+                              <p className="text-sm text-slate-500">{item.sub}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                  </div>
+                </div>
+              </section>
+
+              {/* CTA Section */}
+              <section className="py-16 bg-blue-900 text-white text-center px-4 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10 pattern-dots"></div>
+                <div className="relative z-10 max-w-3xl mx-auto">
+                  <h2 className="text-3xl font-bold mb-4">尋找屬靈的家？</h2>
+                  <p className="text-blue-100 mb-8 text-lg">
+                    台宣方舟行動教會歡迎您的加入，讓我們一起在真理與聖靈中成長。
+                  </p>
+                  <a href="#contact" className="inline-block px-8 py-3 bg-white text-blue-900 rounded-full font-bold hover:bg-blue-50 transition shadow-lg">
+                    聯絡我們
+                  </a>
+                </div>
+              </section>
+
+              {/* Footer / Contact */}
+              <footer id="contact" className="bg-slate-900 text-slate-300 py-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                    
+                    {/* Church Info */}
+                    <div>
+                      {/* Logo 更新區域 - 頁尾 */}
+                      <div className="flex items-center gap-3 mb-6">
+                        <img 
+                          src="方舟正式LOGO色多.png" 
+                          alt="台宣方舟行動教會 Logo" 
+                          className="h-14 w-auto object-contain"
+                        />
+                        <span className="font-bold text-xl text-white">台宣方舟行動教會</span>
+                      </div>
+                      <p className="mb-6 leading-relaxed text-slate-400">
+                        一個傳義道、救靈魂的教會。<br />
+                        重視聖經真理教導，渴慕聖靈大能運行。
+                      </p>
+                      <div className="flex spa ce-x-4">
+                        <a href="https://www.facebook.com/ark.action.church" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-blue-600 hover:text-white transition">
+                          <Facebook className="w-5 h-5" />
+                        </a>
+                        <a href="https://www.instagram.com/ark_a_church" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-pink-600 hover:text-white transition">
+                          <Instagram className="w-5 h-5" />
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-6">聯絡資訊</h3>
+                      <ul className="space-y-4">
+                        <li className="flex items-start gap-3">
+                          <MapPin className="w-5 h-5 text-amber-500 shrink-0 mt-1" />
+                          <span>桃園市桃園區中正路1067號2F</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                          <Phone className="w-5 h-5 text-amber-500 shrink-0" />
+                          <a href="tel:033166171" className="hover:text-white transition">03-3166171</a>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Map Placeholder */}
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-6">教會位置</h3>
+                      <div className="w-full h-48 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center border border-slate-700 relative">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3040.2773989724255!2d121.29602630681981!3d25.016437722387607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x34681fb068f8283d%3A0x1e83d3862c40315e!2zMzMw5qGD5ZyS5biC5qGD5ZyS5Y2A5Lit5q2j6LevMTA2N-iZnw!5e0!3m2!1szh-TW!2stw!4v1765717711287!5m2!1szh-TW!2stw" 
+                            title="Church Location"
+                            className="absolute inset-0 w-full h-full border-0" 
+                            allowFullScreen 
+                            loading="lazy" 
+                            referrerPolicy="no-referrer-when-downgrade"
+                          ></iframe>
+                      </div>
+                    </div>
+
+                  </div>
+                  
+                  <div className="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
+                    <p>&copy; {new Date().getFullYear()} 台宣方舟行動教會 Ark Action Church. All rights reserved.</p>
+                  </div>
+                </div>
+              </footer>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ArkActionChurch />);
+    </script>
 </body>
 </html>
