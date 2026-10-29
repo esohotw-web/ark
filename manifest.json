@@ -1,10 +1,11 @@
 {
-  "name": "感恩隨機抽題小卡",
-  "short_name": "感恩抽題",
-  "start_url": "./index.html",
+  "name": "全副軍裝靈修遊戲",
+  "short_name": "全副軍裝",
+  "start_url": "./fullarmor.html",
   "display": "standalone",
-  "background_color": "#ffe7c7",
-  "theme_color": "#ff9435",
+  "background_color": "#080d21",
+  "theme_color": "#080d21",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
