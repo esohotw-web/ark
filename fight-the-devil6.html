@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>打擊魔鬼街機挑戰 (Demon Strike Arcade)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for dynamic arcade SFX and Synth BGM -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        arcade: {
+                            bg: '#070a14',
+                            surface: '#11172a',
+                            border: '#1e293b',
+                            red: '#ef4444',
+                            accent: '#ff0055',
+                            gold: '#fbbf24',
+                            cyan: '#06b6d4',
+                            green: '#10b981'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-red': '0 0 15px rgba(239, 68, 68, 0.65)',
+                        'neon-cyan': '0 0 15px rgba(6, 182, 212, 0.65)',
+                        'neon-gold': '0 0 20px rgba(251, 191, 36, 0.8)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Chakra Petch', 'Noto Sans TC', sans-serif;
+            background-color: #070a14;
+            overscroll-behavior: none;
+        }
+
+        /* Arcade cabinet screen scanlines */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.3) 50%,
+                rgba(0, 0, 0, 0.3)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        .shaking {
+            animation: shake 0.25s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 1px, 0); }
+            20%, 80% { transform: translate3d(3px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 2px, 0); }
+            40%, 60% { transform: translate3d(4px, -1px, 0); }
+        }
+
+        @keyframes popUp {
+            0% { transform: translateY(110%) scale(0.65); opacity: 0; }
+            65% { transform: translateY(-8%) scale(1.05); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        @keyframes whackHit {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.7) rotate(12deg); filter: brightness(2); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .animate-pop-up {
+            animation: popUp 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-hit {
+            animation: whackHit 0.16s ease-out forwards;
+        }
+
+        /* Custom scrollbar for leaderboard modal */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-full w-full overflow-hidden text-slate-100 flex flex-col justify-between items-center bg-[#070a14] relative select-none">
+    <!-- CRT scanlines overlay -->
+    <div class="scanlines absolute inset-0 z-30 pointer-events-none"></div>
+
+    <!-- MAIN GAME WRAPPER (100dvh strictly contained) -->
+    <div class="w-full max-w-md h-full flex flex-col justify-between p-2.5 sm:p-3 relative z-10 box-border">
+        
+        <!-- HEADER / STATUS BAR -->
+        <header class="flex-shrink-0 w-full mb-1">
+            <!-- Top brand & actions -->
+            <div class="flex items-center justify-between gap-1.5 pb-1 border-b border-slate-800/80">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xl">😈</span>
+                    <h1 class="text-sm font-black tracking-wider text-red-500 uppercase flex items-center gap-1">
+                        打擊魔鬼 <span class="text-[10px] bg-red-950/80 text-red-400 px-1 py-0.5 rounded border border-red-700/60 font-mono">3×4</span>
+                    </h1>
+                </div>
+
+                <!-- Stage pill badge -->
+                <div id="stageIndicator" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                    <i class="fa-solid fa-layer-group text-[10px]"></i>
+                    <span id="stageBadgeText">關卡 1</span>
+                </div>
+
+                <!-- Right user & audio actions -->
+                <div class="flex items-center gap-1">
+                    <button id="playerTagBtn" onclick="openNameModal()" class="px-2 py-0.5 text-xs rounded bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1 max-w-[100px] truncate active:scale-95 transition-transform" title="更改暱稱">
+                        <i class="fa-solid fa-user-ninja text-amber-400 text-[10px]"></i>
+                        <span id="headerPlayerName" class="truncate font-semibold">獵魔者</span>
+                    </button>
+                    <button id="leaderboardBtn" onclick="openLeaderboard()" class="w-7 h-7 flex items-center justify-center rounded bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 active:scale-90 transition-transform" title="排行榜">
+                        <i class="fa-solid fa-trophy text-xs"></i>
+                    </button>
+                    <button id="soundToggleBtn" onclick="toggleMute()" class="w-7 h-7 flex items-center justify-center rounded bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 active:scale-90 transition-transform" title="音效開關">
+                        <i id="soundIcon" class="fa-solid fa-volume-high text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCORE & TIMER DASHBOARD -->
+            <div class="grid grid-cols-3 gap-2 mt-1.5 text-center">
+                <!-- Score & Combo -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg py-1 px-1.5 flex flex-col items-center justify-center shadow-inner">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">SCORE 得分</span>
+                    <span id="scoreDisplay" class="text-xl sm:text-2xl font-black text-amber-400 leading-none mt-0.5 font-mono">0</span>
+                    <span id="comboBadge" class="text-[9px] font-bold text-slate-500 transition-colors">連擊: 0x</span>
+                </div>
+
+                <!-- Timer -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg py-1 px-1.5 flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">TIME 倒數</span>
+                    <span id="timerDisplay" class="text-xl sm:text-2xl font-black text-red-400 leading-none mt-0.5 font-mono">30</span>
+                    <!-- Progress bar -->
+                    <div class="w-full bg-slate-800 h-1 rounded-full mt-1 overflow-hidden">
+                        <div id="timeProgressBar" class="h-full bg-gradient-to-r from-red-600 to-amber-500 w-full transition-all duration-300 ease-linear"></div>
+                    </div>
+                </div>
+
+                <!-- Best Score -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg py-1 px-1.5 flex flex-col items-center justify-center shadow-inner">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">BEST 最高</span>
+                    <span id="highScoreDisplay" class="text-xl sm:text-2xl font-black text-cyan-400 leading-none mt-0.5 font-mono">0</span>
+                    <span id="stageStatusSmall" class="text-[9px] font-bold text-amber-400/90">單目標</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 3x4 GRID ARENA (Flex dynamic sizing, zero vertical scroll) -->
+        <main class="flex-1 w-full flex items-center justify-center py-1 min-h-0">
+            <div id="gridContainer" class="grid grid-cols-3 grid-rows-4 gap-2 w-full h-full max-h-[58vh] max-w-[340px] aspect-[3/4] p-1.5 bg-slate-950/70 border border-slate-800/80 rounded-2xl shadow-2xl relative">
+                <!-- 12 Holes (0 to 11) will be injected dynamically by JS -->
+            </div>
+        </main>
+
+        <!-- FOOTER: START BUTTON & QUICK LEGEND -->
+        <footer class="flex-shrink-0 w-full pt-1">
+            <button id="startBtn" onclick="handleStartButtonClick()" class="w-full py-2.5 sm:py-3 px-4 rounded-xl font-black text-base sm:text-lg tracking-wider bg-gradient-to-r from-red-600 via-rose-500 to-red-600 hover:brightness-110 active:scale-[0.98] shadow-neon-red text-white flex items-center justify-center gap-2 border border-red-400/50 transition-all uppercase">
+                <i class="fa-solid fa-play text-xs animate-pulse"></i>
+                <span id="startBtnText">投幣啟動 / START</span>
+            </button>
+
+            <!-- Compact Legend / Tips -->
+            <div class="flex items-center justify-between text-[10px] text-slate-400 px-1 mt-1 font-semibold">
+                <div class="flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-red-500 shadow-neon-red"></span>
+                    <span>魔鬼 <strong class="text-red-400">+100</strong></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-amber-400 shadow-neon-gold"></span>
+                    <span>金魔王 <strong class="text-amber-300">+200</strong></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-cyan-400 shadow-neon-cyan"></span>
+                    <span>天使 <strong class="text-cyan-300">-150</strong></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- STAGE TRANSITION OVERLAY -->
+    <div id="stageTransitionOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-md z-40 hidden flex flex-col items-center justify-center text-center p-6 transition-all">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center text-3xl shadow-neon-gold mb-3 animate-bounce">
+            🔥
+        </div>
+        <h2 id="transStageTitle" class="text-2xl font-black text-amber-400 uppercase tracking-widest mb-1">進入第 2 關</h2>
+        <p id="transStageDesc" class="text-sm text-slate-300 font-medium mb-4 max-w-xs">小心！魔鬼與天使將同時出現或接續出擊！</p>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-bold">預備倒數</span>
+            <span id="transCountdown" class="text-3xl font-black text-red-400 font-mono">3</span>
+        </div>
+    </div>
+
+    <!-- INITIAL / EDIT NAME MODAL -->
+    <div id="nameModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-sm p-5 shadow-2xl text-center relative">
+            <div class="text-3xl mb-1">⚔️</div>
+            <h3 class="text-lg font-black text-amber-400 mb-1">勇者獵魔者登記</h3>
+            <p class="text-xs text-slate-400 mb-3">請輸入您的戰鬥代號（支援本地與榮譽排行榜）</p>
+
+            <div class="text-left mb-3">
+                <label class="text-[11px] text-slate-300 font-bold block mb-1">玩家名字：</label>
+                <div class="relative">
+                    <input id="playerNameInput" type="text" maxlength="15" placeholder="例如：天界神槌" 
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-200 focus:outline-none focus:border-amber-400 font-bold placeholder-slate-600">
+                    <span id="nameCharCount" class="absolute right-2.5 top-2.5 text-[10px] text-slate-500 font-mono">0/15</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-1.5 space-y-0.5 leading-tight">
+                    <p>• 長度規則：純中文最多 5 字、純英文最多 10 字母</p>
+                    <p>• 中英混合上限 15 字元</p>
+                </div>
+                <p id="nameErrorMsg" class="text-[11px] text-rose-400 font-bold mt-1.5 hidden"></p>
+            </div>
+
+            <button onclick="confirmPlayerName()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider active:scale-95 shadow-lg transition-transform">
+                確認出戰
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME OVER / SUMMARY MODAL -->
+    <div id="gameOverModal" class="absolute inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-red-500/40 rounded-2xl w-full max-w-sm p-5 shadow-neon-red text-center relative overflow-hidden">
+            <div class="text-3xl mb-1">🏆</div>
+            <h3 class="text-xl font-black text-amber-400 uppercase tracking-wider">討伐結算</h3>
+            <p id="summaryRankTitle" class="text-xs text-red-400 font-bold mb-3">獵魔戰士</p>
+
+            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 mb-3 grid grid-cols-2 gap-2 text-left">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold block">最終得分</span>
+                    <span id="finalScoreVal" class="text-2xl font-black text-amber-400 font-mono">0</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold block">最高連擊 (Max Combo)</span>
+                    <span id="finalComboVal" class="text-2xl font-black text-cyan-400 font-mono">0x</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold block">擊退魔鬼</span>
+                    <span id="finalDemonsVal" class="text-base font-bold text-red-400 font-mono">0 隻</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold block">誤傷天使</span>
+                    <span id="finalAngelsVal" class="text-base font-bold text-slate-400 font-mono">0 次</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="restartGame()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-sm active:scale-95 shadow-neon-red transition-transform">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> 再次挑戰
+                </button>
+                <button onclick="openLeaderboard()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-sm active:scale-95 transition-transform">
+                    <i class="fa-solid fa-trophy mr-1"></i> 排行榜
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD MODAL -->
+    <div id="leaderboardModal" class="absolute inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/40 rounded-2xl w-full max-w-sm max-h-[82vh] flex flex-col p-4 shadow-neon-gold relative">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy text-amber-400 text-base"></i>
+                    <h3 class="text-base font-black text-amber-400">獵魔英雄榜</h3>
+                </div>
+                <button onclick="closeLeaderboard()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Leaderboard list -->
+            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 py-1 text-xs">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 mt-2 text-center">
+                <button onclick="closeLeaderboard()" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold active:scale-95 transition-transform">
+                    返回遊戲
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME LOGIC -->
+    <script>
+        /* ==========================================================
+           1. GAME CONFIG & CONSTANTS
+           ========================================================== */
+        const TOTAL_HOLES = 12; // 3 columns x 4 rows
+        const STAGE_DURATION = 30; // 30 seconds per stage
+        const TOTAL_STAGES = 3;
+
+        // Key mappings for desktop keyboards (3x4)
+        // Row 1: 1, 2, 3 (or Q, W, E)
+        // Row 2: 4, 5, 6 (or A, S, D)
+        // Row 3: 7, 8, 9 (or Z, X, C)
+        // Row 4: *, 0, # (or V, B, N)
+        const KEY_MAP = {
+            '1': 0, 'q': 0, 'Q': 0,
+            '2': 1, 'w': 1, 'W': 1,
+            '3': 2, 'e': 2, 'E': 2,
+            '4': 3, 'a': 3, 'A': 3,
+            '5': 4, 's': 4, 'S': 4,
+            '6': 5, 'd': 5, 'D': 5,
+            '7': 6, 'z': 6, 'Z': 6,
+            '8': 7, 'x': 7, 'X': 7,
+            '9': 8, 'c': 8, 'C': 8,
+            '*': 9, 'v': 9, 'V': 9,
+            '0': 10, 'b': 10, 'B': 10,
+            '#': 11, 'n': 11, 'N': 11,
+        };
+
+        /* ==========================================================
+           2. GAME STATE
+           ========================================================== */
+        let playerName = "獵魔者";
+        let isPlaying = false;
+        let isTransitioning = false;
+        let isMuted = false;
+        let currentStage = 1;
+        let timeRemaining = STAGE_DURATION;
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let demonsHit = 0;
+        let angelsHit = 0;
+        let bestScore = 0;
+
+        // Hole states: array of 12 elements
+        // { type: null|'demon'|'gold_demon'|'angel', active: false, timer: null, warningTimer: null }
+        let holes = [];
+
+        // Timers
+        let countdownTimer = null;
+        let spawnerTimer = null;
+
+        /* ==========================================================
+           3. TONE.JS SOUND SYNTHESIZERS
+           ========================================================== */
+        let audioInitialized = false;
+        let hitSynth, badSynth, goldSynth, warningSynth, bgmSynth, bgmLoop;
+
+        function initAudio() {
+            if (audioInitialized) return;
+            try {
+                Tone.start();
+
+                // Hit Demon SFX (punchy arcade zap)
+                hitSynth = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 4,
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 }
+                }).toDestination();
+
+                // Gold Demon SFX (high chiming bell)
+                goldSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.005, decay: 0.15, sustain: 0.1, release: 0.3 }
+                }).toDestination();
+
+                // Hit Angel penalty SFX (low buzzer)
+                badSynth = new Tone.Synth({
+                    oscillator: { type: 'sawtooth' },
+                    envelope: { attack: 0.01, decay: 0.25, sustain: 0.05, release: 0.2 }
+                }).toDestination();
+
+                // Cue Warning SFX (subtle tick)
+                warningSynth = new Tone.Synth({
+                    oscillator: { type: 'square' },
+                    envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.04 }
+                }).toDestination();
+                warningSynth.volume.value = -12;
+
+                // Background 8-bit Bassline synth
+                bgmSynth = new Tone.MonoSynth({
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.2 },
+                    filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.4, release: 0.2, baseFrequency: 200, octaves: 2 }
+                }).toDestination();
+                bgmSynth.volume.value = -14;
+
+                audioInitialized = true;
+            } catch (e) {
+                console.warn("Audio initialization bypassed or unsupported:", e);
+            }
+        }
+
+        function playHitSound() {
+            if (isMuted || !audioInitialized) return;
+            try { hitSynth.triggerAttackRelease("C3", "8n"); } catch (e) {}
+        }
+
+        function playGoldSound() {
+            if (isMuted || !audioInitialized) return;
+            try {
+                goldSynth.triggerAttackRelease(["E5", "G5", "C6"], "16n");
+            } catch (e) {}
+        }
+
+        function playAngelHitSound() {
+            if (isMuted || !audioInitialized) return;
+            try { badSynth.triggerAttackRelease("F2", "8n"); } catch (e) {}
+        }
+
+        function playWarningBeep() {
+            if (isMuted || !audioInitialized) return;
+            try { warningSynth.triggerAttackRelease("C5", "32n"); } catch (e) {}
+        }
+
+        function playFanfare() {
+            if (isMuted || !audioInitialized) return;
+            try {
+                const now = Tone.now();
+                goldSynth.triggerAttackRelease("C5", "16n", now);
+                goldSynth.triggerAttackRelease("E5", "16n", now + 0.1);
+                goldSynth.triggerAttackRelease("G5", "16n", now + 0.2);
+                goldSynth.triggerAttackRelease("C6", "8n", now + 0.3);
+            } catch (e) {}
+        }
+
+        function startBgm(stage) {
+            if (isMuted || !audioInitialized) return;
+            try {
+                stopBgm();
+                const tempo = stage === 1 ? 130 : (stage === 2 ? 150 : 172);
+                Tone.Transport.bpm.value = tempo;
+
+                const notes = ["C2", "C2", "D#2", "F2", "G2", "G2", "F2", "D#2"];
+                let step = 0;
+                bgmLoop = new Tone.Loop(time => {
+                    const note = notes[step % notes.length];
+                    bgmSynth.triggerAttackRelease(note, "16n", time);
+                    step++;
+                }, "8n");
+
+                bgmLoop.start(0);
+                Tone.Transport.start();
+            } catch (e) {}
+        }
+
+        function stopBgm() {
+            try {
+                if (bgmLoop) {
+                    bgmLoop.stop();
+                    bgmLoop.dispose();
+                    bgmLoop = null;
+                }
+                Tone.Transport.stop();
+            } catch (e) {}
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const icon = document.getElementById("soundIcon");
+            if (isMuted) {
+                icon.className = "fa-solid fa-volume-xmark text-xs text-rose-400";
+                stopBgm();
+            } else {
+                icon.className = "fa-solid fa-volume-high text-xs text-slate-300";
+                if (isPlaying && !isTransitioning) startBgm(currentStage);
+            }
+        }
+
+        /* ==========================================================
+           4. DOM INJECTION & SETUP
+           ========================================================== */
+        const demonSvg = `
+            <svg class="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-[0_4px_8px_rgba(239,68,68,0.7)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="#ef4444" stroke="#7f1d1d" stroke-width="4"/>
+                <path d="M 24 32 Q 10 10 20 5 Q 35 20 32 30 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2"/>
+                <path d="M 76 32 Q 90 10 80 5 Q 65 20 68 30 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2"/>
+                <ellipse cx="38" cy="46" rx="6" ry="8" fill="#fef08a"/>
+                <ellipse cx="62" cy="46" rx="6" ry="8" fill="#fef08a"/>
+                <circle cx="39" cy="47" r="3" fill="#000"/>
+                <circle cx="61" cy="47" r="3" fill="#000"/>
+                <path d="M 34 68 Q 50 82 66 68 Q 50 74 34 68 Z" fill="#450a0a"/>
+                <polygon points="42,68 45,74 48,68" fill="#fff"/>
+                <polygon points="52,68 55,74 58,68" fill="#fff"/>
+            </svg>
+        `;
+
+        const goldDemonSvg = `
+            <svg class="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-[0_4px_12px_rgba(251,191,36,0.9)] animate-pulse" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="#fbbf24" stroke="#b45309" stroke-width="4"/>
+                <path d="M 22 30 Q 6 4 18 0 Q 34 16 30 28 Z" fill="#b45309" stroke="#78350f" stroke-width="2"/>
+                <path d="M 78 30 Q 94 4 82 0 Q 66 16 70 28 Z" fill="#b45309" stroke="#78350f" stroke-width="2"/>
+                <ellipse cx="38" cy="46" rx="7" ry="9" fill="#fff"/>
+                <ellipse cx="62" cy="46" rx="7" ry="9" fill="#fff"/>
+                <circle cx="38" cy="46" r="4" fill="#dc2626"/>
+                <circle cx="62" cy="46" r="4" fill="#dc2626"/>
+                <path d="M 32 68 Q 50 84 68 68 Q 50 76 32 68 Z" fill="#78350f"/>
+                <polygon points="40,68 44,76 48,68" fill="#fff"/>
+                <polygon points="52,68 56,76 60,68" fill="#fff"/>
+            </svg>
+        `;
+
+        const angelSvg = `
+            <svg class="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-[0_4px_10px_rgba(6,182,212,0.8)]" viewBox="0 0 100 100">
+                <ellipse cx="50" cy="18" rx="28" ry="7" fill="none" stroke="#fef08a" stroke-width="5"/>
+                <path d="M 18 48 Q 2 25 10 65 Q 26 58 24 50 Z" fill="#e0f2fe" opacity="0.9"/>
+                <path d="M 82 48 Q 98 25 90 65 Q 74 58 76 50 Z" fill="#e0f2fe" opacity="0.9"/>
+                <circle cx="50" cy="52" r="34" fill="#f8fafc" stroke="#38bdf8" stroke-width="3"/>
+                <circle cx="40" cy="48" r="4" fill="#0284c7"/>
+                <circle cx="60" cy="48" r="4" fill="#0284c7"/>
+                <path d="M 42 63 Q 50 70 58 63" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="33" cy="56" r="4" fill="#fda4af" opacity="0.7"/>
+                <circle cx="67" cy="56" r="4" fill="#fda4af" opacity="0.7"/>
+            </svg>
+        `;
+
+        function buildArena() {
+            const container = document.getElementById("gridContainer");
+            container.innerHTML = "";
+            holes = [];
+
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                holes.push({
+                    type: null,
+                    active: false,
+                    timer: null,
+                    warningTimer: null
+                });
+
+                const holeEl = document.createElement("div");
+                holeEl.className = "relative bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-800 rounded-xl flex flex-col items-center justify-end overflow-hidden cursor-pointer select-none active:scale-[0.96] transition-transform shadow-inner";
+                holeEl.id = `hole-${i}`;
+
+                // Warning LED indicator at the top
+                const led = document.createElement("div");
+                led.id = `led-${i}`;
+                led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-slate-800 transition-all duration-150 z-20 border border-slate-700/60";
+
+                // Target creature container
+                const targetWrapper = document.createElement("div");
+                targetWrapper.id = `target-${i}`;
+                targetWrapper.className = "w-full h-full flex items-center justify-center translate-y-[120%] pointer-events-none transition-transform z-10";
+
+                // Click feedback pop text
+                const hitPop = document.createElement("div");
+                hitPop.id = `pop-${i}`;
+                hitPop.className = "absolute inset-0 flex items-center justify-center font-black text-sm pointer-events-none opacity-0 z-30 font-mono";
+
+                // Click / Tap listener
+                holeEl.addEventListener("pointerdown", (e) => {
+                    e.preventDefault();
+                    whackHole(i);
+                });
+
+                holeEl.appendChild(led);
+                holeEl.appendChild(targetWrapper);
+                holeEl.appendChild(hitPop);
+                container.appendChild(holeEl);
+            }
+        }
+
+        /* ==========================================================
+           5. PLAYER NAME & VALIDATION MODAL
+           ========================================================== */
+        const nameInput = document.getElementById("playerNameInput");
+        const charCount = document.getElementById("nameCharCount");
+        const nameError = document.getElementById("nameErrorMsg");
+
+        nameInput.addEventListener("input", () => {
+            const val = nameInput.value;
+            charCount.textContent = `${val.length}/15`;
+            validatePlayerName(val, false);
+        });
+
+        function validatePlayerName(name, showMessage = true) {
+            const trimmed = name.trim();
+            if (!trimmed) {
+                if (showMessage) nameError.textContent = "名字不能為空！";
+                if (showMessage) nameError.classList.remove("hidden");
+                return false;
+            }
+
+            // Test if all Chinese
+            const isAllChinese = /^[\u4e00-\u9fa5]+$/.test(trimmed);
+            // Test if all English/numbers
+            const isAllEnglish = /^[A-Za-z0-9\s]+$/.test(trimmed);
+
+            if (isAllChinese && trimmed.length > 5) {
+                if (showMessage) nameError.textContent = "純中文名字最多 5 個字！";
+                if (showMessage) nameError.classList.remove("hidden");
+                return false;
+            }
+
+            if (isAllEnglish && trimmed.length > 10) {
+                if (showMessage) nameError.textContent = "純英文名字最多 10 個字母！";
+                if (showMessage) nameError.classList.remove("hidden");
+                return false;
+            }
+
+            if (trimmed.length > 15) {
+                if (showMessage) nameError.textContent = "名字總長度最多 15 個字元！";
+                if (showMessage) nameError.classList.remove("hidden");
+                return false;
+            }
+
+            nameError.classList.add("hidden");
+            return true;
+        }
+
+        function openNameModal() {
+            nameInput.value = playerName === "獵魔者" ? "" : playerName;
+            charCount.textContent = `${nameInput.value.length}/15`;
+            nameError.classList.add("hidden");
+            document.getElementById("nameModal").classList.remove("hidden");
+        }
+
+        function confirmPlayerName() {
+            const val = nameInput.value.trim();
+            if (!validatePlayerName(val, true)) return;
+
+            playerName = val;
+            document.getElementById("headerPlayerName").textContent = playerName;
+            document.getElementById("nameModal").classList.add("hidden");
+        }
+
+        /* ==========================================================
+           6. GAME LIFECYCLE & MECHANICS
+           ========================================================== */
+        function handleStartButtonClick() {
+            initAudio();
+            if (isPlaying) {
+                endGame();
+            } else {
+                startGame();
+            }
+        }
+
+        function startGame() {
+            isPlaying = true;
+            isTransitioning = false;
+            currentStage = 1;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            demonsHit = 0;
+            angelsHit = 0;
+            timeRemaining = STAGE_DURATION;
+
+            updateDashboardUI();
+            resetAllHoles();
+
+            document.getElementById("startBtnText").textContent = "終止討伐 / STOP";
+            document.getElementById("gameOverModal").classList.add("hidden");
+            document.getElementById("stageTransitionOverlay").classList.add("hidden");
+
+            startBgm(currentStage);
+            runGameTimer();
+            scheduleNextSpawns();
+        }
+
+        function runGameTimer() {
+            clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                if (!isPlaying || isTransitioning) return;
+
+                timeRemaining--;
+                document.getElementById("timerDisplay").textContent = timeRemaining < 10 ? `0${timeRemaining}` : timeRemaining;
+                const pct = (timeRemaining / STAGE_DURATION) * 100;
+                document.getElementById("timeProgressBar").style.width = `${pct}%`;
+
+                if (timeRemaining <= 0) {
+                    if (currentStage < TOTAL_STAGES) {
+                        advanceToNextStage();
+                    } else {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function advanceToNextStage() {
+            isTransitioning = true;
+            resetAllHoles();
+            stopBgm();
+            playFanfare();
+
+            currentStage++;
+            const overlay = document.getElementById("stageTransitionOverlay");
+            const transTitle = document.getElementById("transStageTitle");
+            const transDesc = document.getElementById("transStageDesc");
+            const countdownEl = document.getElementById("transCountdown");
+
+            if (currentStage === 2) {
+                transTitle.textContent = "進入第 2 關";
+                transDesc.textContent = "難度升級！雙目標同時或接續竄出，手速要快！";
+            } else if (currentStage === 3) {
+                transTitle.textContent = "🔥 第 3 關：地獄降臨";
+                transDesc.textContent = "極限考驗！場上將有 3 隻魔鬼/天使同步或狂暴連發！";
+            }
+
+            overlay.classList.remove("hidden");
+            let transLeft = 3;
+            countdownEl.textContent = transLeft;
+
+            const tInterval = setInterval(() => {
+                transLeft--;
+                if (transLeft > 0) {
+                    countdownEl.textContent = transLeft;
+                } else {
+                    clearInterval(tInterval);
+                    overlay.classList.add("hidden");
+                    isTransitioning = false;
+                    timeRemaining = STAGE_DURATION;
+                    updateDashboardUI();
+                    startBgm(currentStage);
+                    scheduleNextSpawns();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            isTransitioning = false;
+            clearInterval(countdownTimer);
+            clearTimeout(spawnerTimer);
+            resetAllHoles();
+            stopBgm();
+
+            if (score > bestScore) {
+                bestScore = score;
+                document.getElementById("highScoreDisplay").textContent = bestScore;
+            }
+
+            document.getElementById("startBtnText").textContent = "投幣啟動 / START";
+
+            // Save score to local leaderboard
+            saveScoreRecord();
+
+            // Populate game over modal
+            document.getElementById("finalScoreVal").textContent = score;
+            document.getElementById("finalComboVal").textContent = `${maxCombo}x`;
+            document.getElementById("finalDemonsVal").textContent = `${demonsHit} 隻`;
+            document.getElementById("finalAngelsVal").textContent = `${angelsHit} 次`;
+
+            let rank = "獵魔菜鳥";
+            if (score >= 4000) rank = "👑 傳奇大天使長";
+            else if (score >= 2800) rank = "⚔️ 地獄終結者";
+            else if (score >= 1800) rank = "🔥 狂暴行刑官";
+            else if (score >= 1000) rank = "⚡ 熟練獵魔師";
+            document.getElementById("summaryRankTitle").textContent = rank;
+
+            document.getElementById("gameOverModal").classList.remove("hidden");
+        }
+
+        function restartGame() {
+            document.getElementById("gameOverModal").classList.add("hidden");
+            startGame();
+        }
+
+        function resetAllHoles() {
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                clearTimeout(holes[i].timer);
+                clearTimeout(holes[i].warningTimer);
+                holes[i].type = null;
+                holes[i].active = false;
+
+                const led = document.getElementById(`led-${i}`);
+                const target = document.getElementById(`target-${i}`);
+                if (led) {
+                    led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-slate-800 transition-all duration-150 z-20 border border-slate-700/60";
+                }
+                if (target) {
+                    target.innerHTML = "";
+                    target.className = "w-full h-full flex items-center justify-center translate-y-[120%] pointer-events-none transition-transform z-10";
+                }
+            }
+        }
+
+        /* ==========================================================
+           7. TARGET SPAWNING LOGIC (Stage 1, 2, 3)
+           ========================================================== */
+        function scheduleNextSpawns() {
+            if (!isPlaying || isTransitioning) return;
+
+            // Spawning parameters by stage
+            let countToSpawn = 1;
+            let delayBetweenSpawns = 900;
+
+            if (currentStage === 1) {
+                countToSpawn = 1;
+                // Gradually speed up as time ticks down
+                const progress = (STAGE_DURATION - timeRemaining) / STAGE_DURATION;
+                delayBetweenSpawns = 1100 - (progress * 400); // 1100ms down to 700ms
+            } else if (currentStage === 2) {
+                // Stage 2: 1 to 2 creatures
+                countToSpawn = Math.random() < 0.65 ? 2 : 1;
+                delayBetweenSpawns = 800 - Math.random() * 200; // 600ms - 800ms
+            } else if (currentStage === 3) {
+                // Stage 3: 2 to 3 creatures
+                const r = Math.random();
+                countToSpawn = r < 0.5 ? 3 : 2;
+                delayBetweenSpawns = 650 - Math.random() * 200; // 450ms - 650ms
+            }
+
+            // Find available holes
+            const availableHoles = [];
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                if (!holes[i].active) availableHoles.push(i);
+            }
+
+            // Shuffle available holes
+            availableHoles.sort(() => Math.random() - 0.5);
+
+            const chosen = availableHoles.slice(0, Math.min(countToSpawn, availableHoles.length));
+
+            chosen.forEach((holeIndex, idx) => {
+                // Random stagger if asynchronous
+                const staggerDelay = idx * (Math.random() < 0.4 ? 180 : 0);
+                setTimeout(() => {
+                    if (isPlaying && !isTransitioning) spawnCreature(holeIndex);
+                }, staggerDelay);
+            });
+
+            spawnerTimer = setTimeout(scheduleNextSpawns, delayBetweenSpawns);
+        }
+
+        function spawnCreature(index) {
+            if (!holes[index] || holes[index].active) return;
+
+            holes[index].active = true;
+
+            // Determine creature type
+            // 68% Demon, 14% Gold Demon, 18% Angel
+            const roll = Math.random();
+            let type = 'demon';
+            if (roll > 0.82) type = 'angel';
+            else if (roll > 0.68) type = 'gold_demon';
+
+            holes[index].type = type;
+
+            const led = document.getElementById(`led-${index}`);
+            const target = document.getElementById(`target-${index}`);
+
+            // 1. Cue/Warning phase: flash LED for 220ms
+            if (type === 'angel') {
+                led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-neon-cyan animate-ping z-20";
+            } else if (type === 'gold_demon') {
+                led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-neon-gold animate-ping z-20";
+            } else {
+                led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-red-500 shadow-neon-red animate-ping z-20";
+            }
+            playWarningBeep();
+
+            // 2. Creature pop up
+            holes[index].warningTimer = setTimeout(() => {
+                if (!holes[index].active) return;
+
+                // Stop blinking led, keep glow
+                if (type === 'angel') {
+                    led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-neon-cyan z-20";
+                    target.innerHTML = angelSvg;
+                } else if (type === 'gold_demon') {
+                    led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-neon-gold z-20";
+                    target.innerHTML = goldDemonSvg;
+                } else {
+                    led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-red-500 shadow-neon-red z-20";
+                    target.innerHTML = demonSvg;
+                }
+
+                target.className = "w-full h-full flex items-center justify-center animate-pop-up z-10";
+
+                // Stay on screen duration based on stage
+                let stayDuration = 1000;
+                if (currentStage === 1) stayDuration = 1100;
+                else if (currentStage === 2) stayDuration = 850;
+                else if (currentStage === 3) stayDuration = 700;
+
+                holes[index].timer = setTimeout(() => {
+                    hideHoleCreature(index);
+                }, stayDuration);
+
+            }, 200);
+        }
+
+        function hideHoleCreature(index) {
+            const h = holes[index];
+            if (!h) return;
+
+            clearTimeout(h.timer);
+            clearTimeout(h.warningTimer);
+            h.active = false;
+            h.type = null;
+
+            const led = document.getElementById(`led-${index}`);
+            const target = document.getElementById(`target-${index}`);
+
+            if (led) {
+                led.className = "absolute top-1 w-2.5 h-2.5 rounded-full bg-slate-800 transition-all duration-150 z-20 border border-slate-700/60";
+            }
+            if (target) {
+                target.className = "w-full h-full flex items-center justify-center translate-y-[120%] transition-transform duration-150 z-10";
+                setTimeout(() => {
+                    if (!h.active) target.innerHTML = "";
+                }, 150);
+            }
+        }
+
+        /* ==========================================================
+           8. WHACK / HIT RESOLUTION
+           ========================================================== */
+        function whackHole(index) {
+            if (!isPlaying || isTransitioning) return;
+
+            const h = holes[index];
+            const holeEl = document.getElementById(`hole-${index}`);
+            const target = document.getElementById(`target-${index}`);
+            const pop = document.getElementById(`pop-${index}`);
+
+            // Small tactile vibration on mobile
+            if (navigator.vibrate) navigator.vibrate(25);
+
+            if (h.active && h.type) {
+                const currentType = h.type;
+                clearTimeout(h.timer);
+                clearTimeout(h.warningTimer);
+                h.active = false;
+                h.type = null;
+
+                target.classList.remove('animate-pop-up');
+                target.classList.add('animate-hit');
+
+                if (currentType === 'demon') {
+                    demonsHit++;
+                    combo++;
+                    if (combo > maxCombo) maxCombo = combo;
+
+                    const comboBonus = Math.min(combo * 10, 100);
+                    const pts = 100 + comboBonus;
+                    score += pts;
+
+                    playHitSound();
+                    showFloatingText(pop, `+${pts}`, 'text-amber-400');
+                } else if (currentType === 'gold_demon') {
+                    demonsHit++;
+                    combo += 2;
+                    if (combo > maxCombo) maxCombo = combo;
+
+                    const pts = 250;
+                    score += pts;
+
+                    playGoldSound();
+                    showFloatingText(pop, `+${pts} 爆擊!`, 'text-yellow-300 font-extrabold');
+                } else if (currentType === 'angel') {
+                    angelsHit++;
+                    combo = 0; // reset combo
+                    score = Math.max(0, score - 150);
+
+                    playAngelHitSound();
+                    holeEl.classList.add('shaking');
+                    setTimeout(() => holeEl.classList.remove('shaking'), 250);
+                    showFloatingText(pop, `-150 誤傷!`, 'text-cyan-300');
+                }
+
+                // Reset hole DOM after hit animation
+                setTimeout(() => {
+                    hideHoleCreature(index);
+                }, 160);
+            } else {
+                // Empty hit: slight combo break penalty
+                if (combo > 2) combo = Math.floor(combo / 2);
+            }
+
+            updateDashboardUI();
+        }
+
+        function showFloatingText(element, text, colorClass) {
+            element.className = `absolute inset-0 flex items-center justify-center font-black text-sm pointer-events-none z-30 font-mono ${colorClass} transition-all duration-300 transform -translate-y-4 opacity-100`;
+            element.textContent = text;
+            setTimeout(() => {
+                element.className = "absolute inset-0 flex items-center justify-center font-black text-sm pointer-events-none opacity-0 z-30 font-mono";
+            }, 350);
+        }
+
+        function updateDashboardUI() {
+            document.getElementById("scoreDisplay").textContent = score;
+            const comboEl = document.getElementById("comboBadge");
+            if (combo > 1) {
+                comboEl.textContent = `連擊: ${combo}x 🔥`;
+                comboEl.className = "text-[9px] font-black text-amber-400 animate-pulse";
+            } else {
+                comboEl.textContent = `連擊: 0x`;
+                comboEl.className = "text-[9px] font-bold text-slate-500";
+            }
+
+            // Stage pill text
+            document.getElementById("stageBadgeText").textContent = `關卡 ${currentStage}`;
+            const sub = document.getElementById("stageStatusSmall");
+            if (currentStage === 1) sub.textContent = "單目標";
+            else if (currentStage === 2) sub.textContent = "雙目標連發";
+            else sub.textContent = "地獄三連發";
+        }
+
+        /* ==========================================================
+           9. KEYBOARD SHORTCUTS
+           ========================================================== */
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "Space") {
+                e.preventDefault();
+                handleStartButtonClick();
+                return;
+            }
+
+            if (KEY_MAP.hasOwnProperty(e.key)) {
+                e.preventDefault();
+                whackHole(KEY_MAP[e.key]);
+            }
+        });
+
+        /* ==========================================================
+           10. LEADERBOARD SYSTEM (In-Memory + Session Fallback)
+           ========================================================== */
+        let leaderboardData = [
+            { name: "路西法獵人", score: 3820, stage: 3, date: "今日" },
+            { name: "神槌小美", score: 2950, stage: 2, date: "昨日" },
+            { name: "聖光遊俠", score: 2410, stage: 2, date: "3天前" },
+            { name: "街機之王", score: 1800, stage: 1, date: "5天前" }
+        ];
+
+        function saveScoreRecord() {
+            leaderboardData.push({
+                name: playerName,
+                score: score,
+                stage: currentStage,
+                date: "剛剛"
+            });
+            leaderboardData.sort((a, b) => b.score - a.score);
+            if (leaderboardData.length > 20) leaderboardData = leaderboardData.slice(0, 20);
+        }
+
+        function openLeaderboard() {
+            renderLeaderboard();
+            document.getElementById("leaderboardModal").classList.remove("hidden");
+        }
+
+        function closeLeaderboard() {
+            document.getElementById("leaderboardModal").classList.add("hidden");
+        }
+
+        function renderLeaderboard() {
+            const list = document.getElementById("leaderboardList");
+            list.innerHTML = "";
+
+            leaderboardData.forEach((item, index) => {
+                const row = document.createElement("div");
+                const isCurrent = item.name === playerName && item.score === score;
+
+                let rankBadge = `<span class="w-5 text-center font-bold text-slate-500">${index + 1}</span>`;
+                if (index === 0) rankBadge = `<span class="w-5 text-center text-amber-400 font-extrabold text-sm">🥇</span>`;
+                else if (index === 1) rankBadge = `<span class="w-5 text-center text-slate-300 font-extrabold text-sm">🥈</span>`;
+                else if (index === 2) rankBadge = `<span class="w-5 text-center text-amber-600 font-extrabold text-sm">🥉</span>`;
+
+                row.className = `flex items-center justify-between p-2 rounded-lg border ${
+                    isCurrent ? 'bg-amber-500/10 border-amber-500/40 text-amber-200' : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                }`;
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        ${rankBadge}
+                        <div class="flex flex-col">
+                            <span class="font-bold truncate max-w-[120px]">${item.name}</span>
+                            <span class="text-[9px] text-slate-400">第 ${item.stage} 關 • ${item.date}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-black text-amber-400 font-mono text-sm">${item.score}</span>
+                        <span class="text-[9px] text-slate-500 block">PTS</span>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        /* ==========================================================
+           11. INIT ON WINDOW LOAD
+           ========================================================== */
+        window.addEventListener("DOMContentLoaded", () => {
+            buildArena();
+            // Automatically prompt player name dialog at first launch
+            openNameModal();
+        });
+    </script>
+</body>
+</html>
