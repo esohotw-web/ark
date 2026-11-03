@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>打擊魔鬼街機挑戰</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Web Audio Synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        arcade: {
+                            base: '#080911',
+                            panel: '#101322',
+                            red: '#ff1744',
+                            gold: '#ffb300',
+                            blue: '#00e5ff',
+                            purple: '#7c4dff'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-red': '0 0 15px rgba(255, 23, 68, 0.65)',
+                        'neon-gold': '0 0 15px rgba(255, 179, 0, 0.65)',
+                        'neon-blue': '0 0 15px rgba(0, 229, 255, 0.65)',
+                        'hole-inset': 'inset 0 6px 12px rgba(0, 0, 0, 0.95), inset 0 -2px 4px rgba(255, 255, 255, 0.05)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #080911;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
+        }
+
+        /* 敲擊動畫 */
+        @keyframes whackImpact {
+            0% { transform: scale(1); filter: brightness(1); }
+            40% { transform: scale(0.86); filter: brightness(2.2); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        .impact-anim {
+            animation: whackImpact 0.22s ease-out forwards;
+        }
+
+        /* 警告燈呼吸閃爍 */
+        @keyframes redPulse {
+            0%, 100% { opacity: 0.25; filter: drop-shadow(0 0 1px #ff1744); }
+            50% { opacity: 1; filter: drop-shadow(0 0 8px #ff1744); }
+        }
+        .warning-red {
+            animation: redPulse 0.25s infinite ease-in-out;
+        }
+
+        @keyframes bluePulse {
+            0%, 100% { opacity: 0.25; filter: drop-shadow(0 0 1px #00e5ff); }
+            50% { opacity: 1; filter: drop-shadow(0 0 8px #00e5ff); }
+        }
+        .warning-blue {
+            animation: bluePulse 0.25s infinite ease-in-out;
+        }
+
+        /* 浮動得分飄字 */
+        @keyframes floatUpFade {
+            0% { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
+            20% { opacity: 1; transform: translate(-50%, -10px) scale(1.15); }
+            80% { opacity: 1; transform: translate(-50%, -30px) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -45px) scale(0.85); }
+        }
+        .float-text {
+            position: absolute;
+            pointer-events: none;
+            animation: floatUpFade 0.65s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            z-index: 40;
+            font-weight: 900;
+        }
+
+        /* 柔和捲軸 */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-[100dvh] max-h-[100dvh] w-full text-slate-100 overflow-hidden bg-arcade-base">
+
+    <!-- 主容器：使用 flex-1 與 min-h-0 杜絕任何滾動 -->
+    <div class="flex-1 min-h-0 w-full max-w-md mx-auto flex flex-col justify-between p-2 sm:p-3 select-none">
+        
+        <!-- 頂部資訊列 (HEADER) -->
+        <header class="flex items-center justify-between gap-1.5 pb-1 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-1.5">
+                <span class="w-7 h-7 rounded-lg bg-rose-600/20 border border-rose-500/50 flex items-center justify-center text-rose-500 text-sm shadow-neon-red">
+                    <i class="fa-solid fa-ghost"></i>
+                </span>
+                <div>
+                    <h1 class="text-xs font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-amber-400 to-rose-400 leading-none">打擊魔鬼</h1>
+                    <span class="text-[9px] text-slate-500 font-mono">ARCADE EX</span>
+                </div>
+            </div>
+
+            <!-- 關卡標籤 -->
+            <div id="stageBadge" class="px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/60 text-rose-300 text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                <span id="stageLabel">第 1 關</span>
+            </div>
+
+            <!-- 玩家名與排行按鈕 -->
+            <div class="flex items-center gap-1">
+                <button onclick="openNameModal()" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-medium text-slate-200 flex items-center gap-1 max-w-[85px] truncate">
+                    <i class="fa-solid fa-user text-amber-400 text-[10px]"></i>
+                    <span id="headerPlayerName" class="truncate">獵魔勇者</span>
+                </button>
+                <button onclick="openLeaderboard()" class="w-7 h-7 rounded-md bg-amber-500/20 border border-amber-500/50 text-amber-400 hover:bg-amber-500/30 flex items-center justify-center text-xs shadow-neon-gold">
+                    <i class="fa-solid fa-trophy"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 儀表看板 (SCORE / TIMER / HIGH) -->
+        <section class="grid grid-cols-3 gap-1.5 my-1 text-center flex-shrink-0">
+            <!-- 分數面板 -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-1.5 flex flex-col justify-center">
+                <div class="text-[9px] tracking-wider font-bold text-slate-400 uppercase">Score 得分</div>
+                <div id="scoreDisplay" class="text-lg sm:text-xl font-black text-amber-400 font-mono leading-tight">0</div>
+                <div id="comboBadge" class="text-[9px] font-extrabold text-rose-400 h-3 leading-3 truncate">連擊: 0x</div>
+            </div>
+            
+            <!-- 倒數時間 -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-1.5 flex flex-col justify-center relative overflow-hidden">
+                <div class="text-[9px] tracking-wider font-bold text-slate-400 uppercase">Time 倒數</div>
+                <div id="timerDisplay" class="text-lg sm:text-xl font-black text-rose-500 font-mono leading-tight">30</div>
+                <!-- 倒數進度條 -->
+                <div class="w-full bg-slate-800 h-1 rounded-full mt-0.5 overflow-hidden">
+                    <div id="timerBar" class="h-full bg-gradient-to-r from-amber-400 to-rose-500 transition-all duration-300 w-full"></div>
+                </div>
+            </div>
+
+            <!-- 最高紀錄 -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-1.5 flex flex-col justify-center">
+                <div class="text-[9px] tracking-wider font-bold text-slate-400 uppercase">Best 最高</div>
+                <div id="highScoreDisplay" class="text-lg sm:text-xl font-black text-slate-200 font-mono leading-tight">0</div>
+                <div id="targetCount" class="text-[9px] text-slate-400 h-3 leading-3 truncate">擊殺: 0</div>
+            </div>
+        </section>
+
+        <!-- 核心打擊九宮格 (3欄 x 4列 = 12洞口，等比擴充) -->
+        <main class="flex-1 min-h-0 w-full flex items-center justify-center py-1">
+            <div id="arenaGrid" class="w-full h-full max-h-[58vh] aspect-[3/4] grid grid-cols-3 grid-rows-4 gap-2 sm:gap-2.5 p-2 bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800/90 rounded-2xl shadow-2xl relative">
+                <!-- 12 個洞口由 JavaScript 自動填入 -->
+            </div>
+        </main>
+
+        <!-- 底部控制按鈕列 (FOOTER) -->
+        <footer class="pt-1 flex flex-col gap-1 flex-shrink-0">
+            <button id="startBtn" onclick="handleStartButtonClick()" class="w-full py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-rose-600 via-red-500 to-amber-500 text-white font-black text-sm tracking-widest shadow-neon-red active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span id="startBtnText">投幣啟動 / START</span>
+            </button>
+
+            <!-- 快速計分規則列 -->
+            <div class="flex items-center justify-between text-[10px] text-slate-400 px-1 py-0.5 font-mono">
+                <span class="flex items-center gap-1 text-rose-400"><i class="fa-solid fa-circle text-[6px]"></i>魔鬼 +100</span>
+                <span class="flex items-center gap-1 text-cyan-400"><i class="fa-solid fa-circle text-[6px]"></i>天使 -150</span>
+                <span class="flex items-center gap-1 text-amber-400"><i class="fa-solid fa-crown text-[8px]"></i>魔王 +200</span>
+                <span class="text-slate-500">三關極限制</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 關卡轉換提示橫幅 (TRANSITION BANNER) -->
+    <div id="stageTransitionBanner" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/60 flex items-center justify-center text-amber-400 text-3xl shadow-neon-gold mb-3 animate-bounce">
+            <i class="fa-solid fa-forward-step"></i>
+        </div>
+        <h2 id="transTitle" class="text-2xl font-black text-amber-400 mb-1">第二關即將開始！</h2>
+        <p id="transDesc" class="text-xs text-slate-300 mb-4 max-w-xs">小心！魔鬼將同時兩隻竄出，注意不要誤傷天使！</p>
+        <div id="transCountdown" class="text-4xl font-black text-rose-500 font-mono animate-pulse">3</div>
+    </div>
+
+    <!-- 遊戲結束結算彈窗 (GAME OVER MODAL) -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-rose-500/40 rounded-2xl w-full max-w-xs p-4 flex flex-col items-center text-center shadow-neon-red">
+            <div class="w-12 h-12 rounded-full bg-rose-600/20 border border-rose-500 text-rose-400 flex items-center justify-center text-xl mb-2">
+                <i class="fa-solid fa-skull"></i>
+            </div>
+            <h3 class="text-base font-black text-white">遊戲結算挑戰結束</h3>
+            <p id="settleRankTag" class="text-xs font-bold text-amber-400 mb-3">S級 • 地獄獵魔宗師</p>
+
+            <!-- 數據統計格 -->
+            <div class="w-full bg-slate-950/80 rounded-xl p-2.5 border border-slate-800 space-y-1.5 mb-3 text-xs">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span>最終得分</span>
+                    <span id="settleScore" class="font-black text-amber-400 font-mono text-base">0</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-[11px]">
+                    <span>擊退魔鬼</span>
+                    <span id="settleDemons" class="font-bold text-slate-200">0 隻</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-[11px]">
+                    <span>誤傷天使</span>
+                    <span id="settleAngels" class="font-bold text-cyan-400">0 次</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-[11px]">
+                    <span>最高連擊</span>
+                    <span id="settleCombo" class="font-bold text-rose-400">0x</span>
+                </div>
+            </div>
+
+            <div class="w-full flex flex-col gap-2">
+                <button onclick="handlePlayAgain()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-500 text-white font-black text-xs shadow-md active:scale-95 transition-all">
+                    再次挑戰 / PLAY AGAIN
+                </button>
+                <button onclick="openLeaderboard()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-trophy"></i> 查看英雄排行榜
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 玩家名字輸入彈窗 (PLAYER NAME MODAL) -->
+    <div id="nameModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xs p-4 flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-id-badge text-amber-400"></i>
+                    <h3 class="text-xs font-black text-white">設定勇者暱稱</h3>
+                </div>
+                <button onclick="closeNameModal()" class="text-slate-400 hover:text-white text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-[10px] text-slate-400 mb-2 leading-relaxed">
+                規則：純中文最多 5 字、純英文最多 10 字母、中英混合上限 15 字元。
+            </p>
+
+            <input id="playerNameInput" type="text" maxlength="15" placeholder="輸入您的勇者稱號..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 text-xs focus:outline-none focus:border-amber-400 mb-1" />
+            <div id="nameError" class="text-[10px] text-rose-400 h-4 leading-4"></div>
+
+            <div class="flex gap-2 mt-2">
+                <button onclick="savePlayerName()" class="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs active:scale-95 transition-all">
+                    確定並儲存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 英雄排行榜彈窗 (LEADERBOARD MODAL) -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/40 rounded-2xl w-full max-w-xs max-h-[80vh] flex flex-col p-4 shadow-neon-gold">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <h3 class="text-xs font-black text-amber-400">全球英雄榜 (跨裝置同步)</h3>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span id="syncStatusBadge" class="text-[8px] px-1 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 已連線
+                    </span>
+                    <button onclick="closeLeaderboard()" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-[10px]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 排行榜清單 -->
+            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-1 pr-1 py-1 text-xs">
+                <!-- 動態注入 -->
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 mt-2 flex gap-2">
+                <button onclick="fetchOnlineLeaderboard(true)" class="flex-1 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold active:scale-95 transition-transform flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-arrows-rotate"></i> 重新整理
+                </button>
+                <button onclick="closeLeaderboard()" class="flex-1 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black active:scale-95 transition-transform">
+                    返回
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME LOGIC -->
+    <script>
+        /* ==========================================================
+           1. CONSTANTS & GAME STATE
+           ========================================================== */
+        const TOTAL_HOLES = 12; // 3 欄 x 4 列 = 12 個洞口
+        const STAGE_DURATION = 30; // 每一關 30 秒
+
+        let currentStage = 1;      // 1, 2, 3
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem("demon_strike_highscore") || "0", 10);
+        let timeLeft = STAGE_DURATION;
+        let combo = 0;
+        let maxCombo = 0;
+        let demonsHit = 0;
+        let angelsHit = 0;
+
+        let isPlaying = false;
+        let isTransitioning = false;
+        let playerName = localStorage.getItem("demon_strike_player_name") || "獵魔勇者";
+
+        let mainTimerInterval = null;
+        let spawnLoopTimeout = null;
+
+        // 洞口狀態管理
+        // holeState: { active: bool, type: 'demon'|'gold'|'angel', timeoutId, warningTimeoutId }
+        const holes = Array.from({ length: TOTAL_HOLES }, () => ({
+            active: false,
+            type: null,
+            timeoutId: null,
+            warningTimeoutId: null
+        }));
+
+        // 鍵盤映射 (九宮格與一般英文字母)
+        const KEY_MAP = {
+            '1': 0, '2': 1, '3': 2,
+            '4': 3, '5': 4, '6': 5,
+            '7': 6, '8': 7, '9': 8,
+            '*': 9, '0': 10, '#': 11,
+            'q': 0, 'w': 1, 'e': 2,
+            'a': 3, 's': 4, 'd': 5,
+            'z': 6, 'x': 7, 'c': 8,
+            'v': 9, 'b': 10, 'n': 11
+        };
+
+        /* ==========================================================
+           2. TONE.JS AUDIO SYNTHESIS
+           ========================================================== */
+        let audioInitialized = false;
+        let sfxHit = null;
+        let sfxAngel = null;
+        let sfxGold = null;
+        let sfxWarn = null;
+        let sfxStage = null;
+        let bgmSynth = null;
+        let bgmLoop = null;
+
+        function initAudio() {
+            if (audioInitialized) return;
+            try {
+                Tone.start();
+
+                // 打擊魔鬼音效 (清脆街機敲擊打擊感)
+                sfxHit = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 4,
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 }
+                }).toDestination();
+
+                // 打到天使扣分音效 (低音錯誤蜂鳴)
+                sfxAngel = new Tone.Synth({
+                    oscillator: { type: "sawtooth" },
+                    envelope: { attack: 0.01, decay: 0.35, sustain: 0, release: 0.1 }
+                }).toDestination();
+
+                // 金色魔王音效 (高音和弦鈴音)
+                sfxGold = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.01, decay: 0.25, sustain: 0.1, release: 0.3 }
+                }).toDestination();
+
+                // 警告燈預警音 (短嗶聲)
+                sfxWarn = new Tone.Synth({
+                    oscillator: { type: "square" },
+                    envelope: { attack: 0.005, decay: 0.06, sustain: 0, release: 0.02 },
+                    volume: -12
+                }).toDestination();
+
+                // 關卡晉升音效
+                sfxStage = new Tone.PolySynth(Tone.Synth, {
+                    volume: -4
+                }).toDestination();
+
+                // 背景節奏合成器
+                bgmSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    volume: -14
+                }).toDestination();
+
+                // 背景音律旋律 (8-bit 循環)
+                const bassNotes = ["C3", "E3", "G3", "B2", "A2", "C3", "E3", "G2"];
+                let noteIndex = 0;
+                bgmLoop = new Tone.Loop((time) => {
+                    const note = bassNotes[noteIndex % bassNotes.length];
+                    bgmSynth.triggerAttackRelease(note, "16n", time);
+                    noteIndex++;
+                }, "8n");
+
+                audioInitialized = true;
+            } catch (e) {
+                console.warn("Audio initialization issue:", e);
+            }
+        }
+
+        function playHitSound() {
+            if (!audioInitialized) return;
+            sfxHit?.triggerAttackRelease("C2", "8n");
+        }
+
+        function playAngelSound() {
+            if (!audioInitialized) return;
+            sfxAngel?.triggerAttackRelease("F#1", "4n");
+        }
+
+        function playGoldSound() {
+            if (!audioInitialized) return;
+            sfxGold?.triggerAttackRelease(["E5", "G#5", "B5"], "8n");
+        }
+
+        function playWarningSound() {
+            if (!audioInitialized) return;
+            sfxWarn?.triggerAttackRelease("A5", "32n");
+        }
+
+        function playStageUpSound() {
+            if (!audioInitialized) return;
+            sfxStage?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n");
+        }
+
+        function startBGM(bpm = 135) {
+            if (!audioInitialized) return;
+            Tone.Transport.bpm.value = bpm;
+            bgmLoop.start(0);
+            Tone.Transport.start();
+        }
+
+        function stopBGM() {
+            if (!audioInitialized) return;
+            bgmLoop?.stop();
+            Tone.Transport?.stop();
+        }
+
+        /* ==========================================================
+           3. ARENA CREATION & SVG SPRITES
+           ========================================================== */
+        // 魔鬼 SVG 圖標
+        const DEVIL_SVG = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_8px_rgba(255,23,68,0.7)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="#e11d48"/>
+                <path d="M 28 26 L 16 8 Q 30 16 38 24 Z" fill="#9f1239"/>
+                <path d="M 72 26 L 84 8 Q 70 16 62 24 Z" fill="#9f1239"/>
+                <circle cx="36" cy="46" r="6" fill="#0f172a"/>
+                <circle cx="64" cy="46" r="6" fill="#0f172a"/>
+                <circle cx="38" cy="44" r="2" fill="#ffedd5"/>
+                <circle cx="66" cy="44" r="2" fill="#ffedd5"/>
+                <path d="M 36 64 Q 50 78 64 64" stroke="#0f172a" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <polygon points="42,65 46,72 50,65" fill="#ffffff"/>
+                <polygon points="50,65 54,72 58,65" fill="#ffffff"/>
+            </svg>
+        `;
+
+        // 金色魔王 SVG 圖標
+        const GOLD_DEVIL_SVG = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_12px_rgba(255,179,0,0.85)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="#f59e0b"/>
+                <path d="M 28 26 L 14 6 Q 30 16 38 24 Z" fill="#b45309"/>
+                <path d="M 72 26 L 86 6 Q 70 16 62 24 Z" fill="#b45309"/>
+                <circle cx="36" cy="46" r="6" fill="#451a03"/>
+                <circle cx="64" cy="46" r="6" fill="#451a03"/>
+                <circle cx="38" cy="44" r="2" fill="#fff"/>
+                <circle cx="66" cy="44" r="2" fill="#fff"/>
+                <path d="M 34 62 Q 50 82 66 62" stroke="#451a03" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <polygon points="40,63 45,73 50,63" fill="#ffffff"/>
+                <polygon points="50,63 55,73 60,63" fill="#ffffff"/>
+                <!-- 皇冠 -->
+                <path d="M 38 18 L 44 26 L 50 14 L 56 26 L 62 18 L 60 28 L 40 28 Z" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/>
+            </svg>
+        `;
+
+        // 天使 SVG 圖標
+        const ANGEL_SVG = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_8px_rgba(0,229,255,0.7)]" viewBox="0 0 100 100">
+                <!-- 光環 -->
+                <ellipse cx="50" cy="14" rx="22" ry="5" fill="none" stroke="#fef08a" stroke-width="4"/>
+                <circle cx="50" cy="52" r="35" fill="#f8fafc"/>
+                <circle cx="36" cy="48" r="5" fill="#0284c7"/>
+                <circle cx="64" cy="48" r="5" fill="#0284c7"/>
+                <ellipse cx="30" cy="56" rx="4" ry="2" fill="#f472b6" opacity="0.6"/>
+                <ellipse cx="70" cy="56" rx="4" ry="2" fill="#f472b6" opacity="0.6"/>
+                <path d="M 40 64 Q 50 72 60 64" stroke="#0369a1" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        function buildArena() {
+            const grid = document.getElementById("arenaGrid");
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                const hole = document.createElement("div");
+                hole.className = "relative rounded-xl bg-slate-950 shadow-hole-inset flex items-center justify-center overflow-hidden border border-slate-800/80 cursor-pointer active:scale-95 transition-transform";
+                hole.id = `hole-${i}`;
+                
+                hole.innerHTML = `
+                    <!-- 頂部信號指示燈 -->
+                    <div id="light-${i}" class="absolute top-1.5 w-3 h-1.5 rounded-full bg-slate-800 transition-all opacity-40"></div>
+                    
+                    <!-- 角色彈出容器 -->
+                    <div id="char-${i}" class="w-full h-full flex items-center justify-center transform translate-y-full transition-transform duration-150 ease-out">
+                        <!-- 動態插入 SVG -->
+                    </div>
+
+                    <!-- 洞口邊緣光暈 -->
+                    <div id="rim-${i}" class="absolute inset-0 rounded-xl pointer-events-none border border-transparent transition-colors"></div>
+                `;
+
+                // 綁定點擊與觸控擊打
+                hole.addEventListener("pointerdown", (e) => {
+                    e.preventDefault();
+                    whackHole(i);
+                });
+
+                grid.appendChild(hole);
+            }
+        }
+
+        /* ==========================================================
+           4. GAME MECHANICS & LOOP
+           ========================================================== */
+        function handleStartButtonClick() {
+            initAudio();
+            if (isPlaying) {
+                endGame();
+            } else {
+                startGame();
+            }
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            isPlaying = true;
+            isTransitioning = false;
+            currentStage = 1;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            demonsHit = 0;
+            angelsHit = 0;
+            timeLeft = STAGE_DURATION;
+
+            updateStatsUI();
+            updateStageUI();
+
+            const startBtn = document.getElementById("startBtn");
+            startBtn.classList.remove("from-rose-600", "via-red-500", "to-amber-500");
+            startBtn.classList.add("from-slate-700", "to-slate-800");
+            document.getElementById("startBtnText").innerText = "中止遊戲 / STOP";
+
+            startBGM(130);
+            startTimer();
+            scheduleNextSpawn();
+        }
+
+        function startTimer() {
+            clearInterval(mainTimerInterval);
+            mainTimerInterval = setInterval(() => {
+                if (isTransitioning) return;
+
+                timeLeft--;
+                document.getElementById("timerDisplay").innerText = String(timeLeft).padStart(2, '0');
+                const progressPct = (timeLeft / STAGE_DURATION) * 100;
+                document.getElementById("timerBar").style.width = `${progressPct}%`;
+
+                if (timeLeft <= 0) {
+                    if (currentStage === 1) {
+                        transitionToStage(2, "進入第二關：雙魔齊舞！", "注意！魔鬼開始成雙出現或時間差竄出！", 152);
+                    } else if (currentStage === 2) {
+                        transitionToStage(3, "進入第三關：地獄降臨！", "極限挑戰！同步三隻竄出，眼明手快全神貫注！", 175);
+                    } else {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function transitionToStage(nextStage, title, desc, bpm) {
+            isTransitioning = true;
+            clearAllHoles();
+            playStageUpSound();
+
+            const banner = document.getElementById("stageTransitionBanner");
+            document.getElementById("transTitle").innerText = title;
+            document.getElementById("transDesc").innerText = desc;
+            
+            let count = 3;
+            document.getElementById("transCountdown").innerText = count;
+            banner.classList.remove("hidden");
+
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    document.getElementById("transCountdown").innerText = count;
+                    playWarningSound();
+                } else {
+                    clearInterval(countInterval);
+                    banner.classList.add("hidden");
+                    currentStage = nextStage;
+                    timeLeft = STAGE_DURATION;
+                    isTransitioning = false;
+                    updateStageUI();
+                    startBGM(bpm);
+                    scheduleNextSpawn();
+                }
+            }, 1000);
+        }
+
+        function updateStageUI() {
+            const label = document.getElementById("stageLabel");
+            const badge = document.getElementById("stageBadge");
+            if (currentStage === 1) {
+                label.innerText = "第 1 關 (單體)";
+                badge.className = "px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/60 text-blue-300 text-[10px] font-bold flex items-center gap-1";
+            } else if (currentStage === 2) {
+                label.innerText = "第 2 關 (雙擊)";
+                badge.className = "px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/60 text-amber-300 text-[10px] font-bold flex items-center gap-1";
+            } else {
+                label.innerText = "第 3 關 (地獄三魔)";
+                badge.className = "px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/60 text-rose-300 text-[10px] font-bold flex items-center gap-1 shadow-neon-red";
+            }
+        }
+
+        /* ==========================================================
+           5. SPAWN LOGIC & TIMING
+           ========================================================== */
+        function scheduleNextSpawn() {
+            if (!isPlaying || isTransitioning) return;
+
+            // 根據關卡決定隨機生成的目標數
+            let targetCount = 1;
+            if (currentStage === 2) {
+                targetCount = Math.random() < 0.65 ? 2 : 1;
+            } else if (currentStage === 3) {
+                const rand = Math.random();
+                targetCount = rand < 0.5 ? 3 : (rand < 0.85 ? 2 : 1);
+            }
+
+            // 隨機選取閒置洞口
+            const availableHoles = [];
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                if (!holes[i].active) availableHoles.push(i);
+            }
+
+            // 洗牌打亂
+            availableHoles.sort(() => Math.random() - 0.5);
+            const chosen = availableHoles.slice(0, targetCount);
+
+            chosen.forEach((holeIdx, index) => {
+                // 若多隻出現，可有微小的時間差竄出
+                const delay = (currentStage >= 2 && Math.random() < 0.5) ? (index * 160) : 0;
+                setTimeout(() => {
+                    spawnTargetAtHole(holeIdx);
+                }, delay);
+            });
+
+            // 下一次生成的節奏間隔
+            let nextDelay = 800;
+            if (currentStage === 1) {
+                nextDelay = 650 + Math.random() * 350;
+            } else if (currentStage === 2) {
+                nextDelay = 500 + Math.random() * 300;
+            } else {
+                nextDelay = 380 + Math.random() * 260;
+            }
+
+            clearTimeout(spawnLoopTimeout);
+            spawnLoopTimeout = setTimeout(scheduleNextSpawn, nextDelay);
+        }
+
+        function spawnTargetAtHole(index) {
+            if (!isPlaying || holes[index].active) return;
+
+            const hole = holes[index];
+            hole.active = true;
+
+            // 決定目標種類
+            const rand = Math.random();
+            if (rand < 0.16) {
+                hole.type = 'angel'; // 干擾天使
+            } else if (rand < 0.30) {
+                hole.type = 'gold';  // 金色魔王
+            } else {
+                hole.type = 'demon'; // 普通魔鬼
+            }
+
+            const lightEl = document.getElementById(`light-${index}`);
+            const charEl = document.getElementById(`char-${index}`);
+            const rimEl = document.getElementById(`rim-${index}`);
+
+            // 頂部信號燈預告
+            playWarningSound();
+            if (hole.type === 'angel') {
+                lightEl.className = "absolute top-1.5 w-3.5 h-1.5 rounded-full bg-cyan-400 warning-blue";
+                rimEl.className = "absolute inset-0 rounded-xl pointer-events-none border border-cyan-500/40 transition-colors";
+            } else if (hole.type === 'gold') {
+                lightEl.className = "absolute top-1.5 w-3.5 h-1.5 rounded-full bg-amber-400 warning-gold";
+                rimEl.className = "absolute inset-0 rounded-xl pointer-events-none border border-amber-500/50 transition-colors";
+            } else {
+                lightEl.className = "absolute top-1.5 w-3.5 h-1.5 rounded-full bg-rose-500 warning-red";
+                rimEl.className = "absolute inset-0 rounded-xl pointer-events-none border border-rose-500/40 transition-colors";
+            }
+
+            // 預告 160ms 後竄出
+            hole.warningTimeoutId = setTimeout(() => {
+                if (!hole.active) return;
+
+                // 填入 SVG
+                if (hole.type === 'angel') charEl.innerHTML = ANGEL_SVG;
+                else if (hole.type === 'gold') charEl.innerHTML = GOLD_DEVIL_SVG;
+                else charEl.innerHTML = DEVIL_SVG;
+
+                // 竄出動畫
+                charEl.style.transform = "translateY(0%)";
+
+                // 停留時間（停留結束自動縮回）
+                let stayDuration = 850;
+                if (currentStage === 2) stayDuration = 680;
+                if (currentStage === 3) stayDuration = 520;
+
+                hole.timeoutId = setTimeout(() => {
+                    hideHole(index);
+                }, stayDuration);
+            }, 160);
+        }
+
+        function hideHole(index) {
+            const hole = holes[index];
+            clearTimeout(hole.timeoutId);
+            clearTimeout(hole.warningTimeoutId);
+
+            const charEl = document.getElementById(`char-${index}`);
+            const lightEl = document.getElementById(`light-${index}`);
+            const rimEl = document.getElementById(`rim-${index}`);
+
+            if (charEl) charEl.style.transform = "translateY(100%)";
+            if (lightEl) lightEl.className = "absolute top-1.5 w-3 h-1.5 rounded-full bg-slate-800 transition-all opacity-40";
+            if (rimEl) rimEl.className = "absolute inset-0 rounded-xl pointer-events-none border border-transparent transition-colors";
+
+            hole.active = false;
+            hole.type = null;
+        }
+
+        function clearAllHoles() {
+            clearTimeout(spawnLoopTimeout);
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                hideHole(i);
+            }
+        }
+
+        /* ==========================================================
+           6. WHACKING LOGIC
+           ========================================================== */
+        function whackHole(index) {
+            if (!isPlaying || isTransitioning) return;
+            const hole = holes[index];
+            const holeEl = document.getElementById(`hole-${index}`);
+
+            // 打擊震動特效
+            holeEl.classList.remove("impact-anim");
+            void holeEl.offsetWidth;
+            holeEl.classList.add("impact-anim");
+
+            if (!hole.active || !hole.type) {
+                // 揮空：中斷連擊
+                combo = 0;
+                updateStatsUI();
+                return;
+            }
+
+            const targetType = hole.type;
+            const rect = holeEl.getBoundingClientRect();
+            const posX = rect.left + rect.width / 2;
+            const posY = rect.top + rect.height / 2;
+
+            if (targetType === 'demon') {
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+                demonsHit++;
+                const bonus = Math.min((combo - 1) * 10, 150);
+                const gained = 100 + bonus;
+                score += gained;
+                playHitSound();
+                showFloatingText(`+${gained}`, posX, posY, "#fb7185");
+            } else if (targetType === 'gold') {
+                combo += 2;
+                if (combo > maxCombo) maxCombo = combo;
+                demonsHit++;
+                const gained = 200 + (combo * 15);
+                score += gained;
+                playGoldSound();
+                showFloatingText(`+${gained} CRIT!`, posX, posY, "#f59e0b");
+            } else if (targetType === 'angel') {
+                // 誤傷天使扣分並歸零連擊
+                combo = 0;
+                angelsHit++;
+                score = Math.max(0, score - 150);
+                playAngelSound();
+                showFloatingText("-150 誤擊!", posX, posY, "#38bdf8");
+            }
+
+            hideHole(index);
+            updateStatsUI();
+        }
+
+        function showFloatingText(text, x, y, color) {
+            const el = document.createElement("div");
+            el.className = "float-text text-sm sm:text-base";
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.color = color;
+            el.innerText = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 700);
+        }
+
+        function updateStatsUI() {
+            document.getElementById("scoreDisplay").innerText = score;
+            document.getElementById("targetCount").innerText = `擊殺: ${demonsHit}`;
+            
+            const comboEl = document.getElementById("comboBadge");
+            if (combo > 1) {
+                comboEl.innerText = `連擊: ${combo}x 🔥`;
+                comboEl.classList.add("animate-pulse");
+            } else {
+                comboEl.innerText = `連擊: ${combo}x`;
+                comboEl.classList.remove("animate-pulse");
+            }
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem("demon_strike_highscore", highScore);
+            }
+            document.getElementById("highScoreDisplay").innerText = highScore;
+        }
+
+        /* ==========================================================
+           7. GAME OVER & SETTLEMENT
+           ========================================================== */
+        function endGame() {
+            isPlaying = false;
+            clearInterval(mainTimerInterval);
+            clearAllHoles();
+            stopBGM();
+
+            const startBtn = document.getElementById("startBtn");
+            startBtn.classList.add("from-rose-600", "via-red-500", "to-amber-500");
+            startBtn.classList.remove("from-slate-700", "to-slate-800");
+            document.getElementById("startBtnText").innerText = "投幣啟動 / START";
+
+            // 統計評語
+            let rankTag = "C級 • 見習驅魔士";
+            if (score >= 4500) rankTag = "EX級 • 傳奇地獄獵神";
+            else if (score >= 3200) rankTag = "S級 • 頂尖驅魔大師";
+            else if (score >= 2000) rankTag = "A級 • 精英聖騎士";
+            else if (score >= 1000) rankTag = "B級 • 熟練獵魔者";
+
+            document.getElementById("settleRankTag").innerText = rankTag;
+            document.getElementById("settleScore").innerText = score;
+            document.getElementById("settleDemons").innerText = `${demonsHit} 隻`;
+            document.getElementById("settleAngels").innerText = `${angelsHit} 次`;
+            document.getElementById("settleCombo").innerText = `${maxCombo}x`;
+
+            document.getElementById("gameOverModal").classList.remove("hidden");
+
+            // 上傳成績至雲端資料庫
+            saveScoreRecord();
+        }
+
+        function handlePlayAgain() {
+            document.getElementById("gameOverModal").classList.add("hidden");
+            startGame();
+        }
+
+        /* ==========================================================
+           8. PLAYER NAME VALIDATION MODAL
+           ========================================================== */
+        function openNameModal() {
+            const input = document.getElementById("playerNameInput");
+            input.value = playerName;
+            document.getElementById("nameError").innerText = "";
+            document.getElementById("nameModal").classList.remove("hidden");
+            input.focus();
+        }
+
+        function closeNameModal() {
+            document.getElementById("nameModal").classList.add("hidden");
+        }
+
+        function validateName(str) {
+            // 純中文最多 5 字、純英文最多 10 字母、混合不超過 15 字元
+            const trimmed = str.trim();
+            if (!trimmed) return { valid: false, msg: "名字不能為空！" };
+
+            const isPureChinese = /^[\u4e00-\u9fa5]+$/.test(trimmed);
+            const isPureEnglish = /^[a-zA-Z0-9\s]+$/.test(trimmed);
+
+            if (isPureChinese) {
+                if (trimmed.length > 5) return { valid: false, msg: "純中文名字最多 5 個字！" };
+            } else if (isPureEnglish) {
+                if (trimmed.length > 10) return { valid: false, msg: "純英文名字最多 10 個字母！" };
+            } else {
+                if (trimmed.length > 15) return { valid: false, msg: "中英混合名字最多 15 個字元！" };
+            }
+
+            return { valid: true, name: trimmed };
+        }
+
+        function savePlayerName() {
+            const input = document.getElementById("playerNameInput");
+            const res = validateName(input.value);
+            if (!res.valid) {
+                document.getElementById("nameError").innerText = res.msg;
+                return;
+            }
+
+            playerName = res.name;
+            localStorage.setItem("demon_strike_player_name", playerName);
+            document.getElementById("headerPlayerName").innerText = playerName;
+            closeNameModal();
+        }
+
+        /* ==========================================================
+           9. KEYBOARD SHORTCUTS
+           ========================================================== */
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "Space") {
+                e.preventDefault();
+                handleStartButtonClick();
+                return;
+            }
+
+            const key = e.key.toLowerCase();
+            if (KEY_MAP.hasOwnProperty(key)) {
+                e.preventDefault();
+                whackHole(KEY_MAP[key]);
+            }
+        });
+
+        /* ==========================================================
+           10. LEADERBOARD SYSTEM (FIREBASE REST REALTIME CLOUD)
+           ========================================================== */
+        let leaderboardData = [
+            { name: "路西法獵人", score: 3820, stage: 3, date: "今日" },
+            { name: "神槌小美", score: 2950, stage: 2, date: "昨日" },
+            { name: "聖光遊俠", score: 2410, stage: 2, date: "3天前" }
+        ];
+
+        // 免金鑰限制、原生支援全球行動裝置跨網域 (CORS) 的公開資料庫端點
+        const FIREBASE_DB_URL = "https://demon-whacker-arcade-default-rtdb.firebaseio.com/scores.json";
+        const LOCAL_STORAGE_KEY = "demon_strike_offline_backup_v3";
+
+        function updateSyncBadge(text, classStyle) {
+            const badge = document.getElementById("syncStatusBadge");
+            if (!badge) return;
+            badge.className = `text-[8px] px-1 py-0.5 rounded border flex items-center gap-1 ${classStyle}`;
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span> ${text}`;
+        }
+
+        async function initCloudStorage() {
+            const localCached = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (localCached) {
+                try {
+                    const parsed = JSON.parse(localCached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        leaderboardData = parsed;
+                        renderLeaderboard();
+                    }
+                } catch(e) {}
+            }
+            await fetchOnlineLeaderboard(false);
+        }
+
+        async function fetchOnlineLeaderboard(showLoading = false) {
+            if (showLoading) {
+                updateSyncBadge("拉取中...", "text-amber-400 bg-amber-950 border-amber-800");
+            }
+
+            try {
+                const response = await fetch(`${FIREBASE_DB_URL}?nocache=${Date.now()}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && typeof data === 'object') {
+                        const remoteList = Object.values(data).filter(item => item && typeof item.score === 'number');
+                        remoteList.sort((a, b) => b.score - a.score);
+                        leaderboardData = remoteList.slice(0, 30);
+                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(leaderboardData));
+                        updateSyncBadge(`全球已連線 (${leaderboardData.length}筆)`, "text-emerald-400 bg-emerald-950 border-emerald-800");
+                        renderLeaderboard();
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Cloud fetch offline, using cache:", err);
+            }
+
+            updateSyncBadge("本機離線", "text-slate-400 bg-slate-900 border-slate-700");
+            renderLeaderboard();
+        }
+
+        async function saveScoreRecord() {
+            const now = new Date();
+            const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const newRecord = {
+                name: playerName,
+                score: score,
+                stage: currentStage,
+                demonsHit: demonsHit,
+                maxCombo: maxCombo,
+                date: dateStr,
+                timestamp: Date.now()
+            };
+
+            // 本機快取
+            leaderboardData.push(newRecord);
+            leaderboardData.sort((a, b) => b.score - a.score);
+            leaderboardData = leaderboardData.slice(0, 30);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(leaderboardData));
+            renderLeaderboard();
+
+            // 雲端即時追加寫入 (Append)
+            updateSyncBadge("成績上傳中...", "text-amber-400 bg-amber-950 border-amber-800");
+            try {
+                const response = await fetch(FIREBASE_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newRecord)
+                });
+                if (response.ok) {
+                    updateSyncBadge("全球成績已同步！", "text-emerald-400 bg-emerald-950 border-emerald-800");
+                    setTimeout(() => fetchOnlineLeaderboard(false), 500);
+                }
+            } catch (err) {
+                console.error("Score upload error:", err);
+                updateSyncBadge("已保存在本機", "text-rose-400 bg-rose-950 border-rose-800");
+            }
+        }
+
+        function openLeaderboard() {
+            renderLeaderboard();
+            document.getElementById("leaderboardModal").classList.remove("hidden");
+            fetchOnlineLeaderboard(true);
+        }
+
+        function closeLeaderboard() {
+            document.getElementById("leaderboardModal").classList.add("hidden");
+        }
+
+        function renderLeaderboard() {
+            const list = document.getElementById("leaderboardList");
+            if (!list) return;
+            list.innerHTML = "";
+
+            if (!leaderboardData || leaderboardData.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">目前暫無紀錄，快成為第一位登榜勇者！</div>`;
+                return;
+            }
+
+            leaderboardData.forEach((item, index) => {
+                const row = document.createElement("div");
+                const isCurrent = item.name === playerName && item.score === score;
+
+                let rankBadge = `<span class="w-4 text-center font-bold text-slate-500 text-[10px]">${index + 1}</span>`;
+                if (index === 0) rankBadge = `<span class="w-4 text-center text-amber-400 font-extrabold text-xs">🥇</span>`;
+                else if (index === 1) rankBadge = `<span class="w-4 text-center text-slate-300 font-extrabold text-xs">🥈</span>`;
+                else if (index === 2) rankBadge = `<span class="w-4 text-center text-amber-600 font-extrabold text-xs">🥉</span>`;
+
+                row.className = `flex items-center justify-between p-1.5 rounded-lg border ${
+                    isCurrent ? 'bg-amber-500/15 border-amber-500/50 text-amber-200' : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                }`;
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-1.5 overflow-hidden">
+                        ${rankBadge}
+                        <div class="flex flex-col min-w-0">
+                            <div class="flex items-center gap-1">
+                                <span class="font-bold truncate max-w-[100px] text-[11px]">${item.name}</span>
+                                ${isCurrent ? '<span class="text-[8px] px-1 rounded bg-amber-500/30 text-amber-300 font-mono">YOU</span>' : ''}
+                            </div>
+                            <span class="text-[8px] text-slate-500">第 ${item.stage || 1} 關 • ${item.date || '剛剛'}</span>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="font-black text-amber-400 font-mono text-xs">${item.score}</span>
+                        <span class="text-[8px] text-slate-500 block leading-tight">PTS</span>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        /* ==========================================================
+           11. INITIALIZATION
+           ========================================================== */
+        window.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("headerPlayerName").innerText = playerName;
+            document.getElementById("highScoreDisplay").innerText = highScore;
+            buildArena();
+            initCloudStorage();
+
+            // 若尚未自訂過姓名（或為預設名稱），一進入遊戲即主動彈出輸入名字對話框
+            const storedName = localStorage.getItem("demon_strike_player_name");
+            if (!storedName) {
+                setTimeout(() => {
+                    openNameModal();
+                }, 350);
+            }
+        });
+    </script>
+</body>
+</html>
