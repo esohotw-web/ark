@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>聖經知識搶答 PK 賽</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Serif TC & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            cinzel: ['"Cinzel"', 'serif'],
+          },
+          colors: {
+            bible: {
+              gold: '#D4AF37',
+              goldLight: '#F3E5AB',
+              navy: '#0F172A',
+              card: '#1E293B',
+              accentRed: '#EF4444',
+              accentBlue: '#3B82F6',
+              accentGreen: '#10B981'
+            }
+          },
+          keyframes: {
+            buzz: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '20%, 60%': { transform: 'translateX(-6px)' },
+              '40%, 80%': { transform: 'translateX(6px)' },
+            },
+            pulseSlow: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.4' }
+            }
+          },
+          animation: {
+            buzz: 'buzz 0.4s ease-in-out',
+            pulseSlow: 'pulseSlow 1.5s infinite ease-in-out',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #090d16 100%);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .custom-shadow {
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 15px rgba(212, 175, 55, 0.15);
+    }
+    .gold-glow {
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.45);
+    }
+    .red-glow {
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+    }
+    .blue-glow {
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 font-serif flex flex-col justify-between overflow-x-hidden relative">
+
+  <!-- 彩帶特效畫布 (Canvas) -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+  <!-- 頂部資訊與隊伍計分列 -->
+  <header class="w-full bg-slate-900/90 border-b border-amber-500/30 backdrop-blur-md px-4 py-3 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      
+      <!-- A 隊資訊 -->
+      <div id="teamCardA" class="w-full sm:w-1/3 flex items-center justify-between sm:justify-start gap-4 p-2.5 rounded-xl bg-blue-950/40 border-2 border-blue-500/40 transition-all duration-300">
+        <div class="flex items-center gap-2">
+          <span class="w-3.5 h-3.5 rounded-full bg-blue-400 animate-ping" id="teamAIndicator" style="display:none;"></span>
+          <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md">A</div>
+          <div>
+            <h2 id="teamAName" class="font-bold text-base sm:text-lg text-blue-200">約書亞隊</h2>
+            <p class="text-xs text-blue-300/70 font-mono">按鍵 [ A ]</p>
+          </div>
+        </div>
+        <div class="text-right ml-auto">
+          <span class="text-xs uppercase tracking-wider text-slate-400">Score</span>
+          <div id="teamAScore" class="text-2xl sm:text-3xl font-black text-blue-400 font-cinzel">0</div>
+        </div>
+      </div>
+
+      <!-- 中央進度與狀態 -->
+      <div class="flex flex-col items-center justify-center w-full sm:w-1/3 text-center order-first sm:order-none">
+        <div class="flex items-center gap-2 text-amber-400 font-bold text-sm tracking-widest">
+          <svg class="w-4 h-4 fill-current text-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span id="questionProgressText">第 1 輪 (第 1 / 5 題)</span>
+          <svg class="w-4 h-4 fill-current text-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <!-- 當前類別標籤與進度條 -->
+        <div class="flex items-center gap-2 mt-1">
+          <span id="currentCategoryBadge" class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">待選分類</span>
+          <div class="w-32 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+            <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-yellow-300 h-full w-[0%] transition-all duration-300"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B 隊資訊 -->
+      <div id="teamCardB" class="w-full sm:w-1/3 flex items-center justify-between sm:justify-end gap-4 p-2.5 rounded-xl bg-red-950/40 border-2 border-red-500/40 transition-all duration-300">
+        <div class="text-left mr-auto sm:mr-0 sm:text-left">
+          <span class="text-xs uppercase tracking-wider text-slate-400">Score</span>
+          <div id="teamBScore" class="text-2xl sm:text-3xl font-black text-red-400 font-cinzel">0</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-right">
+            <h2 id="teamBName" class="font-bold text-base sm:text-lg text-red-200">迦勒隊</h2>
+            <p class="text-xs text-red-300/70 font-mono">按鍵 [ L ]</p>
+          </div>
+          <div class="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white shadow-md">B</div>
+          <span class="w-3.5 h-3.5 rounded-full bg-red-400 animate-ping" id="teamBIndicator" style="display:none;"></span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- 主舞台區 -->
+  <main class="max-w-5xl w-full mx-auto p-4 sm:p-6 flex-grow flex flex-col justify-center">
+
+    <!-- 步驟 1：輪次分類選擇面板 (每輪開始前顯示) -->
+    <div id="categorySelectSection" class="bg-slate-800/90 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-10 custom-shadow text-center">
+      <div class="inline-block px-4 py-1.5 bg-amber-500/20 text-amber-300 rounded-full text-sm font-semibold tracking-wider mb-3 border border-amber-500/30">
+        ROUND SELECTION
+      </div>
+      <h2 id="roundSelectTitle" class="text-2xl sm:text-3xl font-black text-amber-300 mb-2 font-cinzel">第 1 輪比賽：請選擇本輪題型</h2>
+      <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-6">
+        🔔 <span class="text-amber-200 font-bold">每輪請兩隊各派出 5 位隊員上陣迎戰！</span>本輪將隨機抽出 5 道題目進行搶答對決。已選過的類別不可重複。
+      </p>
+
+      <!-- 三大類別按鈕 -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto mb-6">
+        <!-- 聖經類 -->
+        <button id="btnCatBible" onclick="selectCategory('bible')" class="category-btn group p-6 rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 hover:from-amber-600 hover:to-amber-700 border-2 border-amber-500/50 hover:border-amber-300 text-center transition-all duration-200 transform hover:-translate-y-1 shadow-lg cursor-pointer">
+          <div class="text-4xl mb-2 group-hover:scale-110 transition">📖</div>
+          <div class="font-bold text-lg sm:text-xl text-amber-200 group-hover:text-white">聖經類</div>
+          <p class="text-xs text-slate-400 group-hover:text-amber-100 mt-1">新舊約經典、先知使徒與救恩真理</p>
+          <span class="inline-block mt-3 text-xs bg-slate-900/60 px-2 py-1 rounded text-amber-400/90 border border-amber-500/20">題庫 20 題隨機抽 5 題</span>
+        </button>
+
+        <!-- 生活類 -->
+        <button id="btnCatLife" onclick="selectCategory('life')" class="category-btn group p-6 rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 hover:from-emerald-600 hover:to-emerald-700 border-2 border-emerald-500/50 hover:border-emerald-300 text-center transition-all duration-200 transform hover:-translate-y-1 shadow-lg cursor-pointer">
+          <div class="text-4xl mb-2 group-hover:scale-110 transition">🌱</div>
+          <div class="font-bold text-lg sm:text-xl text-emerald-200 group-hover:text-white">生活類</div>
+          <p class="text-xs text-slate-400 group-hover:text-emerald-100 mt-1">教會日常、基督徒生活實踐與節期常識</p>
+          <span class="inline-block mt-3 text-xs bg-slate-900/60 px-2 py-1 rounded text-emerald-400/90 border border-emerald-500/20">題庫 20 題隨機抽 5 題</span>
+        </button>
+
+        <!-- 機智類 -->
+        <button id="btnCatWisdom" onclick="selectCategory('wisdom')" class="category-btn group p-6 rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 hover:from-indigo-600 hover:to-indigo-700 border-2 border-indigo-500/50 hover:border-indigo-300 text-center transition-all duration-200 transform hover:-translate-y-1 shadow-lg cursor-pointer">
+          <div class="text-4xl mb-2 group-hover:scale-110 transition">💡</div>
+          <div class="font-bold text-lg sm:text-xl text-indigo-200 group-hover:text-white">機智類</div>
+          <p class="text-xs text-slate-400 group-hover:text-indigo-100 mt-1">聖經數字、趣味謎語、腦筋急轉彎與聯想</p>
+          <span class="inline-block mt-3 text-xs bg-slate-900/60 px-2 py-1 rounded text-indigo-400/90 border border-indigo-500/20">題庫 20 題隨機抽 5 題</span>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-400">
+        💡 點選上方分類即可立刻開始本輪 5 題搶答！
+      </div>
+    </div>
+
+    <!-- 步驟 2：輪次結束過渡面板 (每輪 5 題答完後顯示) -->
+    <div id="roundTransitionSection" class="hidden bg-slate-800/90 border-2 border-amber-500/40 rounded-3xl p-8 sm:p-10 custom-shadow text-center max-w-2xl mx-auto">
+      <div class="text-4xl sm:text-5xl mb-3">🔔</div>
+      <h3 id="roundCompleteTitle" class="text-2xl sm:text-3xl font-extrabold text-amber-300 mb-2">第 1 輪搶答結束！</h3>
+      <p class="text-slate-300 text-sm sm:text-base mb-6">兩隊本輪表現精彩！請準備換下一批 5 位隊員上陣。</p>
+
+      <!-- 當前累積比分快報 -->
+      <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-700 mb-6">
+        <div>
+          <span class="text-xs text-blue-300">約書亞隊 累積得分</span>
+          <div id="transScoreA" class="text-3xl font-black text-blue-400 font-cinzel">0</div>
+        </div>
+        <div>
+          <span class="text-xs text-red-300">迦勒隊 累積得分</span>
+          <div id="transScoreB" class="text-3xl font-black text-red-400 font-cinzel">0</div>
+        </div>
+      </div>
+
+      <button onclick="goToNextRoundSelection()" class="px-8 py-3 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-base shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0">
+        選擇下一輪題型 ➔
+      </button>
+    </div>
+
+    <!-- 步驟 3：答題進行中視圖 -->
+    <div id="gamePlaySection" class="hidden flex flex-col gap-6">
+
+      <!-- 狀態提示與倒數計時 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-800/60 p-3 rounded-2xl border border-slate-700">
+        <!-- 狀態標籤 -->
+        <div id="buzzBanner" class="flex items-center gap-2 text-base font-bold text-amber-300 px-3 py-1 bg-amber-950/50 rounded-lg border border-amber-500/30">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="buzzBannerText">題目已出！請按鍵或點擊下方按鈕搶答</span>
+        </div>
+
+        <!-- 倒數計時環形與數字 -->
+        <div class="flex items-center gap-2 ml-auto">
+          <span class="text-xs text-slate-400">答題倒數</span>
+          <div id="timerBadge" class="w-10 h-10 rounded-full border-2 border-slate-600 bg-slate-900 flex items-center justify-center font-bold text-lg font-mono text-slate-300">
+            --
+          </div>
+        </div>
+      </div>
+
+      <!-- 題目大卡片 -->
+      <div id="questionCard" class="relative bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 custom-shadow text-center transition-all duration-300">
+        <div class="inline-block px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-semibold tracking-wider mb-3 border border-amber-500/30">
+          TRIVIA QUESTION
+        </div>
+        <h1 id="questionText" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-relaxed tracking-wide min-h-[4rem] flex items-center justify-center">
+          載入題目中...
+        </h1>
+
+        <!-- 經文提示 / 答案解析框 (答題後顯示) -->
+        <div id="verseBox" class="mt-4 p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-xl text-amber-200 text-sm hidden transition-all duration-300">
+          <span id="verseLabel" class="font-bold mr-1">💡 答案解析：</span>
+          <span id="verseText"></span>
+        </div>
+      </div>
+
+      <!-- 選項清單 (A, B, C) -->
+      <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- 選項由 JS 動態填入 -->
+      </div>
+
+      <!-- 手機/螢幕觸控大搶答按鈕列 -->
+      <div class="grid grid-cols-2 gap-4 mt-2">
+        <button id="btnBuzzA" onclick="handleBuzz('A')" class="py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 active:scale-95 text-white font-bold text-lg sm:text-xl shadow-lg border border-blue-400/40 flex items-center justify-center gap-2 transition duration-150">
+          <span class="text-xs bg-blue-900/80 px-2.5 py-1 rounded-md border border-blue-300/30">按鍵 A</span>
+          <span>約書亞隊 搶答</span>
+        </button>
+
+        <button id="btnBuzzB" onclick="handleBuzz('B')" class="py-4 px-6 rounded-2xl bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 active:scale-95 text-white font-bold text-lg sm:text-xl shadow-lg border border-red-400/40 flex items-center justify-center gap-2 transition duration-150">
+          <span class="text-xs bg-red-900/80 px-2.5 py-1 rounded-md border border-red-300/30">按鍵 L</span>
+          <span>迦勒隊 搶答</span>
+        </button>
+      </div>
+
+      <!-- 下一題按鈕 (作答完畢後顯示或提供手動切換) -->
+      <div class="flex justify-center items-center gap-3">
+        <button id="btnNext" onclick="nextQuestion()" class="hidden px-8 py-3 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-base shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0">
+          進入下一題 ➔
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 結算與頒獎畫面 (完成 20 題後切換) -->
+    <div id="resultSection" class="hidden bg-slate-800/90 border-2 border-amber-500/50 rounded-3xl p-8 sm:p-12 custom-shadow text-center max-w-2xl mx-auto my-auto">
+      <div class="text-5xl sm:text-6xl mb-4">🏆</div>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-amber-300 mb-2 font-cinzel">PK 賽圓滿結算</h2>
+      <p class="text-slate-300 text-sm sm:text-base mb-8">「這美好的仗我已經打過了，當跑的路我已經跑盡了。」— 提摩太後書 4:7</p>
+
+      <!-- 兩隊最終成績對照 -->
+      <div class="grid grid-cols-2 gap-6 mb-8">
+        <div id="finalCardA" class="p-6 rounded-2xl bg-blue-950/60 border-2 border-blue-500/50 flex flex-col items-center">
+          <span class="text-blue-300 font-bold text-lg">約書亞隊</span>
+          <span id="finalScoreA" class="text-4xl sm:text-5xl font-black text-blue-400 font-cinzel my-2">0</span>
+          <span class="text-xs text-blue-300/70">最終總得分</span>
+        </div>
+        <div id="finalCardB" class="p-6 rounded-2xl bg-red-950/60 border-2 border-red-500/50 flex flex-col items-center">
+          <span class="text-red-300 font-bold text-lg">迦勒隊</span>
+          <span id="finalScoreB" class="text-4xl sm:text-5xl font-black text-red-400 font-cinzel my-2">0</span>
+          <span class="text-xs text-red-300/70">最終總得分</span>
+        </div>
+      </div>
+
+      <!-- 優勝宣告 -->
+      <div id="winnerAnnouncement" class="text-xl sm:text-2xl font-bold text-amber-200 mb-8 p-4 bg-amber-500/10 rounded-xl border border-amber-500/30">
+        正在計算獲勝者...
+      </div>
+
+      <!-- 重新開始按鈕 -->
+      <button onclick="restartGame()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-bold text-lg hover:from-amber-400 hover:to-yellow-400 shadow-xl transition transform active:scale-95">
+        重新開始一場新比賽 🔄
+      </button>
+    </div>
+
+  </main>
+
+  <!-- 底部快捷說明列 -->
+  <footer class="w-full bg-slate-950/80 border-t border-slate-800 py-2.5 px-4 text-center text-xs text-slate-400">
+    <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+      <span>⌨️ <b class="text-slate-300">A 鍵</b>：約書亞隊搶答</span>
+      <span>⌨️ <b class="text-slate-300">L 鍵</b>：迦勒隊搶答</span>
+      <span>⏱️ 搶答限時：10 秒</span>
+      <span>🎯 賽制：共 3 輪（每輪 5 題，兩隊各派 5 人），答對 +10，答錯 -5 移交</span>
+    </div>
+  </footer>
+
+  <!-- 核心遊戲邏輯 -->
+  <script>
+    // ==========================================
+    // 1. 三大類別題庫 (聖經類 20 題、生活常識類 20 題、機智腦筋急轉彎 20 題)
+    // ==========================================
+    const questionBank = {
+      // --- 聖經類 (20 題) ---
+      bible: [
+        {
+          question: "摩西帶領以色列人出埃及時，神藉著神蹟分開了哪一個海？",
+          options: ["紅海", "死海", "地中海"],
+          answer: 0,
+          verse: "出埃及記 14:21 —「摩西向海伸杖，耶和華便用大東風，使海水一夜退去，水便分開，海就成了乾地。」"
+        },
+        {
+          question: "大衛打敗非利士巨人歌利亞時，使用的是什麼武器？",
+          options: ["青銅巨劍與盾牌", "甩石的機弦與光滑石子", "淬毒的弓箭"],
+          answer: 1,
+          verse: "撒母耳記上 17:49 —「大衛手中拿杖，又在溪中挑選了五塊光滑石子...手中拿著甩石的機弦，就迎著那非利士人去。」"
+        },
+        {
+          question: "耶穌所行的第一個神蹟是在迦拿的婚宴上，祂行了什麼奇事？",
+          options: ["使瞎子看見", "變水為好酒", "五餅二魚餵飽眾人"],
+          answer: 1,
+          verse: "約翰福音 2:11 —「這是耶穌所行的頭一件神蹟，是在加利利的迦拿行的，顯出他的榮耀來。」"
+        },
+        {
+          question: "舊約中因大洪水造方舟，救了一家八口與各類走獸的人是誰？",
+          options: ["亞伯拉罕", "以諾", "挪亞"],
+          answer: 2,
+          verse: "創世記 6:13-14 —「神就對挪亞說...你要用歌斐木造一隻方舟。」"
+        },
+        {
+          question: "新約聖經共有多少卷書？",
+          options: ["27 卷", "39 卷", "66 卷"],
+          answer: 0,
+          verse: "聖經小常識：舊約 39 卷，新約 27 卷，全本聖經合計 66 卷。"
+        },
+        {
+          question: "被稱為「信心之父」，並順服上帝獻上獨生子以撒的人是誰？",
+          options: ["雅各", "亞伯拉罕", "約瑟"],
+          answer: 1,
+          verse: "羅馬書 4:16、創世記 22:2 —「亞伯拉罕在主面前作我們世人的父。」"
+        },
+        {
+          question: "向神求智慧，並建造耶路撒冷第一座宏偉聖殿的以色列國王是誰？",
+          options: ["掃羅王", "大衛王", "所羅門王"],
+          answer: 2,
+          verse: "列王紀上 3:9-12、6:1 — 所羅門王向神求能辨別是非的智慧，並動工建造聖殿。"
+        },
+        {
+          question: "在被扔進烈火窯中卻絲毫無傷的三位猶太青年，出自哪一卷書？",
+          options: ["但以理書", "以西結書", "以賽亞書"],
+          answer: 0,
+          verse: "但以理書 3:25 —「沙得拉、米煞、亞伯尼歌在火中行走，也沒有受傷，第四個相貌好像神子。」"
+        },
+        {
+          question: "聖靈降臨在使徒身上、門徒被聖靈充滿說起別國鄉談，是在哪一個節期？",
+          options: ["逾越節", "五旬節", "住棚節"],
+          answer: 1,
+          verse: "使徒行傳 2:1-4 —「五旬節到了，門徒都聚集在一處...按著聖靈所賜的口才說起別國的話來。」"
+        },
+        {
+          question: "被大魚吞入腹中三日三夜，後悔改前往尼尼微城傳道的先知是誰？",
+          options: ["約拿", "以利亞", "阿摩司"],
+          answer: 0,
+          verse: "約拿書 1:17 —「耶和華安排一條大魚吞了約拿，他在魚腹中三日三夜。」"
+        },
+        {
+          question: "在前往哪一個城市的路上，保羅遇見復活之主的大光照耀而悔改？",
+          options: ["大馬士革", "安提阿", "以弗所"],
+          answer: 0,
+          verse: "使徒行傳 9:3 —「掃羅行路，將到大馬士革，忽然從天上發光，四面照著他。」"
+        },
+        {
+          question: "聖經中哪一篇詩篇開頭寫道：「耶和華是我的牧者，我必不致缺乏」？",
+          options: ["詩篇第 1 篇", "詩篇第 23 篇", "詩篇第 91 篇"],
+          answer: 1,
+          verse: "詩篇 23:1 —「耶和華是我的牧者，我必不致缺乏。祂使我躺臥在青草地上，領我在可安歇的水邊。」"
+        },
+        {
+          question: "耶穌在受難前夕被捕並懇切禱告的園子叫什麼名字？",
+          options: ["客西馬尼園", "伊甸園", "迦密山園"],
+          answer: 0,
+          verse: "馬太福音 26:36 —「耶穌同門徒來到一個地方，名叫客西馬尼，就對他們說：你們坐在這裡，等我到那邊去禱告。」"
+        },
+        {
+          question: "舊約中力大無窮、其力量之謎在於終生不可剃掉長髮的士師是誰？",
+          options: ["基甸", "參孫", "耶弗他"],
+          answer: 1,
+          verse: "士師記 16:17 — 參孫透露：「從未用剃頭刀剃我的頭，因為我一出母胎就歸神作拿細耳人。」"
+        },
+        {
+          question: "施洗約翰在猶太曠野傳道時，他日常所吃的食物是什麼？",
+          options: ["烤餅與無花果乾", "蝗蟲野蜜", "大麥餅與鹹魚"],
+          answer: 1,
+          verse: "馬太福音 3:4 —「這約翰身穿駱駝毛的衣服，腰束皮帶，吃的是蝗蟲野蜜。」"
+        },
+        {
+          question: "上帝在西奈山上親手將十條誡命刻在什麼上面賜給摩西？",
+          options: ["羊皮卷軸", "金版", "兩塊石版"],
+          answer: 2,
+          verse: "出埃及記 31:18 —「耶和華在西奈山和摩西說完了話，就把兩塊法版交給他，是神用指頭寫的石版。」"
+        },
+        {
+          question: "在雅各井旁向撒馬利亞婦人講述賜下「活水」的救主是誰？",
+          options: ["耶穌", "彼得", "司提反"],
+          answer: 0,
+          verse: "約翰福音 4:14 — 耶穌說：「人若喝我所賜的水就永遠不渴。我所賜的水要在他裡頭成為泉源，直湧到永生。」"
+        },
+        {
+          question: "聖靈所結的九樣果子中，列在第一個的是哪一種特質？",
+          options: ["喜樂", "仁愛", "和平"],
+          answer: 1,
+          verse: "加拉太書 5:22 —「聖靈所結的果子，就是仁愛、喜樂、和平、忍耐、恩慈、良善、信實、溫柔、節制。」"
+        },
+        {
+          question: "耶穌受難前夕，哪一位使徒在雞叫以先三次不認主？",
+          options: ["猶大", "約翰", "彼得"],
+          answer: 2,
+          verse: "路加福音 22:61 —「主轉過身來看彼得。彼得便想起主對他所說的話：今日雞叫以先，你要三次不認我。」"
+        },
+        {
+          question: "整本新約聖經也是全本聖經的最後一卷書是什麼？",
+          options: ["希伯來書", "猶大書", "啟示錄"],
+          answer: 2,
+          verse: "啟示錄 — 使徒約翰在拔摩海島看見新天新地異象，作為聖經全書的終卷。"
+        }
+      ],
+
+      // --- 生活類 (生活常識、輕鬆普及題 20 題) ---
+      life: [
+        {
+          question: "知名卡通角色「哆啦A夢」最喜愛的經典點心是什麼？",
+          options: ["鯛魚燒", "銅鑼燒", "豬血糕"],
+          answer: 1,
+          verse: "生活趣味：哆啦A夢最愛吃的就是香甜的「銅鑼燒」，看到銅鑼燒甚至會失去抵抗力！"
+        },
+        {
+          question: "天空出現的美麗彩虹，一般公認由外到內共有幾種基本顏色？",
+          options: ["5 種", "7 種", "9 種"],
+          answer: 1,
+          verse: "生活小常識：彩虹的光譜順序為紅、橙、黃、綠、藍、靛、紫，共有 7 種顏色。"
+        },
+        {
+          question: "在日常生活中，一般普通成人的恆齒正常完整總共有幾顆（含智齒）？",
+          options: ["28 顆", "32 顆", "36 顆"],
+          answer: 1,
+          verse: "健康小百科：成年人的恆齒通常為 28 至 32 顆（含上下四顆智齒）。"
+        },
+        {
+          question: "在台灣日常生活中，如果在路上遇到火警需要報警搶救，應撥打哪一組緊急電話？",
+          options: ["110", "119", "113"],
+          answer: 1,
+          verse: "應變常識：119 為火警與緊急救護專線，110 為報警專線，113 為家暴保護專線。"
+        },
+        {
+          question: "每年國曆的 12 月 25 日是廣受全球喜愛的聖誕節，那麼聖誕節前一天晚上通常被稱為什麼？",
+          options: ["除夕夜", "平安夜", "感恩夜"],
+          answer: 1,
+          verse: "節慶常識：12 月 24 日晚上稱為「平安夜」（Christmas Eve），象徵迎接平安與盼望。"
+        },
+        {
+          question: "過農曆新年時，民間常吃的「水餃」外型圓潤飽滿，象徵著哪一種吉祥財富？",
+          options: ["元寶", "珍珠", "金條"],
+          answer: 0,
+          verse: "民俗小百科：水餃外形像古時候的「元寶」，因此春節吃水餃有「招財進寶」的美好寓意。"
+        },
+        {
+          question: "在常見的廚房烹調中，醬油、黑醋、白糖哪一種吃起來是「甜」的味道？",
+          options: ["醬油", "黑醋", "白糖"],
+          answer: 2,
+          verse: "烹飪常識：白糖由蔗糖提煉而成，是主要提供甜味的調味料。"
+        },
+        {
+          question: "人體大約有百分之幾的比例是由「水」所組成的？",
+          options: ["約 30%", "約 60% ~ 70%", "約 95%"],
+          answer: 1,
+          verse: "健康常識：水是人體最重要的組成成分，成年人的體重約有 60% 至 70% 是水分。"
+        },
+        {
+          question: "童話故事中，「灰姑娘」在舞會狂歡時，必須在午夜幾點的鐘聲敲響前離開？",
+          options: ["晚上 10 點", "午夜 12 點", "凌晨 2 點"],
+          answer: 1,
+          verse: "童話故事：神仙教母施展的魔法會在午夜 12 點鐘聲響起時解除，所以灰姑娘必須在此前離開。"
+        },
+        {
+          question: "在文具用品中，如果用鉛筆寫錯字，最常用的擦拭工具是什麼？",
+          options: ["立可帶", "橡皮擦", "雙面膠"],
+          answer: 1,
+          verse: "文具常識：橡皮擦能利用摩擦力吸附鉛筆的石墨粉末，從而乾淨地擦除鉛筆筆跡。"
+        },
+        {
+          question: "在植物世界中，植物透過陽光、水分與二氧化碳製造養分的過程稱作什麼？",
+          options: ["光合作用", "蒸散作用", "呼吸作用"],
+          answer: 0,
+          verse: "自然百科：綠色植物利用葉綠素吸收陽光能量，進行「光合作用」並釋放出氧氣。"
+        },
+        {
+          question: "大家在便利商店購物拿到的「統一發票」，在台灣每隔幾個月會開獎一次？",
+          options: ["每 1 個月", "每 2 個月", "每半年"],
+          answer: 1,
+          verse: "生活常識：統一發票每逢單數月份（1、3、5、7、9、11月）的 25 日開獎一次，即每 2 個月一次。"
+        },
+        {
+          question: "一天 24 小時中，總共包含了多少分鐘？",
+          options: ["1000 分鐘", "1440 分鐘", "1800 分鐘"],
+          answer: 1,
+          verse: "數學常識：24 小時 × 60 分鐘 = 1440 分鐘。"
+        },
+        {
+          question: "日常保養時常說吃柳橙、奇異果與芭樂，主要是為了補充哪一種人體維生素？",
+          options: ["維生素 A", "維生素 C", "維生素 D"],
+          answer: 1,
+          verse: "營養常識：新鮮水果富含維生素 C，有助於抗氧化、增強防護力與促進膠原蛋白合成。"
+        },
+        {
+          question: "傳統端午節除了包粽子之外，水上最受歡迎的熱門體育競賽是什麼？",
+          options: ["划龍舟", "衝浪", "水球比賽"],
+          answer: 0,
+          verse: "節慶常識：端午節傳統民俗體育活動是「划龍舟」，各隊齊心協力奪標競渡。"
+        },
+        {
+          question: "一般平年（非閏年）的一年總共有多少天？",
+          options: ["360 天", "365 天", "366 天"],
+          answer: 1,
+          verse: "曆法常識：平年一年為 365 天，每四年的閏年因為 2 月有 29 天，所以總共是 366 天。"
+        },
+        {
+          question: "用一般家用微波爐加熱食物時，下列哪一種容器「絕對不能」放進去微波以防起火？",
+          options: ["耐熱玻璃碗", "陶瓷盤子", "金屬不鏽鋼碗"],
+          answer: 2,
+          verse: "生活安全：金屬容器會反射微波產生火花甚至引發爆炸起火，切記不可放入微波爐！"
+        },
+        {
+          question: "大家常常在社群聊天或發文按的「讚」，其代表的手勢通常是哪一個？",
+          options: ["比出愛心", "比出大拇指", "比出勝利剪刀手"],
+          answer: 1,
+          verse: "網路文化：豎起「大拇指」（Thumbs Up）是國際通用的讚許與認同標誌。"
+        },
+        {
+          question: "吃完正餐後，為了維護牙齒健康與防止蛀牙，最基本且有效的日常習慣是什麼？",
+          options: ["立刻喝冰水", "正確刷牙與使用牙線", "大嚼硬口香糖"],
+          answer: 1,
+          verse: "衛教小常識：餐後使用牙線清潔牙縫並正確刷牙，能有效清除牙菌斑、預防齲齒。"
+        },
+        {
+          question: "晴朗無雲的白天，我們抬頭看到的蔚藍天空，太陽是從哪一個方位升起的？",
+          options: ["東方", "南方", "西方"],
+          answer: 0,
+          verse: "自然常識：因為地球由西向東自轉，所以太陽每日皆從「東方」升起、「西方」落下。"
+        }
+      ],
+
+      // --- 機智類 (益智與經典腦筋急轉彎 20 題) ---
+      wisdom: [
+        {
+          question: "【腦筋急轉彎】將「冰」變成「水」最快、最神奇的方法是什麼？",
+          options: ["放進大烤箱加熱", "把「冰」字去掉兩點水", "拿到太陽底下曬"],
+          answer: 1,
+          verse: "趣味解析：把中文字的「冰」去掉旁邊的兩點水，就直接變成「水」字啦！"
+        },
+        {
+          question: "【趣味謎語】世界上有一種「門」，不管怎麼推拉或上鎖，它永遠都關不上，是什麼門？",
+          options: ["球門", "防盜門", "旋轉門"],
+          answer: 0,
+          verse: "趣味解析：足球場上的「球門」只有框框沒有門板，所以永遠都關不上！"
+        },
+        {
+          question: "【益智猜一猜】世界上哪裡的水是「只能看、完全喝不到也不會濕」的水？",
+          options: ["雨水", "薪水", "海水"],
+          answer: 1,
+          verse: "趣味解析：每個月辛苦工作領到的「薪水」，是拿來花的，當然喝不到啦！"
+        },
+        {
+          question: "【趣味動腦】什麼東西越洗越髒，洗到最後反而讓人不敢用？",
+          options: ["乾淨衣服", "水", "臉盆"],
+          answer: 1,
+          verse: "趣味解析：水越洗髒東西，水本身就會變得「越來越髒」！"
+        },
+        {
+          question: "【趣味急轉彎】什麼東西明明是你的，但別人用的次數卻比你自己用得還要多？",
+          options: ["你的名字", "你的手機", "你的雨傘"],
+          answer: 0,
+          verse: "趣味解析：「你的名字」通常都是別人呼喚你時在叫，自己反而很少主動念自己的名字。"
+        },
+        {
+          question: "【邏輯小謎題】有一隻公雞站在尖尖的屋頂正中央下了一顆蛋，請問蛋會往哪邊滾？",
+          options: ["滾向左邊", "滾向右邊", "公雞根本不會生蛋"],
+          answer: 2,
+          verse: "趣味解析：要注意看題目喔！「公雞」是不會下蛋的，母雞才會下蛋！"
+        },
+        {
+          question: "【益智急轉彎】什麼東西借給別人之後，別人不需要還，而且對方用完後還會非常感激你？",
+          options: ["衛生紙", "金錢", "自行車"],
+          answer: 0,
+          verse: "趣味解析：借別人一張「衛生紙」應急，擦完就丟了，不用還也不可能還啦！"
+        },
+        {
+          question: "【猜字謎】一隻小狗在沒有燈的漆黑房間裡，怎樣才能讓牠最快找到骨頭？",
+          options: ["幫牠戴上夜視鏡", "打開電燈", "小狗靠鼻子聞就能找到"],
+          answer: 2,
+          verse: "趣味解析：狗狗的嗅覺非常靈敏，即使烏漆麻黑一片，靠靈敏的鼻子就能聞出骨頭的位置！"
+        },
+        {
+          question: "【趣味急轉彎】什麼東西有頭、有腳，但身上就是沒有長任何身體？",
+          options: ["大蒜", "雨傘", "桌子"],
+          answer: 0,
+          verse: "趣味解析：日常食品中的「大蒜」有「蒜頭」也有根部的「蒜腳」，但沒有軀幹身體！"
+        },
+        {
+          question: "【機智謎題】哪一種「魚」即使在水裡游得再快，也永遠不會吐泡泡，而且人人都愛吃？",
+          options: ["木魚", "金魚", "小丑魚"],
+          answer: 0,
+          verse: "趣味解析：廟裡和尚敲的「木魚」是木頭做的，當然不會吐泡泡也不會游水！"
+        },
+        {
+          question: "【趣味益智】桌上有 5 顆蘋果，你拿走了 3 顆，請問你現在手裡有幾顆蘋果？",
+          options: ["2 顆", "3 顆", "5 顆"],
+          answer: 1,
+          verse: "趣味解析：因為你「拿走了 3 顆」，所以你手裡現在當然就是「3 顆」囉！"
+        },
+        {
+          question: "【經典腦筋急轉彎】什麼動物最愛亂貼標籤、最喜歡問「為什麼」？",
+          options: ["小狗", "斑馬", "十萬個為什麼（貓頭鷹）"],
+          answer: 1,
+          verse: "趣味諧音：因為「斑馬」身上的花紋黑白相間，就像條碼（Why / 斑馬台語諧音趣味題）！"
+        },
+        {
+          question: "【趣味急轉彎】什麼車有輪子卻不能在馬路上開，但大家出國或逛超市時都非常需要它？",
+          options: ["推車（手推車/行李車）", "腳踏車", "高鐵列車"],
+          answer: 0,
+          verse: "趣味解析：超市手推車與機場行李推車有輪子，但只能推著走，不能像汽車一樣在公路奔馳！"
+        },
+        {
+          question: "【看清題目】冬天早晨起床，小明發現房間窗戶結了一層薄霜，他要從哪一面擦才擦得掉？",
+          options: ["窗戶裡面", "窗戶外面", "兩面一起擦"],
+          answer: 0,
+          verse: "生活益智：冬天屋內水氣遇到冰冷玻璃在「室內面」凝結成霜水，所以要從「裡面」擦！"
+        },
+        {
+          question: "【幽默急轉彎】大象的左邊耳朵長得最像什麼？",
+          options: ["蒲扇", "大象的右邊耳朵", "一堵牆"],
+          answer: 1,
+          verse: "趣味解析：大象的左耳，當然跟自己的「右耳」長得最像、最對稱啦！"
+        },
+        {
+          question: "【益智快問】哪一個英文字母最酷、最受大家喜愛，甚至常被拿來當作最讚的象徵？",
+          options: ["字母 A", "字母 Z", "字母 B"],
+          answer: 0,
+          verse: "趣味常識：無論是考試得 A、一流叫 A 級、或是王牌叫 Ace，字母「A」總是第一名的象徵！"
+        },
+        {
+          question: "【爆笑急轉彎】什麼時候「4 減 1」的結果會等於「5」？",
+          options: ["算錯的時候", "正方形桌子切掉一個角的時候", "用羅馬數字寫的時候"],
+          answer: 1,
+          verse: "益智幾何：一張四個角的正方形桌子，拿鋸子切掉一個角，反而會多出一個角變成「五個角」！"
+        },
+        {
+          question: "【經典動腦】小明的媽媽有三個兒子，大兒子叫大毛，二兒子叫二毛，那小兒子叫什麼？",
+          options: ["三毛", "小明", "不一定"],
+          answer: 1,
+          verse: "趣味解析：題目開頭就說了是「小明的媽媽」，所以小兒子自然就是「小明」本人啦！"
+        },
+        {
+          question: "【生活機智】哪一種植物最不怕冷、一年四季不管春夏秋冬全身都穿著「綠衣裳和刺」？",
+          options: ["玫瑰花", "仙人掌", "向日葵"],
+          answer: 1,
+          verse: "趣味植物：仙人掌的葉子退化成一根根的防護刺，不管何時看都是帶刺的綠色常青樣貌！"
+        },
+        {
+          question: "【數字謎題】樹上有 10 隻麻雀，獵人開槍打中了 1 隻，請問樹上還剩下幾隻麻雀？",
+          options: ["9 隻", "0 隻（全被槍聲嚇飛了）", "1 隻"],
+          answer: 1,
+          verse: "趣味解析：槍聲一響，剩下的麻雀全都被巨大的槍聲嚇跑飛走了，所以樹上一隻也不剩！"
+        }
+      ]
+    };
+
+    // ==========================================
+    // 2. 音效生成器 (純 Web Audio API，無外部依賴)
+    // ==========================================
+    class SoundEffects {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playBuzz() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.2);
+        } catch (e) { console.warn(e); }
+      }
+      playCorrect() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            const startTime = this.ctx.currentTime + (idx * 0.08);
+            gain.gain.setValueAtTime(0.18, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.45);
+          });
+        } catch (e) { console.warn(e); }
+      }
+      playWrong() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.35);
+        } catch (e) { console.warn(e); }
+      }
+      playTick() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.09);
+        } catch (e) { console.warn(e); }
+      }
+      playVictory() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          // 歡樂活潑的頒獎號角旋律 (C5 -> E5 -> G5 -> C6 長和弦)
+          const fanfare = [
+            { freq: 523.25, time: 0.00, dur: 0.14 }, // C5
+            { freq: 523.25, time: 0.16, dur: 0.14 }, // C5
+            { freq: 523.25, time: 0.32, dur: 0.14 }, // C5
+            { freq: 659.25, time: 0.48, dur: 0.28 }, // E5
+            { freq: 523.25, time: 0.80, dur: 0.14 }, // C5
+            { freq: 659.25, time: 0.96, dur: 0.18 }, // E5
+            { freq: 783.99, time: 1.18, dur: 0.22 }, // G5
+            { freq: 1046.50, time: 1.45, dur: 0.65 } // C6 (高音長音)
+          ];
+
+          fanfare.forEach(note => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            // 使用暖和明亮的三角形/正弦混合音色
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(note.freq, this.ctx.currentTime + note.time);
+            
+            const start = this.ctx.currentTime + note.time;
+            gain.gain.setValueAtTime(0.22, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + note.dur);
+            
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(start);
+            osc.stop(start + note.dur);
+          });
+        } catch (e) { console.warn(e); }
+      }
+    }
+    const sound = new SoundEffects();
+
+    // ==========================================
+    // 3. 遊戲狀態機與三輪賽制架構
+    // ==========================================
+    const STATE_SELECT_CAT   = 'SELECT_CAT';       // 選擇類別階段
+    const STATE_WAITING_BUZZ = 'WAITING_BUZZ';     // 等待搶答
+    const STATE_ANSWERING    = 'ANSWERING';        // 搶到作答權，倒數中
+    const STATE_RESOLVED     = 'RESOLVED';         // 本題已揭曉
+    const STATE_FINISHED     = 'FINISHED';         // 全三輪完賽
+
+    const categoryNames = {
+      bible: '聖經類 📖',
+      life: '生活類 🌱',
+      wisdom: '機智類 💡'
+    };
+
+    let gameState = {
+      currentRound: 1,             // 當前輪次 (1, 2, 3)
+      usedCategories: new Set(),   // 已經選擇過的類別 ('bible', 'life', 'wisdom')
+      currentCategory: null,       // 當前輪次所選類別
+      currentRoundQuestions: [],   // 當前輪次抽出的 5 題
+      questionIndexInRound: 0,     // 當前輪次中的題號索引 (0 ~ 4)
+      scores: { A: 0, B: 0 },
+      teamNames: { A: '約書亞隊', B: '迦勒隊' },
+      status: STATE_SELECT_CAT,
+      activeTeam: null,
+      attemptedTeams: new Set(),
+      timerInterval: null,
+      timeLeft: 10,
+      autoNextTimeout: null
+    };
+
+    // DOM 元素引用
+    const elTeamAScore = document.getElementById('teamAScore');
+    const elTeamBScore = document.getElementById('teamBScore');
+    const elTeamCardA = document.getElementById('teamCardA');
+    const elTeamCardB = document.getElementById('teamCardB');
+    const elTeamAIndicator = document.getElementById('teamAIndicator');
+    const elTeamBIndicator = document.getElementById('teamBIndicator');
+    const elQuestionProgressText = document.getElementById('questionProgressText');
+    const elCurrentCategoryBadge = document.getElementById('currentCategoryBadge');
+    const elProgressBar = document.getElementById('progressBar');
+    const elQuestionText = document.getElementById('questionText');
+    const elOptionsContainer = document.getElementById('optionsContainer');
+    const elBuzzBanner = document.getElementById('buzzBanner');
+    const elBuzzBannerText = document.getElementById('buzzBannerText');
+    const elTimerBadge = document.getElementById('timerBadge');
+    const elVerseBox = document.getElementById('verseBox');
+    const elVerseLabel = document.getElementById('verseLabel');
+    const elVerseText = document.getElementById('verseText');
+    const elBtnBuzzA = document.getElementById('btnBuzzA');
+    const elBtnBuzzB = document.getElementById('btnBuzzB');
+    const elBtnNext = document.getElementById('btnNext');
+
+    // 三大主要視圖
+    const elCategorySelectSection = document.getElementById('categorySelectSection');
+    const elRoundTransitionSection = document.getElementById('roundTransitionSection');
+    const elGamePlaySection = document.getElementById('gamePlaySection');
+    const elResultSection = document.getElementById('resultSection');
+
+    // 類別選擇按鈕
+    const catButtons = {
+      bible: document.getElementById('btnCatBible'),
+      life: document.getElementById('btnCatLife'),
+      wisdom: document.getElementById('btnCatWisdom')
+    };
+
+    // ==========================================
+    // 4. 比賽流程核心控制
+    // ==========================================
+
+    // 初始化/重設整場比賽
+    function initGame() {
+      gameState.currentRound = 1;
+      gameState.usedCategories.clear();
+      gameState.currentCategory = null;
+      gameState.currentRoundQuestions = [];
+      gameState.questionIndexInRound = 0;
+      gameState.scores.A = 0;
+      gameState.scores.B = 0;
+      gameState.status = STATE_SELECT_CAT;
+
+      updateScoreboard();
+      updateCategoryButtonsUI();
+      showCategorySelectView();
+      setupKeyboardListeners();
+    }
+
+    // 顯示類別選擇畫面
+    function showCategorySelectView() {
+      gameState.status = STATE_SELECT_CAT;
+      elGamePlaySection.classList.add('hidden');
+      elRoundTransitionSection.classList.add('hidden');
+      elResultSection.classList.add('hidden');
+      elCategorySelectSection.classList.remove('hidden');
+
+      document.getElementById('roundSelectTitle').textContent = `第 ${gameState.currentRound} 輪比賽：請選擇本輪題型`;
+      elQuestionProgressText.textContent = `第 ${gameState.currentRound} 輪 (準備中)`;
+      elCurrentCategoryBadge.textContent = "待選題型";
+      elProgressBar.style.width = '0%';
+      updateCategoryButtonsUI();
+    }
+
+    // 更新分類按鈕視覺狀態 (已選過的變成灰色平面且停用)
+    function updateCategoryButtonsUI() {
+      for (const [key, btn] of Object.entries(catButtons)) {
+        if (gameState.usedCategories.has(key)) {
+          // 變成灰色平面鎖定狀態
+          btn.disabled = true;
+          btn.className = "category-btn p-6 rounded-2xl bg-slate-900/50 border-2 border-slate-700/60 text-slate-500 text-center opacity-40 cursor-not-allowed shadow-none";
+        } else {
+          btn.disabled = false;
+          let hoverBorder = "border-amber-500/50 hover:border-amber-300";
+          let hoverBg = "hover:from-amber-600 hover:to-amber-700";
+          let textColor = "text-amber-200";
+
+          if (key === 'life') {
+            hoverBorder = "border-emerald-500/50 hover:border-emerald-300";
+            hoverBg = "hover:from-emerald-600 hover:to-emerald-700";
+            textColor = "text-emerald-200";
+          } else if (key === 'wisdom') {
+            hoverBorder = "border-indigo-500/50 hover:border-indigo-300";
+            hoverBg = "hover:from-indigo-600 hover:to-indigo-700";
+            textColor = "text-indigo-200";
+          }
+
+          btn.className = `category-btn group p-6 rounded-2xl bg-gradient-to-b from-slate-700 to-slate-800 ${hoverBg} border-2 ${hoverBorder} text-center transition-all duration-200 transform hover:-translate-y-1 shadow-lg cursor-pointer`;
+        }
+      }
+    }
+
+    // 隊伍選擇本輪題型
+    function selectCategory(categoryKey) {
+      if (gameState.usedCategories.has(categoryKey)) return;
+
+      sound.init(); // 啟動 AudioContext
+      gameState.usedCategories.add(categoryKey);
+      gameState.currentCategory = categoryKey;
+      updateCategoryButtonsUI();
+
+      // 從該類別的 20 題中隨機抽取 5 題不重複
+      const allPool = [...questionBank[categoryKey]];
+      // Fisher-Yates 隨機洗牌
+      for (let i = allPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allPool[i], allPool[j]] = [allPool[j], allPool[i]];
+      }
+      gameState.currentRoundQuestions = allPool.slice(0, 5);
+      gameState.questionIndexInRound = 0;
+
+      // 切換進入答題畫面
+      elCategorySelectSection.classList.add('hidden');
+      elGamePlaySection.classList.remove('hidden');
+
+      loadQuestionInRound(0);
+    }
+
+    // 載入當前輪次中特定題目的流程
+    function loadQuestionInRound(qIndex) {
+      if (qIndex >= 5) {
+        // 本輪 5 題搶答結束
+        handleRoundCompletion();
+        return;
+      }
+
+      clearCountdown();
+      if (gameState.autoNextTimeout) clearTimeout(gameState.autoNextTimeout);
+
+      gameState.questionIndexInRound = qIndex;
+      gameState.status = STATE_WAITING_BUZZ;
+      gameState.activeTeam = null;
+      gameState.attemptedTeams.clear();
+      gameState.timeLeft = 10;
+
+      const q = gameState.currentRoundQuestions[qIndex];
+
+      // 更新進度與類別標籤
+      elQuestionProgressText.textContent = `第 ${gameState.currentRound} 輪 (第 ${qIndex + 1} / 5 題)`;
+      elCurrentCategoryBadge.textContent = categoryNames[gameState.currentCategory];
+      const percent = ((qIndex + 1) / 5) * 100;
+      elProgressBar.style.width = `${percent}%`;
+
+      // 隱藏經文與下一題按鈕
+      elVerseBox.classList.add('hidden');
+      elVerseText.textContent = '';
+      elBtnNext.classList.add('hidden');
+
+      // 設置題目卡內容
+      elQuestionText.textContent = `${qIndex + 1}. ${q.question}`;
+
+      // 渲染選項 (初始為鎖定未搶答狀態)
+      renderOptions(q.options, false);
+
+      // 更新橫幅提示
+      updateBanner("waiting");
+
+      // 恢復按鈕與計時器顯示
+      resetBuzzButtons();
+      resetTeamHighlights();
+      elTimerBadge.textContent = "--";
+      elTimerBadge.className = "w-10 h-10 rounded-full border-2 border-slate-600 bg-slate-900 flex items-center justify-center font-bold text-lg font-mono text-slate-400";
+    }
+
+    // 渲染三個選項按鈕
+    function renderOptions(options, isUnlocked, selectedIdx = null, correctIdx = null) {
+      elOptionsContainer.innerHTML = '';
+      const letters = ['A', 'B', 'C'];
+
+      options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.setAttribute('type', 'button');
+        btn.dataset.index = idx;
+
+        let baseClasses = "relative w-full p-4 sm:p-5 rounded-2xl text-left font-bold text-base sm:text-lg transition-all duration-200 border-2 flex items-center gap-3.5 ";
+        
+        if (!isUnlocked) {
+          baseClasses += "bg-slate-800/40 border-slate-700/60 text-slate-500 cursor-not-allowed opacity-60";
+          btn.disabled = true;
+        } else {
+          baseClasses += "bg-slate-800/90 border-slate-600 text-slate-100 hover:border-amber-400 hover:bg-slate-750 cursor-pointer shadow-md transform hover:-translate-y-0.5 active:translate-y-0";
+          btn.disabled = false;
+          btn.onclick = () => submitAnswer(idx);
+        }
+
+        // 題目公布後的色彩反饋
+        if (correctIdx !== null) {
+          btn.disabled = true;
+          if (idx === correctIdx) {
+            baseClasses = "relative w-full p-4 sm:p-5 rounded-2xl text-left font-bold text-base sm:text-lg border-2 flex items-center gap-3.5 bg-emerald-950/80 border-emerald-400 text-emerald-200 shadow-lg ring-2 ring-emerald-500/50";
+          } else if (idx === selectedIdx && selectedIdx !== correctIdx) {
+            baseClasses = "relative w-full p-4 sm:p-5 rounded-2xl text-left font-bold text-base sm:text-lg border-2 flex items-center gap-3.5 bg-rose-950/80 border-rose-500 text-rose-200 shadow-md";
+          } else {
+            baseClasses = "relative w-full p-4 sm:p-5 rounded-2xl text-left font-bold text-base sm:text-lg border-2 flex items-center gap-3.5 bg-slate-900/60 border-slate-800 text-slate-600 opacity-40";
+          }
+        }
+
+        btn.className = baseClasses;
+        btn.innerHTML = `
+          <span class="w-8 h-8 rounded-lg bg-slate-700/80 border border-slate-500/40 flex items-center justify-center text-sm font-cinzel font-bold text-amber-300 shrink-0">
+            ${letters[idx]}
+          </span>
+          <span class="flex-grow">${opt}</span>
+        `;
+        elOptionsContainer.appendChild(btn);
+      });
+    }
+
+    // 處理搶答 (A 隊按 A，B 隊按 L)
+    function handleBuzz(team) {
+      if (gameState.status !== STATE_WAITING_BUZZ) return;
+      if (gameState.attemptedTeams.has(team)) return;
+
+      sound.playBuzz();
+      gameState.status = STATE_ANSWERING;
+      gameState.activeTeam = team;
+      gameState.attemptedTeams.add(team);
+
+      highlightActiveTeam(team);
+
+      const currentQ = gameState.currentRoundQuestions[gameState.questionIndexInRound];
+      renderOptions(currentQ.options, true);
+
+      const teamLabel = team === 'A' ? gameState.teamNames.A : gameState.teamNames.B;
+      updateBanner("answering", teamLabel, team);
+
+      startCountdown();
+    }
+
+    // 倒數計時 10 秒
+    function startCountdown() {
+      clearCountdown();
+      gameState.timeLeft = 10;
+      updateTimerDisplay();
+
+      gameState.timerInterval = setInterval(() => {
+        gameState.timeLeft--;
+        updateTimerDisplay();
+        sound.playTick();
+
+        if (gameState.timeLeft <= 0) {
+          clearCountdown();
+          handleTimeoutWrong();
+        }
+      }, 1000);
+    }
+
+    function clearCountdown() {
+      if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
+      }
+    }
+
+    function updateTimerDisplay() {
+      elTimerBadge.textContent = gameState.timeLeft;
+      if (gameState.timeLeft <= 3) {
+        elTimerBadge.className = "w-10 h-10 rounded-full border-2 border-red-500 bg-red-950 flex items-center justify-center font-bold text-lg font-mono text-red-200 animate-pulse";
+      } else {
+        elTimerBadge.className = "w-10 h-10 rounded-full border-2 border-amber-400 bg-amber-950/60 flex items-center justify-center font-bold text-lg font-mono text-amber-300";
+      }
+    }
+
+    // 提交答案
+    function submitAnswer(selectedIndex) {
+      if (gameState.status !== STATE_ANSWERING) return;
+      clearCountdown();
+
+      const q = gameState.currentRoundQuestions[gameState.questionIndexInRound];
+      const team = gameState.activeTeam;
+      const isCorrect = (selectedIndex === q.answer);
+
+      if (isCorrect) {
+        sound.playCorrect();
+        gameState.status = STATE_RESOLVED;
+        gameState.scores[team] += 10;
+        updateScoreboard();
+
+        renderOptions(q.options, false, selectedIndex, q.answer);
+        showVerseExplanation(q.verse);
+
+        const teamLabel = team === 'A' ? gameState.teamNames.A : gameState.teamNames.B;
+        updateBanner("correct", teamLabel);
+
+        elBtnNext.classList.remove('hidden');
+        gameState.autoNextTimeout = setTimeout(() => {
+          nextQuestion();
+        }, 3000);
+
+      } else {
+        sound.playWrong();
+        gameState.scores[team] = Math.max(0, gameState.scores[team] - 5);
+        updateScoreboard();
+
+        const currentTeamLabel = team === 'A' ? gameState.teamNames.A : gameState.teamNames.B;
+        const otherTeam = team === 'A' ? 'B' : 'A';
+        const otherTeamLabel = otherTeam === 'A' ? gameState.teamNames.A : gameState.teamNames.B;
+
+        if (!gameState.attemptedTeams.has(otherTeam)) {
+          updateBanner("wrongTransfer", currentTeamLabel, otherTeamLabel);
+          
+          setTimeout(() => {
+            if (gameState.status !== STATE_ANSWERING) return;
+            transferTurnToOtherTeam(otherTeam);
+          }, 1200);
+
+        } else {
+          // 兩隊皆錯
+          gameState.status = STATE_RESOLVED;
+          renderOptions(q.options, false, selectedIndex, q.answer);
+          showVerseExplanation(q.verse);
+          updateBanner("bothWrong");
+
+          elBtnNext.classList.remove('hidden');
+          gameState.autoNextTimeout = setTimeout(() => {
+            nextQuestion();
+          }, 3500);
+        }
+      }
+    }
+
+    function handleTimeoutWrong() {
+      submitAnswer(-1);
+    }
+
+    function transferTurnToOtherTeam(otherTeam) {
+      gameState.activeTeam = otherTeam;
+      gameState.attemptedTeams.add(otherTeam);
+
+      highlightActiveTeam(otherTeam);
+      const q = gameState.currentRoundQuestions[gameState.questionIndexInRound];
+      renderOptions(q.options, true);
+
+      const otherTeamLabel = otherTeam === 'A' ? gameState.teamNames.A : gameState.teamNames.B;
+      updateBanner("answering", otherTeamLabel, otherTeam);
+
+      startCountdown();
+    }
+
+    // 下一題
+    function nextQuestion() {
+      clearCountdown();
+      if (gameState.autoNextTimeout) clearTimeout(gameState.autoNextTimeout);
+      loadQuestionInRound(gameState.questionIndexInRound + 1);
+    }
+
+    function showVerseExplanation(verse) {
+      if (gameState.currentCategory === 'bible') {
+        elVerseLabel.textContent = "📖 經文出處：";
+      } else if (gameState.currentCategory === 'life') {
+        elVerseLabel.textContent = "🌱 生活小常識：";
+      } else {
+        elVerseLabel.textContent = "💡 趣味解析：";
+      }
+      elVerseText.textContent = verse;
+      elVerseBox.classList.remove('hidden');
+    }
+
+    // 當一輪 5 題搶答結束時觸發
+    function handleRoundCompletion() {
+      if (gameState.currentRound >= 3) {
+        // 三個分類全部搶答結束，進入最終結算
+        showFinalResults();
+      } else {
+        // 進入輪次過渡畫面
+        elGamePlaySection.classList.add('hidden');
+        elRoundTransitionSection.classList.remove('hidden');
+
+        document.getElementById('roundCompleteTitle').textContent = `第 ${gameState.currentRound} 輪【${categoryNames[gameState.currentCategory]}】搶答圓滿結束！`;
+        document.getElementById('transScoreA').textContent = gameState.scores.A;
+        document.getElementById('transScoreB').textContent = gameState.scores.B;
+      }
+    }
+
+    // 由過渡畫面進入下一輪類別選擇
+    function goToNextRoundSelection() {
+      gameState.currentRound++;
+      showCategorySelectView();
+    }
+
+    // 狀態橫幅文字與樣式更新
+    function updateBanner(type, p1, p2) {
+      if (type === "waiting") {
+        elBuzzBanner.className = "flex items-center gap-2 text-base font-bold text-amber-300 px-3 py-1 bg-amber-950/50 rounded-lg border border-amber-500/30";
+        elBuzzBannerText.textContent = "題目已公布！請按 [A] 或 [L] 鍵搶答";
+      } else if (type === "answering") {
+        const isA = (p2 === 'A');
+        elBuzzBanner.className = `flex items-center gap-2 text-base font-bold px-3 py-1 rounded-lg border ${
+          isA ? 'text-blue-300 bg-blue-950 border-blue-400' : 'text-red-300 bg-red-950 border-red-400'
+        }`;
+        elBuzzBannerText.textContent = `⚡ 由【${p1}】搶得作答權！請在 10 秒內作答`;
+      } else if (type === "correct") {
+        elBuzzBanner.className = "flex items-center gap-2 text-base font-bold text-emerald-300 px-3 py-1 bg-emerald-950 border border-emerald-400 animate-bounce";
+        elBuzzBannerText.textContent = `🎉 太棒了！【${p1}】答對，得 10 分！`;
+      } else if (type === "wrongTransfer") {
+        elBuzzBanner.className = "flex items-center gap-2 text-base font-bold text-rose-300 px-3 py-1 bg-rose-950 border border-rose-400";
+        elBuzzBannerText.textContent = `❌【${p1}】答錯扣 5 分！答題權移交給【${p2}】`;
+      } else if (type === "bothWrong") {
+        elBuzzBanner.className = "flex items-center gap-2 text-base font-bold text-slate-300 px-3 py-1 bg-slate-800 border border-slate-600";
+        elBuzzBannerText.textContent = `兩隊皆未能答對，公布正解與經文出處！`;
+      }
+    }
+
+    function updateScoreboard() {
+      elTeamAScore.textContent = gameState.scores.A;
+      elTeamBScore.textContent = gameState.scores.B;
+    }
+
+    function highlightActiveTeam(team) {
+      resetTeamHighlights();
+      if (team === 'A') {
+        elTeamCardA.classList.add('blue-glow', 'border-blue-400', 'scale-[1.02]');
+        elTeamAIndicator.style.display = 'inline-block';
+        elBtnBuzzA.classList.add('ring-4', 'ring-blue-400');
+        elBtnBuzzB.classList.add('opacity-40', 'pointer-events-none');
+      } else if (team === 'B') {
+        elTeamCardB.classList.add('red-glow', 'border-red-400', 'scale-[1.02]');
+        elTeamBIndicator.style.display = 'inline-block';
+        elBtnBuzzB.classList.add('ring-4', 'ring-red-400');
+        elBtnBuzzA.classList.add('opacity-40', 'pointer-events-none');
+      }
+    }
+
+    function resetTeamHighlights() {
+      elTeamCardA.classList.remove('blue-glow', 'border-blue-400', 'scale-[1.02]');
+      elTeamCardB.classList.remove('red-glow', 'border-red-400', 'scale-[1.02]');
+      elTeamAIndicator.style.display = 'none';
+      elTeamBIndicator.style.display = 'none';
+    }
+
+    function resetBuzzButtons() {
+      elBtnBuzzA.classList.remove('opacity-40', 'pointer-events-none', 'ring-4', 'ring-blue-400');
+      elBtnBuzzB.classList.remove('opacity-40', 'pointer-events-none', 'ring-4', 'ring-red-400');
+    }
+
+    // ==========================================
+    // 5. 鍵盤事件監聽
+    // ==========================================
+    function setupKeyboardListeners() {
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        const key = e.key.toUpperCase();
+
+        if (key === 'A') {
+          handleBuzz('A');
+        } else if (key === 'L') {
+          handleBuzz('B');
+        } else if (key === 'ENTER' || key === ' ') {
+          if (!elBtnNext.classList.contains('hidden')) {
+            nextQuestion();
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // 6. 結算畫面與彩帶動畫
+    // ==========================================
+    function showFinalResults() {
+      gameState.status = STATE_FINISHED;
+      elGamePlaySection.classList.add('hidden');
+      elRoundTransitionSection.classList.add('hidden');
+      elCategorySelectSection.classList.add('hidden');
+      elResultSection.classList.remove('hidden');
+
+      const scoreA = gameState.scores.A;
+      const scoreB = gameState.scores.B;
+
+      document.getElementById('finalScoreA').textContent = scoreA;
+      document.getElementById('finalScoreB').textContent = scoreB;
+
+      const announce = document.getElementById('winnerAnnouncement');
+      const cardA = document.getElementById('finalCardA');
+      const cardB = document.getElementById('finalCardB');
+
+      // 播放簡單歡樂的頒獎勝利音效
+      sound.playVictory();
+
+      if (scoreA > scoreB) {
+        announce.innerHTML = `恭喜 👑 <strong class="text-blue-400">${gameState.teamNames.A}</strong> 榮獲三輪搶答總冠軍！`;
+        cardA.classList.add('blue-glow', 'border-amber-400');
+        startConfetti();
+      } else if (scoreB > scoreA) {
+        announce.innerHTML = `恭喜 👑 <strong class="text-red-400">${gameState.teamNames.B}</strong> 榮獲三輪搶答總冠軍！`;
+        cardB.classList.add('red-glow', 'border-amber-400');
+        startConfetti();
+      } else {
+        announce.innerHTML = `🤝 兩隊經過三輪激烈競爭，以 ${scoreA} 分握手言和！同蒙主恩！`;
+        startConfetti();
+      }
+    }
+
+    function restartGame() {
+      stopConfetti();
+      elResultSection.classList.add('hidden');
+      document.getElementById('finalCardA').classList.remove('blue-glow', 'border-amber-400');
+      document.getElementById('finalCardB').classList.remove('red-glow', 'border-amber-400');
+      initGame();
+    }
+
+    // Canvas Confetti 動畫
+    let confettiAnimationId = null;
+    let confettiParticles = [];
+
+    function startConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#D4AF37', '#F3E5AB', '#3B82F6', '#EF4444', '#10B981', '#F59E0B'];
+      confettiParticles = [];
+
+      for (let i = 0; i < 120; i++) {
+        confettiParticles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 8 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vx: Math.random() * 4 - 2,
+          vy: Math.random() * 3 + 3,
+          rot: Math.random() * 360,
+          rotSpeed: Math.random() * 8 - 4
+        });
+      }
+
+      function updateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confettiParticles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.rotSpeed;
+
+          if (p.y > canvas.height) {
+            p.y = -10;
+            p.x = Math.random() * canvas.width;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        });
+
+        confettiAnimationId = requestAnimationFrame(updateConfetti);
+      }
+
+      if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+      updateConfetti();
+    }
+
+    function stopConfetti() {
+      if (confettiAnimationId) {
+        cancelAnimationFrame(confettiAnimationId);
+        confettiAnimationId = null;
+      }
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    window.addEventListener('resize', () => {
+      const canvas = document.getElementById('confettiCanvas');
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    });
+
+    window.onload = function() {
+      initGame();
+    };
+  </script>
+</body>
+</html>
