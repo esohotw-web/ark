@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>感恩大富翁 - Thanksgiving Monopoly Deluxe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      background: radial-gradient(circle at 50% 20%, #FFFBEB 0%, #FEF3C7 50%, #FDE68A 100%);
+    }
+
+    .font-serif-tc {
+      font-family: 'Noto Serif TC', serif;
+    }
+
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(254, 243, 199, 0.5);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #D97706;
+      border-radius: 4px;
+    }
+
+    .gold-emboss {
+      background: linear-gradient(135deg, #FDE68A 0%, #D97706 50%, #78350F 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .dice-rolling {
+      animation: diceRollShake 0.45s infinite ease-in-out;
+    }
+    @keyframes diceRollShake {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.12) rotate(-14deg); }
+      50% { transform: scale(0.95) rotate(10deg); }
+      75% { transform: scale(1.1) rotate(-8deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .pulse-glow {
+      animation: pulseGlow 2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 12px rgba(245, 158, 11, 0.35); }
+      to { box-shadow: 0 0 24px rgba(245, 158, 11, 0.75); }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between selection:bg-amber-300">
+
+  <!-- 頂部導航與玩家狀態面板 -->
+  <header class="w-full max-w-5xl mx-auto px-3 sm:px-4 pt-3 pb-2">
+    <!-- 頂端標題資訊 -->
+    <div class="flex items-center justify-between mb-2 px-1">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🕊️</span>
+        <h1 class="text-xl sm:text-2xl font-black font-serif-tc text-amber-950 tracking-wide drop-shadow-sm">
+          感恩大富翁 <span class="text-xs sm:text-sm font-sans font-bold text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300 ml-1">恩典特裝版</span>
+        </h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="badge-dice-type" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/90 text-amber-800 border border-amber-300 shadow-sm">
+          虛擬骰子
+        </span>
+        <span id="badge-corner-rate" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-500 text-white shadow-sm">
+          功能格 x1.0
+        </span>
+        <span id="header-timer" class="hidden text-xs font-mono font-bold px-2.5 py-0.5 rounded-md bg-slate-900 text-amber-300 border border-amber-500 shadow-inner">
+          00:00
+        </span>
+      </div>
+    </div>
+
+    <!-- 玩家動態狀態卡片列 (支援 2~4 人響應排版) -->
+    <div id="playersHeaderGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5">
+      <!-- 動態由 JavaScript 生成 2~4 位玩家徽章 -->
+    </div>
+  </header>
+
+  <!-- 遊戲主體：Canvas 棋盤視窗 -->
+  <main class="w-full max-w-5xl mx-auto px-3 sm:px-4 flex-1 flex flex-col items-center justify-center py-1">
+    <div class="relative w-full max-w-[550px] aspect-square rounded-3xl p-2.5 bg-gradient-to-b from-amber-700 via-amber-600 to-amber-900 shadow-2xl border-4 border-amber-400/90 flex items-center justify-center">
+      <!-- 內襯羊皮紙質感 Canvas 容器 -->
+      <div class="w-full h-full rounded-2xl overflow-hidden shadow-inner relative bg-[#FFFDF6]">
+        <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部多功能互動提示框 (經文背誦、問答、超級祝福處置、實體骰子鍵盤) -->
+  <footer class="w-full max-w-5xl mx-auto px-3 sm:px-4 pb-3">
+    <div id="promptBox" class="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border-2 border-amber-400 relative transition-all duration-300">
+      
+      <!-- 頂部提示標題與輪替指示 -->
+      <div class="flex items-center justify-between pb-2 border-b border-amber-200 mb-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="promptBadge" class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-600 text-white shadow-sm flex-shrink-0">
+            恩典啟航
+          </span>
+          <h2 id="promptTitle" class="font-bold font-serif-tc text-slate-900 text-sm sm:text-base truncate">
+            歡迎來到感恩大富翁
+          </h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="triggerConsensusEnd()" class="text-xs text-amber-800 hover:text-red-700 underline font-medium cursor-pointer transition">
+            提出共識結算
+          </button>
+          <span id="promptTurnGuide" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-300">
+            大衛 行動中
+          </span>
+        </div>
+      </div>
+      
+      <!-- 提示內容核心區 (經文、分享題、危機卡抵消判定) -->
+      <div id="promptContent" class="text-sm sm:text-base text-slate-700 leading-relaxed min-h-[52px] max-h-32 overflow-y-auto custom-scrollbar pr-1">
+        請在中央點擊擲骰，或依實體骰子點數輸入，開始這段數算恩典的旅程！
+      </div>
+
+      <!-- 實體骰子輸入鍵盤 (若是實體骰子模式時顯示) -->
+      <div id="physicalDicePanel" class="hidden mt-3 pt-2.5 border-t border-amber-200">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span class="text-xs font-bold text-amber-900 flex items-center gap-1">
+            🎲 請投擲實體骰子，並點選點數：
+          </span>
+          <div class="grid grid-cols-6 gap-1.5 w-full sm:w-auto">
+            <button onclick="submitPhysicalDice(1)" class="py-2 px-3 sm:px-4 bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-950 font-black rounded-xl border border-amber-300 shadow-sm transition active:scale-95 text-sm">1</button>
+            <button onclick="submitPhysicalDice(2)" class="py-2 px-3 sm:px-4 bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-950 font-black rounded-xl border border-amber-300 shadow-sm transition active:scale-95 text-sm">2</button>
+            <button onclick="submitPhysicalDice(3)" class="py-2 px-3 sm:px-4 bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-950 font-black rounded-xl border border-amber-300 shadow-sm transition active:scale-95 text-sm">3</button>
+            <button onclick="submitPhysicalDice(4)" class="py-2 px-3 sm:px-4 bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-950 font-black rounded-xl border border-amber-300 shadow-sm transition active:scale-95 text-sm">4</button>
+            <button onclick="submitPhysicalDice(5)" class="py-2 px-3 sm:px-4 bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-950 font-black rounded-xl border border-amber-300 shadow-sm transition active:scale-95 text-sm">5</button>
+            <button onclick="submitPhysicalDice(6)" class="py-2 px-3 sm:px-4 bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-950 font-black rounded-xl border border-amber-300 shadow-sm transition active:scale-95 text-sm">6</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 一般互動按鈕群 -->
+      <div id="promptActions" class="mt-3 pt-2 border-t border-amber-100 flex flex-wrap items-center justify-end gap-2">
+        <!-- 動態渲染操作按鈕 -->
+      </div>
+    </div>
+  </footer>
+
+  <!-- 遊戲開局全面自訂設定視窗 (Setup Modal) -->
+  <div id="setupModal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-gradient-to-b from-white via-amber-50/50 to-amber-100/60 rounded-3xl p-5 sm:p-7 max-w-lg w-full shadow-2xl border-4 border-amber-400 text-center relative overflow-hidden max-h-[92vh] overflow-y-auto custom-scrollbar">
+      
+      <!-- 徽飾抬頭 -->
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 text-white flex items-center justify-center text-3xl mx-auto mb-2 shadow-lg ring-4 ring-amber-200">
+        🕊️
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-black font-serif-tc text-amber-950 mb-0.5">感恩大富翁</h2>
+      <p class="text-xs text-amber-800 font-medium mb-4">數算恩典．分享見證．在主愛中同樂</p>
+
+      <div class="space-y-4 text-left mb-6 text-slate-800">
+        
+        <!-- 1. 參與人數選擇 (2~4人) -->
+        <div class="bg-white/90 p-3 rounded-2xl border border-amber-200 shadow-sm">
+          <label class="block text-xs font-black text-amber-900 mb-2 flex items-center gap-1.5">
+            👥 1. 選擇參與人數
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="setPlayerCount(2)" id="btn-count-2" class="py-2 px-2 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs text-center transition">
+              2 人模式<br><span class="text-[10px] font-normal text-slate-500">大衛、保羅</span>
+            </button>
+            <button type="button" onclick="setPlayerCount(3)" id="btn-count-3" class="py-2 px-2 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs text-center transition">
+              3 人模式<br><span class="text-[10px] font-normal text-slate-500">+摩西(綠)</span>
+            </button>
+            <button type="button" onclick="setPlayerCount(4)" id="btn-count-4" class="py-2 px-2 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs text-center transition">
+              4 人模式<br><span class="text-[10px] font-normal text-slate-500">+彼得(金)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. 擲骰方式選擇 (虛擬 vs 實體) -->
+        <div class="bg-white/90 p-3 rounded-2xl border border-amber-200 shadow-sm">
+          <label class="block text-xs font-black text-amber-900 mb-2 flex items-center gap-1.5">
+            🎲 2. 擲骰方式
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="setDiceMode('virtual')" id="btn-dice-virtual" class="py-2.5 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs flex items-center justify-center gap-2 transition">
+              <span>🎮 遊戲虛擬骰子</span>
+            </button>
+            <button type="button" onclick="setDiceMode('physical')" id="btn-dice-physical" class="py-2.5 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition">
+              <span>🎯 現場實體骰子</span>
+            </button>
+          </div>
+          <p id="diceModeDesc" class="text-[11px] text-slate-500 mt-1.5">
+            ＊虛擬骰子：點擊棋盤中央即時滾動，並受功能格機率偏好影響。
+          </p>
+        </div>
+
+        <!-- 3. 功能格機率偏好 (1.0x, 1.2x, 1.5x, 2.0x) -->
+        <div class="bg-white/90 p-3 rounded-2xl border border-amber-200 shadow-sm">
+          <label class="block text-xs font-black text-amber-900 mb-2 flex items-center gap-1.5">
+            ✨ 3. 虛擬骰落入「功能格」機率提升
+          </label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" onclick="setCornerRate(1.0)" id="btn-rate-1" class="py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition">
+              1.0x (標準)
+            </button>
+            <button type="button" onclick="setCornerRate(1.2)" id="btn-rate-12" class="py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition">
+              1.2x (輕度)
+            </button>
+            <button type="button" onclick="setCornerRate(1.5)" id="btn-rate-15" class="py-2 px-1 text-center rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs transition">
+              1.5x (推薦)
+            </button>
+            <button type="button" onclick="setCornerRate(2.0)" id="btn-rate-2" class="py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition">
+              2.0x (熱烈)
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1.5">
+            將提升擲骰落入「起點/分享、應許、祝福、危機」四角落事件格的機率！
+          </p>
+        </div>
+
+        <!-- 4. 遊戲終結條件 -->
+        <div class="bg-white/90 p-3 rounded-2xl border border-amber-200 shadow-sm">
+          <label class="block text-xs font-black text-amber-900 mb-2 flex items-center gap-1.5">
+            🏁 4. 遊戲終結方式
+          </label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" onclick="setEndCondition('no_empty')" id="btn-end-empty" class="py-2 px-1 text-center rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs transition">
+              無空白格
+            </button>
+            <button type="button" onclick="setEndCondition('time_5')" id="btn-end-5" class="py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition">
+              限時 5分
+            </button>
+            <button type="button" onclick="setEndCondition('time_10')" id="btn-end-10" class="py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition">
+              限時 10分
+            </button>
+            <button type="button" onclick="setEndCondition('time_15')" id="btn-end-15" class="py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition">
+              限時 15分
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 啟動遊戲按鈕 -->
+      <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-700 hover:to-amber-700 text-white font-black font-serif-tc text-base rounded-2xl shadow-xl shadow-amber-600/30 transform active:scale-95 transition">
+        啟動感恩旅程
+      </button>
+    </div>
+  </div>
+
+  <!-- 終局榮耀結算彈窗 (Modal) -->
+  <div id="victoryModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-gradient-to-b from-white via-amber-50 to-amber-100 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border-4 border-amber-400 text-center relative overflow-hidden animate-fade-in">
+      <div class="text-5xl mb-2">🎉 👑 🕊️</div>
+      <h2 id="vicTitle" class="text-2xl sm:text-3xl font-black font-serif-tc text-slate-900 mb-1">榮耀結算</h2>
+      <p id="vicSubtitle" class="text-xs sm:text-sm text-amber-800 font-medium mb-5">「凡事謝恩，因為這是神在基督耶穌裡向你們所定的旨意。」</p>
+
+      <!-- 動態玩家名次與得分展示 -->
+      <div id="vicPlayersGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+        <!-- 動態渲染各玩家得分 -->
+      </div>
+
+      <div id="vicReason" class="text-sm font-bold text-slate-800 bg-amber-200/60 p-3.5 rounded-2xl border border-amber-300 mb-6">
+        願頌讚歸與我們主耶穌基督的父神！
+      </div>
+
+      <button onclick="location.reload()" class="w-full py-3.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-black font-serif-tc rounded-2xl shadow-lg shadow-amber-600/30 transform active:scale-95 transition">
+        再次遊玩 重新感恩
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. 題庫與卡片資產資料庫 (完整 20分享、20應許、20祝福、20危機、16經文)
+       ========================================================================= */
+    const SHARE_QUESTIONS = [
+      "分享一件本週最讓你打從心底感謝的小事。",
+      "分享一位在你成長過程中對你影響深遠、你想感謝的人。",
+      "想一想今天的一頓飯，分享你最想感謝的一道食材或背後的付出。",
+      "分享一次「雖然事情不順利，但事後回想卻帶來益處」的感恩經歷。",
+      "看著在場的一位朋友，說出一件你欣賞他/她的優點或特質。",
+      "分享一件家人為你做過、最令你感動的付出。",
+      "分享一處大自然中美麗的景色，曾讓你感受到被造的奇妙與感恩。",
+      "分享最近克服的一項挑戰，並感謝在這過程中幫助過你的人。",
+      "分享一首曾陪伴你度過低谷、帶來安慰的詩歌或音樂。",
+      "分享一項你目前擁有的健康或日常能力（如視力、行走），並表達感謝。",
+      "分享一次突如其來的幫助或善意，是來自陌生人的。",
+      "感謝一位曾指出你的盲點、幫助你成長的朋友或師長。",
+      "分享一件你小時候不覺得、長大後才深刻體會的恩典。",
+      "分享一處讓你感到平安放鬆的空間或角落，並獻上感恩。",
+      "分享一次禱告蒙應允的經歷，以及當時的心境。",
+      "分享一個你所擁有的恩賜或專長，並感謝能用它來服事他人。",
+      "分享今天出門到現在，最讓你感到舒心或平安的一刻。",
+      "分享一件雖然微小但讓你開懷大笑的事。",
+      "感謝今天能與大家一同玩這場遊戲的時光與彼此的陪伴。",
+      "用一句話為你目前的人生階段總結一個感恩的理由。"
+    ];
+
+    const PROMISES = [
+      "「你不要害怕，因為我與你同在；不要驚惶，因為我是你的神。我必堅固你，我必幫助你；我必用我公義的右手扶持你。」（以賽亞書 41:10）",
+      "「我留下平安給你們；我將我的平安賜給你們。我所賜的，不像世人所賜的。你們心裡不要憂愁，也不要膽怯。」（約翰福音 14:27）",
+      "「應當一無挂慮，只要凡事藉著禱告、祈求，和感謝，將你們所要的告訴神。神所賜、出人意外的平安必在基督耶穌裡保守你們的心懷意念。」（腓立比書 4:6-7）",
+      "「耶和華是我的牧者，我必不致缺乏。」（詩篇 23:1）",
+      "「我知道我向你們所懷的意念是賜平安的意念，不是降災禍的意念，要叫你們末後有指望。」（耶利米書 29:11）",
+      "「但那等候耶和華的必重新得力。他們必如鷹展翅上騰；他們奔跑卻不困倦，行走卻不疲乏。」（以賽亞書 40:31）",
+      "「我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全。」（哥林多後書 12:9）",
+      "「我靠著那加給我力量的，凡事都能做。」（腓立比書 4:13）",
+      "「神為愛他的人所預備的，是眼睛未曾看見，耳朵未曾聽見，人心也未曾想到的。」（哥林多前書 2:9）",
+      "「耶和華必在你前面行；他必與你同在，必不撇下你，也不丟棄你。不要懼怕，也不要驚惶。」（申命記 31:8）",
+      "「你們要將一切的憂慮卸給神，因為他顧念你們。」（彼得前書 5:7）",
+      "「你們祈求，就給你們；尋找，就尋見；叩門，就給你們開門。」（馬太福音 7:7）",
+      "「我的神必照他榮耀的豐富，在基督耶穌裡，使你們一切所需用的都充足。」（腓立比書 4:19）",
+      "「凡勞苦擔重擔的人可以到我這裡來，我就使你們得安息。」（馬太福音 11:28）",
+      "「萬事都互相效力，叫愛神的人得益處。」（羅馬書 8:28）",
+      "「耶和華靠近傷心的人，拯救靈性痛悔的人。」（詩篇 34:18）",
+      "「你求告我，我就應允你，並將你所不知道、又大又難的事指示你。」（耶利米書 33:3）",
+      "「你出你入，耶和華要保護你，從今時直到永遠。」（詩篇 121:8）",
+      "「主是我的幫助，我必不懼怕；人能把我怎麼樣呢？」（希伯來書 13:6）",
+      "「你們要嘗嘗主恩的滋味，便知道他是美善；投靠他的人有福了！」（詩篇 34:8）"
+    ];
+
+    const BLESSING_CARDS = [
+      { id: "S1", isSuper: true, title: "信心磐石", desc: "【超級祝福】常駐持有。遇「信心瓦解」時可完全抵消損失 2 格佔領區的攻擊。" },
+      { id: "S2", isSuper: true, title: "真理腰帶", desc: "【超級祝福】常駐持有。遇「迷途陷阱」時可完全抵消倒退 5 格且暫停的懲罰。" },
+      { id: "S3", isSuper: true, title: "愛心冠冕", desc: "【超級祝福】常駐持有。遇「嫉妒分爭」時可完全阻擋領地被掠奪割讓。" },
+      { id: "S4", isSuper: true, title: "平安盾牌", desc: "【超級祝福】常駐持有。遇「狂風巨浪」時可免受強制連續暫停 2 回合之苦。" },
+      { id: "S5", isSuper: true, title: "恩典遮蓋", desc: "【超級祝福】常駐持有。遇「旱地荒蕪」時可保全最大編號的 2 處領地。" },
+      { id: "B6", isSuper: false, title: "恩光普照", desc: "神賜恩引導，隨機獲得 1 格無人佔領之空白地。", action: "gain_empty" },
+      { id: "B7", isSuper: false, title: "恩賜倍增", desc: "喜樂滿溢！立即額外獲得一次前進機會。", action: "roll_again" },
+      { id: "B8", isSuper: false, title: "憐憫同行", desc: "步伐輕快，直接向前邁進 2 格。", action: "step_forward_2" },
+      { id: "B9", isSuper: false, title: "肢體交通", desc: "主內合一：獲得其他玩家隨機贈送 1 處佔領區（若無則獲空白格）。", action: "take_opponent_land" },
+      { id: "B10", isSuper: false, title: "靈裡更新", desc: "心中滿有平安，若身上有任何暫停懲罰，立即全數清除。", action: "clear_pause" },
+      { id: "B11", isSuper: false, title: "以馬內利", desc: "神與你同行，由天使引導隨機前進 1 到 3 格。", action: "random_forward" },
+      { id: "B12", isSuper: false, title: "曠野甘泉", desc: "神在沙漠開江河，直接傳送前往最近的「應許」格領受甘霖！", action: "warp_promise" },
+      { id: "B13", isSuper: false, title: "恩上加恩", desc: "若盤面上尚有未佔領區，指定獲得當前編號最小的空白格。", action: "gain_min_empty" },
+      { id: "B14", isSuper: false, title: "僕人精神", desc: "謙卑服事：下一位玩家前進 1 格，自己蒙神喜悅獲得 1 處空白地。", action: "servant_blessing" },
+      { id: "B15", isSuper: false, title: "讚美之歌", desc: "開口讚美神！若目前領地落後，立即額外獲得 1 處空白格。", action: "catch_up_land" },
+      { id: "B16", isSuper: false, title: "福杯滿溢", desc: "神賜下厚恩，若當前停留之格尚未被佔領，立即自動佔領！", action: "claim_current" },
+      { id: "B17", isSuper: false, title: "慷慨分享", desc: "彼此分享喜樂，自己與下一位玩家各隨機獲得 1 格空白地。", action: "both_gain_empty" },
+      { id: "B18", isSuper: false, title: "晨曦破曉", desc: "黎明光照，跨越艱難，直接前進至對角的「祝福」格！", action: "warp_bless" },
+      { id: "B19", isSuper: false, title: "和平之約", desc: "眾人向你致謝，獲得神所賜予的 1 處平安空白地。", action: "gain_empty" },
+      { id: "B20", isSuper: false, title: "喜樂甘霖", desc: "喜樂的心乃是良藥，驅散疲倦，再走 1 步！", action: "step_forward_1" }
+    ];
+
+    const CRISIS_CARDS = [
+      { id: "C1", isMajor: true, matchSuper: "S1", title: "信心瓦解", desc: "【重大危機】因遭猛烈質疑攻擊，隨機失去 2 處已佔領之地（變為白色）。" },
+      { id: "C2", isMajor: true, matchSuper: "S2", title: "迷途陷阱", desc: "【重大危機】誤入歧途，腳步錯亂，直接倒退 5 格，且下一輪暫停行動！" },
+      { id: "C3", isMajor: true, matchSuper: "S3", title: "嫉妒分爭", desc: "【重大危機】因分爭結黨，你現有的 1 處佔領區直接割讓轉交給其他玩家！" },
+      { id: "C4", isMajor: true, matchSuper: "S4", title: "狂風巨浪", desc: "【重大危機】身陷大風浪中孤立無援，強制連續暫停前進 2 回合！" },
+      { id: "C5", isMajor: true, matchSuper: "S5", title: "旱地荒蕪", desc: "【重大危機】遭遇嚴酷乾旱，失去目前佔領編號最大的 2 處領地！" },
+      { id: "C6", isMajor: false, title: "驕傲跌倒", desc: "自高者必降為卑。隨機失去 1 處已佔領區（變回白色）。若無領地則暫停 1 次。", action: "lose_one_land" },
+      { id: "C7", isMajor: false, title: "腳步滑跌", desc: "路面濕滑，棋子從原位置退後 2 格。", action: "back_2" },
+      { id: "C8", isMajor: false, title: "疲憊軟弱", desc: "身體疲乏需要歇息，下一輪暫停行動 1 次。", action: "pause_1" },
+      { id: "C9", isMajor: false, title: "荊棘阻礙", desc: "路上遇荊棘刺破鞋履，無奈倒退 1 格。", action: "back_1" },
+      { id: "C10", isMajor: false, title: "忘卻恩惠", desc: "忘了向神獻上感恩，信心動搖，退後 2 格。", action: "back_2" },
+      { id: "C11", isMajor: false, title: "口舌紛爭", desc: "言語未帶著和氣，請向大家說一句道歉的話，並暫停 1 回合。", action: "pause_1" },
+      { id: "C12", isMajor: false, title: "烏雲蔽日", desc: "行在陰影中，心神不寧，退後 1 格。", action: "back_1" },
+      { id: "C13", isMajor: false, title: "私慾牽引", desc: "分心流連，隨機挑選 1 處佔領地失去。", action: "lose_one_land" },
+      { id: "C14", isMajor: false, title: "客西馬尼的沉睡", desc: "眼睛困倦，未曾警醒片時，暫停前進 1 回合。", action: "pause_1" },
+      { id: "C15", isMajor: false, title: "狂風吹拂", desc: "狂風呼嘯，被迫退後 3 格！", action: "back_3" },
+      { id: "C16", isMajor: false, title: "孤軍奮戰", desc: "忘記肢體需要同工配搭，後退 1 格等待同伴。", action: "back_1" },
+      { id: "C17", isMajor: false, title: "急躁冒進", desc: "跑在神心意之前，迷失方向，退後 2 格。", action: "back_2" },
+      { id: "C18", isMajor: false, title: "世俗思慮", desc: "被繁雜瑣事塞滿，暫停行動 1 次靜享安息。", action: "pause_1" },
+      { id: "C19", isMajor: false, title: "曠野烈日", desc: "乾渴難耐，步伐沉重，退後 1 格。", action: "back_1" },
+      { id: "C20", isMajor: false, title: "信心動搖", desc: "看風浪未看基督，隨機失去 1 處已佔領之領地。", action: "lose_one_land" }
+    ];
+
+    const GRATITUDE_VERSES = [
+      "「要常常喜樂，不住的禱告，凡事謝恩；因為這是神在基督耶穌裡向你們所定的旨意。」（帖前 5:16-18）",
+      "「你們要稱謝耶和華，求告他的名，在萬民中傳揚他的作為！」（詩篇 105:1）",
+      "「我的心哪，你要稱頌耶和華！不可忘記他的一切恩惠！」（詩篇 103:2）",
+      "「當稱謝進入他的門；當讚美進入他的院。當感謝他，稱頌他的名！」（詩篇 100:4）",
+      "「感謝神，因他有說不盡的恩賜！」（林後 9:15）",
+      "「無論做什麼，或說話或行事，都要奉主耶穌的名，藉著他感謝父神。」（西 3:17）",
+      "「耶和華是我的力量，是我的盾牌；我心裡倚靠他就得幫助。所以我心中歡樂，我必用詩歌稱讚他。」（詩篇 28:7）",
+      "「凡以感謝獻上為祭的便是榮耀我；那按正路而行的，我必使他得著神的救恩。」（詩篇 50:23）",
+      "「感謝神，使我們藉著我們的主耶穌基督得勝。」（林前 15:57）",
+      "「你們要以感謝向耶和華唱歌，用琴向我們的神歌頌。」（詩篇 147:7）",
+      "「我要一心稱謝耶和華；我要傳揚你一切奇妙的作為。」（詩篇 9:1）",
+      "「願他們以感謝為祭獻給他，歡呼述說他的作為！」（詩篇 107:22）",
+      "「耶和華啊，你的慈愛上及諸天；你的信實達到穹蒼。」（詩篇 36:5）",
+      "「因你的慈愛比生命更好，我的嘴唇要頌讚你。」（詩篇 63:3）",
+      "「我們應當靠著耶穌，常常以頌讚為祭獻給神，這就是那承認主名之人嘴唇的果子。」（來 13:15）",
+      "「全地都要向神歡呼！歌頌他名的榮耀！用讚美的言語將他的榮耀發明！」（詩篇 66:1-2）"
+    ];
+
+    /* =========================================================================
+       2. Web Audio API 音效引擎 (高質感大三和弦與特殊音效)
+       ========================================================================= */
+    class AudioSynthesizer {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playTone(freq, duration = 0.1, type = 'sine', gainVal = 0.15) {
+        try {
+          this.init();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) { }
+      }
+      playRoll() {
+        this.init();
+        for (let i = 0; i < 6; i++) {
+          setTimeout(() => {
+            this.playTone(260 + Math.random() * 220, 0.05, 'triangle', 0.12);
+          }, i * 55);
+        }
+      }
+      playStep() {
+        this.playTone(587.33, 0.07, 'sine', 0.16); // D5
+      }
+      playClaim() {
+        this.init();
+        const chord = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+        chord.forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 0.14, 'triangle', 0.18), idx * 60);
+        });
+      }
+      playBlessing() {
+        this.init();
+        const chord = [440, 554.37, 659.25, 880, 1108.73];
+        chord.forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 0.16, 'sine', 0.16), idx * 75);
+        });
+      }
+      playCrisis() {
+        this.init();
+        const chord = [320, 270, 220, 160];
+        chord.forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 0.16, 'sawtooth', 0.13), idx * 80);
+        });
+      }
+      playVictory() {
+        this.init();
+        const fanfare = [
+          { f: 523.25, d: 0.16, t: 0 },
+          { f: 659.25, d: 0.16, t: 150 },
+          { f: 783.99, d: 0.16, t: 300 },
+          { f: 1046.5, d: 0.45, t: 450 },
+          { f: 880.00, d: 0.18, t: 800 },
+          { f: 1046.5, d: 0.18, t: 980 },
+          { f: 1318.5, d: 0.70, t: 1160 }
+        ];
+        fanfare.forEach(item => {
+          setTimeout(() => this.playTone(item.f, item.d, 'triangle', 0.22), item.t);
+        });
+      }
+    }
+    const audio = new AudioSynthesizer();
+
+    /* =========================================================================
+       3. 牌組管理器 (無重複洗牌循環)
+       ========================================================================= */
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    class DeckManager {
+      constructor(sourceList) {
+        this.source = sourceList;
+        this.deck = [];
+      }
+      draw() {
+        if (this.deck.length === 0) {
+          this.deck = shuffleArray(this.source);
+        }
+        return this.deck.pop();
+      }
+    }
+
+    const shareDeck = new DeckManager(SHARE_QUESTIONS);
+    const promiseDeck = new DeckManager(PROMISES);
+    const blessingDeck = new DeckManager(BLESSING_CARDS);
+    const crisisDeck = new DeckManager(CRISIS_CARDS);
+
+    /* =========================================================================
+       4. 玩家資料結構與四位角色定義
+       ========================================================================= */
+    const ALL_PLAYERS_POOL = [
+      {
+        id: 0,
+        name: '大衛',
+        title: '合神心意',
+        color: '#EF4444',     // 紅
+        darkColor: '#991B1B',
+        lightBg: '#FEE2E2',
+        symbol: '衛',
+        avatarBg: 'bg-red-500',
+        ringClass: 'ring-red-400'
+      },
+      {
+        id: 1,
+        name: '保羅',
+        title: '奔跑天路',
+        color: '#3B82F6',     // 藍
+        darkColor: '#1E40AF',
+        lightBg: '#DBEAFE',
+        symbol: '保',
+        avatarBg: 'bg-blue-500',
+        ringClass: 'ring-blue-400'
+      },
+      {
+        id: 2,
+        name: '摩西',
+        title: '曠野引路',
+        color: '#10B981',     // 綠
+        darkColor: '#065F46',
+        lightBg: '#D1FAE5',
+        symbol: '摩',
+        avatarBg: 'bg-emerald-500',
+        ringClass: 'ring-emerald-400'
+      },
+      {
+        id: 3,
+        name: '彼得',
+        title: '磐石漁夫',
+        color: '#F59E0B',     // 琥珀金
+        darkColor: '#92400E',
+        lightBg: '#FEF3C7',
+        symbol: '彼',
+        avatarBg: 'bg-amber-500',
+        ringClass: 'ring-amber-400'
+      }
+    ];
+
+    // 棋盤 20 格配置 (6x6 外環)
+    const TILES = [];
+    (function initTiles() {
+      let nonFuncId = 1;
+      for (let i = 0; i < 20; i++) {
+        let type = 'normal';
+        let name = '';
+        let verse = '';
+        let number = null;
+
+        if (i === 0) {
+          type = 'corner_start';
+          name = '起點';
+        } else if (i === 5) {
+          type = 'corner_promise';
+          name = '應許';
+        } else if (i === 10) {
+          type = 'corner_bless';
+          name = '祝福';
+        } else if (i === 15) {
+          type = 'corner_crisis';
+          name = '危機';
+        } else {
+          type = 'normal';
+          number = nonFuncId;
+          name = `第 ${nonFuncId} 格`;
+          verse = GRATITUDE_VERSES[nonFuncId - 1];
+          nonFuncId++;
+        }
+
+        TILES.push({
+          index: i,
+          type: type,
+          name: name,
+          number: number,
+          verse: verse,
+          owner: null // null 或 玩家id (0, 1, 2, 3)
+        });
+      }
+    })();
+
+    // 遊戲全域狀態
+    const gameState = {
+      started: false,
+      isGameOver: false,
+      playerCount: 2,
+      diceMode: 'virtual',      // 'virtual' | 'physical'
+      cornerWeightRate: 1.5,   // 1.0 | 1.2 | 1.5 | 2.0
+      endMode: 'no_empty',      // 'no_empty' | 'time_5' | 'time_10' | 'time_15'
+      timeRemaining: 300,
+      timerInterval: null,
+      currentTurnIndex: 0,
+      allLeftStart: false,
+      isRolling: false,
+      isMoving: false,
+      diceVal: 1,
+      players: [],
+      displaySize: 500,
+      diceCenterBtn: { x: 250, y: 250, radius: 46 }
+    };
+
+    /* =========================================================================
+       5. 繪製引擎：精緻幾何與自製 SVG 向量紋飾
+       ========================================================================= */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 粒子系統 (Confetti)
+    const confettiList = [];
+    function spawnConfetti(count = 140) {
+      const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#D97706'];
+      for (let i = 0; i < count; i++) {
+        confettiList.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 18,
+          vy: (Math.random() - 0.75) * 20,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 12,
+          gravity: 0.38,
+          life: 1.0,
+          decay: Math.random() * 0.007 + 0.004
+        });
+      }
+    }
+
+    function renderConfetti(c) {
+      for (let i = confettiList.length - 1; i >= 0; i--) {
+        const p = confettiList[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rot += p.rotSpeed;
+        p.life -= p.decay;
+
+        if (p.life <= 0 || p.y > canvas.height + 20) {
+          confettiList.splice(i, 1);
+          continue;
+        }
+
+        c.save();
+        c.translate(p.x, p.y);
+        c.rotate((p.rot * Math.PI) / 180);
+        c.fillStyle = p.color;
+        c.globalAlpha = Math.max(0, p.life);
+        c.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+        c.restore();
+      }
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const size = Math.floor(Math.min(rect.width, rect.height));
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      ctx.resetTransform?.();
+      ctx.scale(dpr, dpr);
+      gameState.displaySize = size;
+      gameState.diceCenterBtn.x = size / 2;
+      gameState.diceCenterBtn.y = size / 2;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // 取得 20 格對應座標 (6x6 外圍環狀)
+    function getTileRect(index, S) {
+      const step = S / 6;
+      let col = 0, row = 0;
+      if (index >= 0 && index <= 5) {
+        col = index;
+        row = 0;
+      } else if (index >= 6 && index <= 9) {
+        col = 5;
+        row = index - 5;
+      } else if (index >= 10 && index <= 15) {
+        col = 15 - index;
+        row = 5;
+      } else {
+        col = 0;
+        row = 20 - index;
+      }
+
+      return {
+        x: col * step,
+        y: row * step,
+        w: step,
+        h: step,
+        cx: col * step + step / 2,
+        cy: row * step + step / 2
+      };
+    }
+
+    // 插值更新棋子平滑移動
+    function updatePawnAnimations() {
+      gameState.players.forEach(p => {
+        let diff = p.pos - p.animPos;
+        if (diff < -10) diff += 20;
+        if (diff > 10) diff -= 20;
+
+        if (Math.abs(diff) < 0.05) {
+          p.animPos = p.pos;
+        } else {
+          p.animPos = (p.animPos + diff * 0.22) % 20;
+          if (p.animPos < 0) p.animPos += 20;
+        }
+      });
+    }
+
+    // 繪製自製精緻向量圖示 (起點、應許、祝福、危機、卷軸)
+    function drawTileIcon(type, cx, cy, size) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      if (type === 'corner_start') {
+        // 葡萄藤與聖餐杯/愛心
+        ctx.fillStyle = '#10B981';
+        ctx.beginPath();
+        ctx.arc(-size * 0.22, -size * 0.15, size * 0.2, 0, Math.PI * 2);
+        ctx.arc(size * 0.22, -size * 0.15, size * 0.2, 0, Math.PI * 2);
+        ctx.arc(0, size * 0.15, size * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#F59E0B';
+        ctx.beginPath();
+        ctx.arc(0, -size * 0.05, size * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (type === 'corner_promise') {
+        // 彩虹光芒與和平展翅鴿
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(0, size * 0.1, size * 0.42, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#38BDF8';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(0, size * 0.1, size * 0.28, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.stroke();
+
+        // 白鴿雙翼
+        ctx.fillStyle = '#0284C7';
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.35, 0);
+        ctx.quadraticCurveTo(-size * 0.1, -size * 0.35, 0, 0);
+        ctx.quadraticCurveTo(size * 0.1, -size * 0.35, size * 0.35, 0);
+        ctx.quadraticCurveTo(0, size * 0.2, -size * 0.35, 0);
+        ctx.fill();
+      } else if (type === 'corner_bless') {
+        // 恩膏溢流金杯與寶冠
+        ctx.fillStyle = '#D97706';
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.28, -size * 0.2);
+        ctx.lineTo(size * 0.28, -size * 0.2);
+        ctx.lineTo(size * 0.18, size * 0.15);
+        ctx.lineTo(-size * 0.18, size * 0.15);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#FDE68A';
+        ctx.beginPath();
+        ctx.arc(0, -size * 0.2, size * 0.28, 0, Math.PI, false);
+        ctx.fill();
+
+        // 寶冠三芒
+        ctx.fillStyle = '#B45309';
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.25, -size * 0.25);
+        ctx.lineTo(-size * 0.15, -size * 0.45);
+        ctx.lineTo(0, -size * 0.28);
+        ctx.lineTo(size * 0.15, -size * 0.45);
+        ctx.lineTo(size * 0.25, -size * 0.25);
+        ctx.closePath();
+        ctx.fill();
+      } else if (type === 'corner_crisis') {
+        // 風浪與盾牌雷電
+        ctx.strokeStyle = '#DC2626';
+        ctx.lineWidth = 2.5;
+        // 盾牌外廓
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.3, -size * 0.3);
+        ctx.lineTo(size * 0.3, -size * 0.3);
+        ctx.lineTo(size * 0.25, size * 0.1);
+        ctx.lineTo(0, size * 0.42);
+        ctx.lineTo(-size * 0.25, size * 0.1);
+        ctx.closePath();
+        ctx.stroke();
+
+        // 閃電十字
+        ctx.fillStyle = '#EA580C';
+        ctx.beginPath();
+        ctx.moveTo(size * 0.05, -size * 0.25);
+        ctx.lineTo(-size * 0.15, 0);
+        ctx.lineTo(0, 0);
+        ctx.lineTo(-size * 0.08, size * 0.28);
+        ctx.lineTo(size * 0.15, -size * 0.02);
+        ctx.lineTo(0, -size * 0.02);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    // 主渲染管線
+    function renderBoard() {
+      const S = gameState.displaySize || 500;
+      ctx.clearRect(0, 0, S, S);
+
+      // 1. 底盤細膩漸層與邊框
+      const bgGrad = ctx.createRadialGradient(S / 2, S / 2, 40, S / 2, S / 2, S * 0.7);
+      bgGrad.addColorStop(0, '#FFFFFF');
+      bgGrad.addColorStop(0.7, '#FFFBEB');
+      bgGrad.addColorStop(1, '#FEF3C7');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, S, S);
+
+      // 2. 繪製 20 個格子
+      for (let i = 0; i < 20; i++) {
+        const tile = TILES[i];
+        const r = getTileRect(i, S);
+        const isCorner = (i % 5 === 0);
+
+        ctx.save();
+
+        // 格子底色
+        if (tile.owner !== null) {
+          const ownerPlayer = gameState.players.find(p => p.id === tile.owner);
+          ctx.fillStyle = ownerPlayer ? ownerPlayer.lightBg : '#F1F5F9';
+        } else {
+          if (tile.type === 'corner_start') {
+            ctx.fillStyle = gameState.allLeftStart ? '#FEF3C7' : '#DCFCE7';
+          } else if (tile.type === 'corner_promise') {
+            ctx.fillStyle = '#E0F2FE';
+          } else if (tile.type === 'corner_bless') {
+            ctx.fillStyle = '#FEF9C3';
+          } else if (tile.type === 'corner_crisis') {
+            ctx.fillStyle = '#FEE2E2';
+          } else {
+            ctx.fillStyle = '#FFFFFF';
+          }
+        }
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+
+        // 質感金屬外邊線
+        ctx.strokeStyle = isCorner ? '#D97706' : '#E2E8F0';
+        ctx.lineWidth = isCorner ? 2.5 : 1.2;
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+
+        // 佔領色彩裝飾頂條
+        if (tile.owner !== null) {
+          const ownerPlayer = gameState.players.find(p => p.id === tile.owner);
+          if (ownerPlayer) {
+            ctx.fillStyle = ownerPlayer.color;
+            ctx.fillRect(r.x + 2, r.y + 2, r.w - 4, 4);
+          }
+        }
+
+        // 渲染功能格圖標與文字
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        if (isCorner) {
+          // 四角功能格
+          drawTileIcon(tile.type, r.cx, r.cy - 12, r.w * 0.42);
+
+          ctx.font = '900 12px "Noto Serif TC", serif';
+          if (tile.type === 'corner_start') {
+            ctx.fillStyle = gameState.allLeftStart ? '#B45309' : '#047857';
+            ctx.fillText(gameState.allLeftStart ? '✨ 分享' : '🚩 起點', r.cx, r.cy + 13);
+            ctx.font = 'bold 9px "Noto Sans TC"';
+            ctx.fillStyle = '#64748B';
+            ctx.fillText(gameState.allLeftStart ? '感恩見證' : '同心啟航', r.cx, r.cy + 25);
+          } else if (tile.type === 'corner_promise') {
+            ctx.fillStyle = '#0369A1';
+            ctx.fillText('📜 應許', r.cx, r.cy + 13);
+            ctx.font = 'bold 9px "Noto Sans TC"';
+            ctx.fillStyle = '#64748B';
+            ctx.fillText('神對你說', r.cx, r.cy + 25);
+          } else if (tile.type === 'corner_bless') {
+            ctx.fillStyle = '#B45309';
+            ctx.fillText('🎁 祝福', r.cx, r.cy + 13);
+            ctx.font = 'bold 9px "Noto Sans TC"';
+            ctx.fillStyle = '#64748B';
+            ctx.fillText('恩上加恩', r.cx, r.cy + 25);
+          } else if (tile.type === 'corner_crisis') {
+            ctx.fillStyle = '#B91C1C';
+            ctx.fillText('⚡ 危機', r.cx, r.cy + 13);
+            ctx.font = 'bold 9px "Noto Sans TC"';
+            ctx.fillStyle = '#64748B';
+            ctx.fillText('信心化解', r.cx, r.cy + 25);
+          }
+        } else {
+          // 一般經文格
+          // 小型經文卷軸圖示
+          ctx.fillStyle = '#CBD5E1';
+          ctx.fillRect(r.cx - 10, r.cy - 20, 20, 3);
+
+          ctx.font = '900 15px "Cinzel", serif';
+          if (tile.owner !== null) {
+            const op = gameState.players.find(p => p.id === tile.owner);
+            ctx.fillStyle = op ? op.color : '#334155';
+          } else {
+            ctx.fillStyle = '#475569';
+          }
+          ctx.fillText(`${tile.number}`, r.cx, r.cy - 5);
+
+          ctx.font = 'bold 9px "Noto Sans TC"';
+          if (tile.owner !== null) {
+            const op = gameState.players.find(p => p.id === tile.owner);
+            ctx.fillStyle = op ? op.color : '#64748B';
+            ctx.fillText(`${op?.name}地`, r.cx, r.cy + 12);
+          } else {
+            ctx.fillStyle = '#94A3B8';
+            ctx.fillText('感恩經文', r.cx, r.cy + 12);
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // 3. 中央區域紋飾 (恩典同在指南針與生命樹微光)
+      const centerArea = {
+        x: S / 6,
+        y: S / 6,
+        w: (S * 4) / 6,
+        h: (S * 4) / 6,
+        cx: S / 2,
+        cy: S / 2
+      };
+
+      // 畫中央徽章背景
+      ctx.save();
+      const centerGrad = ctx.createRadialGradient(centerArea.cx, centerArea.cy, 10, centerArea.cx, centerArea.cy, centerArea.w / 2);
+      centerGrad.addColorStop(0, '#FFFFFF');
+      centerGrad.addColorStop(0.6, '#FEF9C3');
+      centerGrad.addColorStop(1, '#FDE68A');
+      ctx.fillStyle = centerGrad;
+      ctx.beginPath();
+      ctx.roundRect(centerArea.x + 8, centerArea.y + 8, centerArea.w - 16, centerArea.h - 16, 24);
+      ctx.fill();
+
+      // 金色精雕雙描邊
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(centerArea.x + 13, centerArea.y + 13, centerArea.w - 26, centerArea.h - 26, 20);
+      ctx.stroke();
+
+      // 中央生命樹 / 恩典放射光芒裝飾線
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.15)';
+      ctx.lineWidth = 1.5;
+      for (let a = 0; a < 8; a++) {
+        const rad = (a * Math.PI) / 4;
+        ctx.beginPath();
+        ctx.moveTo(centerArea.cx + Math.cos(rad) * 45, centerArea.cy + Math.sin(rad) * 45);
+        ctx.lineTo(centerArea.cx + Math.cos(rad) * 88, centerArea.cy + Math.sin(rad) * 88);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 4. 中央控制鈕：骰子或是實體提示
+      drawCenterControl(centerArea.cx, centerArea.cy);
+
+      // 當前輪到誰的指示橫幅
+      if (gameState.players.length > 0) {
+        ctx.save();
+        const curPlayer = gameState.players[gameState.currentTurnIndex];
+        ctx.fillStyle = curPlayer.color;
+        ctx.beginPath();
+        ctx.roundRect(centerArea.cx - 75, centerArea.cy - 78, 150, 26, 13);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px "Noto Sans TC"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`當前回合：${curPlayer.name} (${curPlayer.title})`, centerArea.cx, centerArea.cy - 65);
+        ctx.restore();
+      }
+
+      // 5. 繪製 2~4 位玩家棋子 (支援多棋子重疊自適應錯開)
+      drawPawns(S);
+
+      // 6. 彩帶粒子渲染
+      renderConfetti(ctx);
+
+      requestAnimationFrame(renderBoard);
+    }
+
+    // 繪製中央骰子按鈕
+    function drawCenterControl(cx, cy) {
+      ctx.save();
+      const r = gameState.diceCenterBtn.radius;
+      const curP = gameState.players[gameState.currentTurnIndex];
+
+      // 陰影
+      ctx.shadowColor = 'rgba(120, 53, 15, 0.25)';
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 4;
+
+      // 圓底
+      ctx.fillStyle = gameState.isRolling ? '#FDE68A' : '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+
+      // 外框光環 (使用當前玩家代表色)
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = curP ? curP.color : '#D97706';
+      ctx.stroke();
+
+      if (gameState.diceMode === 'virtual') {
+        // 虛擬骰點數
+        ctx.fillStyle = curP ? curP.color : '#B45309';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 36px "Cinzel", serif';
+        ctx.fillText(gameState.diceVal.toString(), cx, cy - 2);
+
+        ctx.font = 'bold 10px "Noto Sans TC"';
+        ctx.fillStyle = '#78350F';
+        const sub = gameState.isMoving ? '前進中...' : (gameState.isRolling ? '祈禱擲骰...' : '點擊擲骰');
+        ctx.fillText(sub, cx, cy + 24);
+      } else {
+        // 實體骰模式提示
+        ctx.font = '30px "Noto Sans TC"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎲', cx, cy - 4);
+
+        ctx.font = 'bold 10px "Noto Sans TC"';
+        ctx.fillStyle = '#78350F';
+        ctx.fillText('現場實體骰', cx, cy + 24);
+      }
+
+      ctx.restore();
+    }
+
+    // 沿環形邊界插值計算座標
+    function getInterpolatedPoint(progressIndex, S) {
+      const idx1 = Math.floor(progressIndex) % 20;
+      const idx2 = (idx1 + 1) % 20;
+      const frac = progressIndex - Math.floor(progressIndex);
+
+      const r1 = getTileRect(idx1, S);
+      const r2 = getTileRect(idx2, S);
+
+      return {
+        x: r1.cx + (r2.cx - r1.cx) * frac,
+        y: r1.cy + (r2.cy - r1.cy) * frac
+      };
+    }
+
+    // 繪製全體玩家棋子 (含多棋子同格自動分佈)
+    function drawPawns(S) {
+      updatePawnAnimations();
+
+      // 依格位分組，計算偏移向量
+      const tileGroups = {};
+      gameState.players.forEach(p => {
+        const key = Math.floor(p.animPos) % 20;
+        if (!tileGroups[key]) tileGroups[key] = [];
+        tileGroups[key].push(p);
+      });
+
+      // 4 個方位的偏移座標排布
+      const offsets = [
+        [{ dx: 0, dy: 0 }],
+        [{ dx: -8, dy: -8 }, { dx: 8, dy: 8 }],
+        [{ dx: -10, dy: -8 }, { dx: 10, dy: -8 }, { dx: 0, dy: 10 }],
+        [{ dx: -10, dy: -10 }, { dx: 10, dy: -10 }, { dx: -10, dy: 10 }, { dx: 10, dy: 10 }]
+      ];
+
+      Object.keys(tileGroups).forEach(tileKey => {
+        const group = tileGroups[tileKey];
+        const count = group.length;
+        const offsetArr = offsets[count - 1] || offsets[3];
+
+        group.forEach((p, idx) => {
+          const basePos = getInterpolatedPoint(p.animPos, S);
+          const off = offsetArr[idx] || { dx: 0, dy: 0 };
+          drawSinglePawn(basePos.x + off.dx, basePos.y + off.dy, p);
+        });
+      });
+    }
+
+    function drawSinglePawn(x, y, player) {
+      ctx.save();
+      // 立體陰影
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+
+      // 實體外圓
+      ctx.fillStyle = player.color;
+      ctx.beginPath();
+      ctx.arc(x, y, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 純白光環描邊
+      ctx.shadowColor = 'transparent';
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.stroke();
+
+      // 玩家代表字
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 11px "Noto Sans TC"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(player.symbol, x, y);
+
+      ctx.restore();
+    }
+
+    /* =========================================================================
+       6. 加權骰子演算法 (功能格機率 1.0x / 1.2x / 1.5x / 2.0x 提升)
+       ========================================================================= */
+
+    function getWeightedDiceRoll(player) {
+      const cornerIndices = [0, 5, 10, 15]; // 功能格位置
+      const rate = gameState.cornerWeightRate;
+
+      const weights = [];
+      for (let dice = 1; dice <= 6; dice++) {
+        const targetPos = (player.pos + dice) % 20;
+        const isCorner = cornerIndices.includes(targetPos);
+        const w = isCorner ? (1.0 * rate) : 1.0;
+        weights.push({ dice, weight: w });
+      }
+
+      // 加權隨機抽取
+      const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
+      let rand = Math.random() * totalWeight;
+
+      for (let i = 0; i < weights.length; i++) {
+        if (rand < weights[i].weight) {
+          return weights[i].dice;
+        }
+        rand -= weights[i].weight;
+      }
+      return Math.floor(Math.random() * 6) + 1;
+    }
+
+    /* =========================================================================
+       7. 遊戲控制與事件流 (虛擬擲骰 / 現場實體骰)
+       ========================================================================= */
+
+    canvas.addEventListener('click', (e) => {
+      if (!gameState.started || gameState.isGameOver || gameState.isMoving || gameState.isRolling) return;
+      if (gameState.pendingAction) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scale = gameState.displaySize / rect.width;
+      const x = (e.clientX - rect.left) * scale;
+      const y = (e.clientY - rect.top) * scale;
+
+      const btn = gameState.diceCenterBtn;
+      const dist = Math.hypot(x - btn.x, y - btn.y);
+
+      if (dist <= btn.radius) {
+        if (gameState.diceMode === 'virtual') {
+          performVirtualDiceRoll();
+        } else {
+          // 實體骰模式：引導看下方輸入鍵盤
+          document.getElementById('physicalDicePanel').classList.remove('hidden');
+          setPrompt(
+            '現場實體骰模式',
+            '請在下方鍵盤點選現場實體骰子搖出的點數（1 ~ 6）：',
+            '實體骰就緒',
+            []
+          );
+        }
+      }
+    });
+
+    // 執行虛擬骰子滾動
+    function performVirtualDiceRoll() {
+      const curP = gameState.players[gameState.currentTurnIndex];
+
+      // 檢查身上是否有暫停前進懲罰
+      if (curP.skipTurns > 0) {
+        curP.skipTurns--;
+        updateHeaderUI();
+        setPrompt(
+          '暫停一輪',
+          `${curP.name} 因受考驗懲罰，本回合暫停一次！（剩餘暫停次數：${curP.skipTurns}）`,
+          '系統提醒',
+          [{ text: '確認並換下一位', class: 'bg-slate-700 text-white', fn: () => endTurn() }]
+        );
+        return;
+      }
+
+      gameState.isRolling = true;
+      audio.playRoll();
+
+      let count = 0;
+      const rollInterval = setInterval(() => {
+        gameState.diceVal = Math.floor(Math.random() * 6) + 1;
+        count++;
+        if (count > 9) {
+          clearInterval(rollInterval);
+          gameState.isRolling = false;
+          // 套用加權計算決定最終步數
+          const finalSteps = getWeightedDiceRoll(curP);
+          gameState.diceVal = finalSteps;
+          movePlayerSteps(curP, finalSteps);
+        }
+      }, 50);
+    }
+
+    // 提交現場實體骰點數
+    function submitPhysicalDice(points) {
+      if (!gameState.started || gameState.isGameOver || gameState.isMoving) return;
+      const curP = gameState.players[gameState.currentTurnIndex];
+
+      if (curP.skipTurns > 0) {
+        curP.skipTurns--;
+        updateHeaderUI();
+        setPrompt(
+          '暫停一輪',
+          `${curP.name} 因受考驗懲罰，本回合暫停一次！（剩餘暫停次數：${curP.skipTurns}）`,
+          '系統提醒',
+          [{ text: '確認並換下一位', class: 'bg-slate-700 text-white', fn: () => endTurn() }]
+        );
+        return;
+      }
+
+      document.getElementById('physicalDicePanel').classList.add('hidden');
+      gameState.diceVal = points;
+      audio.playRoll();
+      movePlayerSteps(curP, points);
+    }
+
+    // 步進平滑前進動畫
+    function movePlayerSteps(player, steps) {
+      gameState.isMoving = true;
+      let remaining = steps;
+
+      function stepOne() {
+        if (remaining <= 0) {
+          gameState.isMoving = false;
+          onPlayerLanded(player);
+          return;
+        }
+
+        player.pos = (player.pos + 1) % 20;
+        audio.playStep();
+        remaining--;
+
+        // 若全體棋子離開起點，左上角起點轉為「分享」
+        if (!gameState.allLeftStart) {
+          const anyAtStart = gameState.players.some(p => p.pos === 0);
+          if (!anyAtStart) {
+            gameState.allLeftStart = true;
+          }
+        }
+
+        setTimeout(stepOne, 260);
+      }
+
+      stepOne();
+    }
+
+    // 棋子降落格子後的邏輯分派
+    function onPlayerLanded(player) {
+      const tile = TILES[player.pos];
+
+      // 1. 起點 / 分享格
+      if (tile.type === 'corner_start') {
+        if (gameState.allLeftStart) {
+          handleShareTile(player);
+        } else {
+          setPrompt(
+            '同心出發',
+            `${player.name} 踏在起點恩典基石上！「你們要靠主常常喜樂。」每一步都有主同行。`,
+            '🚩 起點基石',
+            [{ text: '感謝主，結束回合', class: 'bg-emerald-600 text-white font-bold', fn: () => endTurn() }]
+          );
+        }
+        return;
+      }
+
+      // 2. 應許格
+      if (tile.type === 'corner_promise') {
+        handlePromiseTile(player);
+        return;
+      }
+
+      // 3. 祝福格
+      if (tile.type === 'corner_bless') {
+        handleBlessingTile(player);
+        return;
+      }
+
+      // 4. 危機格
+      if (tile.type === 'corner_crisis') {
+        handleCrisisTile(player);
+        return;
+      }
+
+      // 5. 一般經文格
+      if (tile.owner === null) {
+        // 空白未佔領：朗讀背誦經文並佔領
+        setPrompt(
+          `第 ${tile.number} 格 感恩經文`,
+          `<div class="bg-amber-50/80 p-3 rounded-xl border border-amber-300 mb-2 font-medium text-slate-900 leading-relaxed">
+             📖 ${tile.verse}
+           </div>
+           請朗誦背誦上述經文，在心中感謝神的話語後點擊確認佔領！`,
+          '空白恩典地',
+          [
+            {
+              text: `我已背誦完畢，${player.name} 確認佔領`,
+              class: 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 text-white font-black',
+              fn: () => {
+                tile.owner = player.id;
+                audio.playClaim();
+                recalcLands();
+                checkGameOverCondition();
+                endTurn();
+              }
+            }
+          ]
+        );
+      } else if (tile.owner === player.id) {
+        // 自己的地盤
+        setPrompt(
+          `第 ${tile.number} 格（你的領地）`,
+          `回到自己的領地，重溫昔日恩典：「${tile.verse}」。靈裡飽足重新得力！`,
+          '重溫恩典',
+          [{ text: '阿們，結束回合', class: 'bg-slate-700 text-white font-bold', fn: () => endTurn() }]
+        );
+      } else {
+        // 其他玩家的地盤：向該玩家說一句感恩的話
+        const ownerPlayer = gameState.players.find(p => p.id === tile.owner);
+        setPrompt(
+          `行經 ${ownerPlayer?.name} 的領地（第 ${tile.number} 格）`,
+          `此處已被 <strong>${ownerPlayer?.name}</strong> 佔領。<br>
+           聖經教導我們要彼此相顧、激發愛心：<br>
+           <strong>「請看著 ${ownerPlayer?.name}，真誠向他/她說一句發自內心的感恩或讚美之語！」</strong>`,
+          '彼此感恩',
+          [
+            {
+              text: `我已向 ${ownerPlayer?.name} 表達感恩`,
+              class: 'bg-blue-600 hover:bg-blue-700 text-white font-bold',
+              fn: () => endTurn()
+            }
+          ]
+        );
+      }
+    }
+
+    /* =========================================================================
+       8. 四大功能格專屬卡片結算
+       ========================================================================= */
+
+    // A. 分享
+    function handleShareTile(player) {
+      audio.playBlessing();
+      const question = shareDeck.draw();
+      setPrompt(
+        '感恩見證分享',
+        `<div class="text-base font-bold text-amber-950 bg-amber-50 p-3.5 rounded-xl border border-amber-300 mb-2">
+           💬 ${question}
+         </div>
+         請向在場所有玩家敞開心扉分享，讓主的恩惠在彼此交談中滿溢。`,
+        '✨ 分享格',
+        [{ text: '分享完成，結束回合', class: 'bg-amber-600 hover:bg-amber-700 text-white font-bold', fn: () => endTurn() }]
+      );
+    }
+
+    // B. 應許
+    function handlePromiseTile(player) {
+      audio.playBlessing();
+      const promiseText = promiseDeck.draw();
+      setPrompt(
+        '領受神的應許',
+        `<div class="text-sm font-semibold text-slate-900 bg-sky-50 p-3.5 rounded-xl border border-sky-300 mb-2 leading-relaxed">
+           <strong>神對你說：</strong>${promiseText}
+         </div>
+         「那應許我們的是信實的。」願這句寶貴話語成為你的力量與盾牌！`,
+        '📜 應許格',
+        [{ text: '阿們！領受應許', class: 'bg-sky-600 hover:bg-sky-700 text-white font-bold', fn: () => endTurn() }]
+      );
+    }
+
+    // C. 祝福 (含 5 張超級祝福卡)
+    function handleBlessingTile(player) {
+      audio.playBlessing();
+      const card = blessingDeck.draw();
+
+      if (card.isSuper) {
+        player.superCards.push(card);
+        updateHeaderUI();
+        setPrompt(
+          `獲得超級祝福卡！【${card.title}】`,
+          `<div class="p-3.5 bg-emerald-50 border-2 border-emerald-400 rounded-xl text-emerald-950 font-bold mb-2">
+             🛡️ ${card.title}：${card.desc}
+           </div>
+           此卡已常駐在你的狀態欄中！若未來抽中相對應之【重大危機卡】，將自動施展神的大能予以完全抵消！`,
+          '🎁 超級祝福',
+          [{ text: '感謝主！收下超級祝福', class: 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold', fn: () => endTurn() }]
+        );
+      } else {
+        setPrompt(
+          `獲得祝福卡【${card.title}】`,
+          `<div class="p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-slate-800 font-medium mb-1">
+             ✨ ${card.desc}
+           </div>`,
+          '🎁 祝福格',
+          [
+            {
+              text: '歡喜領受祝福',
+              class: 'bg-amber-600 hover:bg-amber-700 text-white font-bold',
+              fn: () => applyBlessingAction(player, card.action)
+            }
+          ]
+        );
+      }
+    }
+
+    function applyBlessingAction(player, actionType) {
+      const emptyTiles = TILES.filter(t => t.type === 'normal' && t.owner === null);
+      const otherPlayers = gameState.players.filter(p => p.id !== player.id);
+
+      switch (actionType) {
+        case 'gain_empty':
+          if (emptyTiles.length > 0) {
+            const pick = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+            pick.owner = player.id;
+            audio.playClaim();
+            recalcLands();
+            checkGameOverCondition();
+          }
+          endTurn();
+          break;
+
+        case 'gain_min_empty':
+          if (emptyTiles.length > 0) {
+            emptyTiles.sort((a, b) => a.number - b.number);
+            emptyTiles[0].owner = player.id;
+            audio.playClaim();
+            recalcLands();
+            checkGameOverCondition();
+          }
+          endTurn();
+          break;
+
+        case 'roll_again':
+          setPrompt('恩賜倍增', '喜樂加倍！請再次投擲骰子前進！', '額外回合', []);
+          if (gameState.diceMode === 'physical') {
+            document.getElementById('physicalDicePanel').classList.remove('hidden');
+          }
+          return;
+
+        case 'step_forward_2':
+          movePlayerSteps(player, 2);
+          return;
+
+        case 'step_forward_1':
+          movePlayerSteps(player, 1);
+          return;
+
+        case 'clear_pause':
+          player.skipTurns = 0;
+          updateHeaderUI();
+          endTurn();
+          break;
+
+        case 'random_forward':
+          const steps = Math.floor(Math.random() * 3) + 1;
+          movePlayerSteps(player, steps);
+          return;
+
+        case 'warp_promise':
+          player.pos = 5;
+          audio.playStep();
+          onPlayerLanded(player);
+          return;
+
+        case 'warp_bless':
+          player.pos = 10;
+          audio.playStep();
+          onPlayerLanded(player);
+          return;
+
+        case 'claim_current':
+          const curTile = TILES[player.pos];
+          if (curTile.type === 'normal' && curTile.owner === null) {
+            curTile.owner = player.id;
+            audio.playClaim();
+            recalcLands();
+            checkGameOverCondition();
+          }
+          endTurn();
+          break;
+
+        case 'servant_blessing':
+          const nextP = gameState.players[(gameState.currentTurnIndex + 1) % gameState.players.length];
+          nextP.pos = (nextP.pos + 1) % 20;
+          if (emptyTiles.length > 0) {
+            const p = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+            p.owner = player.id;
+            recalcLands();
+            checkGameOverCondition();
+          }
+          endTurn();
+          break;
+
+        case 'catch_up_land':
+          const maxLands = Math.max(...gameState.players.map(p => p.lands));
+          if (player.lands < maxLands && emptyTiles.length > 0) {
+            emptyTiles[0].owner = player.id;
+            recalcLands();
+            checkGameOverCondition();
+          }
+          endTurn();
+          break;
+
+        case 'take_opponent_land':
+          const opponentLands = TILES.filter(t => t.type === 'normal' && t.owner !== null && t.owner !== player.id);
+          if (opponentLands.length > 0) {
+            const stolen = opponentLands[Math.floor(Math.random() * opponentLands.length)];
+            stolen.owner = player.id;
+            audio.playClaim();
+            recalcLands();
+          } else if (emptyTiles.length > 0) {
+            emptyTiles[0].owner = player.id;
+            recalcLands();
+            checkGameOverCondition();
+          }
+          endTurn();
+          break;
+
+        case 'both_gain_empty':
+          const nextPlayer = gameState.players[(gameState.currentTurnIndex + 1) % gameState.players.length];
+          if (emptyTiles.length >= 2) {
+            emptyTiles[0].owner = player.id;
+            emptyTiles[1].owner = nextPlayer.id;
+          } else if (emptyTiles.length === 1) {
+            emptyTiles[0].owner = player.id;
+          }
+          recalcLands();
+          checkGameOverCondition();
+          endTurn();
+          break;
+
+        default:
+          endTurn();
+          break;
+      }
+    }
+
+    // D. 危機 (重大危機與超級祝福卡自動抵消)
+    function handleCrisisTile(player) {
+      audio.playCrisis();
+      const card = crisisDeck.draw();
+
+      if (card.isMajor) {
+        // 重大危機
+        const matchIdx = player.superCards.findIndex(s => s.id === card.matchSuper);
+
+        if (matchIdx !== -1) {
+          // 持有相對應超級祝福卡！
+          const usedCard = player.superCards[matchIdx];
+          setPrompt(
+            `遭遇重大危機【${card.title}】！`,
+            `<div class="p-3 bg-red-100 border border-red-300 rounded-xl text-red-950 font-semibold mb-2">
+               ⚡ ${card.desc}
+             </div>
+             <div class="p-3.5 bg-emerald-50 border-2 border-emerald-400 rounded-xl text-emerald-950 font-bold mb-2">
+               🛡️ 神恩浩瀚！你所持有的超級祝福卡【${usedCard.title}】在此刻完全化解了這場考驗！
+             </div>`,
+            '重大考驗化解',
+            [
+              {
+                text: `消耗【${usedCard.title}】平安脫險`,
+                class: 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold',
+                fn: () => {
+                  player.superCards.splice(matchIdx, 1);
+                  updateHeaderUI();
+                  endTurn();
+                }
+              }
+            ]
+          );
+        } else {
+          // 未持有超級祝福卡：承受重大代價
+          executeMajorCrisisPenalty(player, card);
+        }
+      } else {
+        // 一般危機事件
+        setPrompt(
+          `遭遇考驗【${card.title}】`,
+          `<div class="p-3.5 bg-red-50 border border-red-300 rounded-xl text-slate-800 font-medium mb-1">
+             ⚠️ ${card.desc}
+           </div>`,
+          '⚡ 危機考驗',
+          [
+            {
+              text: '順服承受考驗',
+              class: 'bg-slate-700 hover:bg-slate-800 text-white font-bold',
+              fn: () => applyNormalCrisisAction(player, card.action)
+            }
+          ]
+        );
+      }
+    }
+
+    function executeMajorCrisisPenalty(player, card) {
+      const myLands = TILES.filter(t => t.type === 'normal' && t.owner === player.id);
+      const otherPlayers = gameState.players.filter(p => p.id !== player.id);
+      let penaltyNote = '';
+      let penaltyExec = () => {};
+
+      if (card.id === 'C1') {
+        // 信心瓦解：隨機失去 2 格佔領地，若不足則全扣且暫停 2 次
+        if (myLands.length >= 2) {
+          penaltyNote = '隨機失去 2 處已佔領之地，重新變回白色。';
+          penaltyExec = () => {
+            const sh = shuffleArray(myLands);
+            sh[0].owner = null;
+            sh[1].owner = null;
+          };
+        } else {
+          penaltyNote = `現有領地僅有 ${myLands.length} 格，不足以扣除！領地全數歸零，並罰<strong>暫停前進 2 回合</strong>！`;
+          penaltyExec = () => {
+            myLands.forEach(l => l.owner = null);
+            player.skipTurns += 2;
+          };
+        }
+      } else if (card.id === 'C2') {
+        // 迷途陷阱：倒退 5 格且暫停 1 輪
+        penaltyNote = '腳步錯亂，直接倒退 5 格，且下一輪暫停行動！';
+        penaltyExec = () => {
+          player.pos = (player.pos - 5 + 20) % 20;
+          player.skipTurns += 1;
+        };
+      } else if (card.id === 'C3') {
+        // 嫉妒分爭：割讓 1 處佔領區給其他玩家
+        const luckyOpponent = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+        if (myLands.length > 0) {
+          penaltyNote = `現有領地中的 1 處被迫轉贈割讓給 ${luckyOpponent.name}。`;
+          penaltyExec = () => {
+            myLands[0].owner = luckyOpponent.id;
+          };
+        } else {
+          penaltyNote = '無任何領地可供割讓，轉為懲罰暫停前進 2 回合！';
+          penaltyExec = () => {
+            player.skipTurns += 2;
+          };
+        }
+      } else if (card.id === 'C4') {
+        // 狂風巨浪：連續暫停 2 回合
+        penaltyNote = '巨浪翻騰，連續暫停行動 2 回合。';
+        penaltyExec = () => {
+          player.skipTurns += 2;
+        };
+      } else if (card.id === 'C5') {
+        // 旱地荒蕪：失去目前編號最大的 2 處領地
+        if (myLands.length >= 2) {
+          penaltyNote = '失去編號最大的 2 處領地。';
+          penaltyExec = () => {
+            myLands.sort((a, b) => b.number - a.number);
+            myLands[0].owner = null;
+            myLands[1].owner = null;
+          };
+        } else {
+          penaltyNote = '領地不足 2 處，所有領地歸零並暫停前進 2 回合！';
+          penaltyExec = () => {
+            myLands.forEach(l => l.owner = null);
+            player.skipTurns += 2;
+          };
+        }
+      }
+
+      setPrompt(
+        `重大危機【${card.title}】生效`,
+        `<div class="p-3.5 bg-red-100 border border-red-300 rounded-xl text-red-950 font-bold mb-2">
+           ⚡ 缺少對應超級祝福卡守護！<br>${penaltyNote}
+         </div>`,
+        '受到重考驗',
+        [
+          {
+            text: '甘心承受，學習謙卑',
+            class: 'bg-red-700 hover:bg-red-800 text-white font-bold',
+            fn: () => {
+              penaltyExec();
+              recalcLands();
+              updateHeaderUI();
+              endTurn();
+            }
+          }
+        ]
+      );
+    }
+
+    function applyNormalCrisisAction(player, actionType) {
+      const myLands = TILES.filter(t => t.type === 'normal' && t.owner === player.id);
+
+      switch (actionType) {
+        case 'lose_one_land':
+          if (myLands.length > 0) {
+            const l = myLands[Math.floor(Math.random() * myLands.length)];
+            l.owner = null;
+            recalcLands();
+          } else {
+            player.skipTurns += 1;
+            updateHeaderUI();
+          }
+          endTurn();
+          break;
+
+        case 'back_1':
+          player.pos = (player.pos - 1 + 20) % 20;
+          audio.playStep();
+          endTurn();
+          break;
+
+        case 'back_2':
+          player.pos = (player.pos - 2 + 20) % 20;
+          audio.playStep();
+          endTurn();
+          break;
+
+        case 'back_3':
+          player.pos = (player.pos - 3 + 20) % 20;
+          audio.playStep();
+          endTurn();
+          break;
+
+        case 'pause_1':
+          player.skipTurns += 1;
+          updateHeaderUI();
+          endTurn();
+          break;
+
+        default:
+          endTurn();
+          break;
+      }
+    }
+
+    /* =========================================================================
+       9. 回合推進、UI 同步與勝負終局
+       ========================================================================= */
+
+    function endTurn() {
+      if (gameState.isGameOver) return;
+
+      gameState.currentTurnIndex = (gameState.currentTurnIndex + 1) % gameState.players.length;
+      const nextP = gameState.players[gameState.currentTurnIndex];
+
+      updateHeaderUI();
+
+      if (gameState.diceMode === 'virtual') {
+        document.getElementById('physicalDicePanel').classList.add('hidden');
+        setPrompt(
+          `輪到 ${nextP.name}`,
+          `請點擊中央的金色骰子，為 ${nextP.name} 擲出前進的步伐！`,
+          '等待擲骰',
+          []
+        );
+      } else {
+        document.getElementById('physicalDicePanel').classList.remove('hidden');
+        setPrompt(
+          `輪到 ${nextP.name}（現場實體骰）`,
+          `請現場投擲實體骰子，並在下方點選擲出的點數（1 ~ 6）：`,
+          '等待實體骰',
+          []
+        );
+      }
+    }
+
+    function recalcLands() {
+      gameState.players.forEach(p => {
+        p.lands = TILES.filter(t => t.owner === p.id).length;
+      });
+      updateHeaderUI();
+    }
+
+    // 更新頂部玩家資訊列 (支援 2~4 人動態佈局)
+    function updateHeaderUI() {
+      const container = document.getElementById('playersHeaderGrid');
+      container.innerHTML = '';
+
+      gameState.players.forEach((p, idx) => {
+        const isCurrent = (idx === gameState.currentTurnIndex);
+        const card = document.createElement('div');
+        card.className = `p-2.5 rounded-2xl border-2 transition-all duration-300 shadow-sm flex items-center gap-2.5 ${
+          isCurrent ? 'ring-2 ring-amber-400 border-amber-500 bg-white shadow-md' : 'border-amber-200/60 bg-white/70'
+        }`;
+
+        // 超級卡列表
+        const superHtml = p.superCards.length > 0
+          ? p.superCards.map(s => `<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold border border-emerald-300" title="${s.desc}">🛡️ ${s.title}</span>`).join('')
+          : '<span class="text-[10px] text-slate-400">尚無超級卡</span>';
+
+        card.innerHTML = `
+          <div class="w-9 h-9 rounded-full ${p.avatarBg} text-white font-black text-sm flex items-center justify-center shadow-md flex-shrink-0">
+            ${p.symbol}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-xs sm:text-sm truncate" style="color: ${p.darkColor}">${p.name}</span>
+              ${isCurrent ? `<span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800">行動中</span>` : ''}
+            </div>
+            <div class="text-[11px] text-slate-600 flex items-center gap-2 mt-0.5">
+              <span>領地: <strong class="font-black text-xs" style="color: ${p.color}">${p.lands}</strong> 格</span>
+              ${p.skipTurns > 0 ? `<span class="text-amber-700 font-bold bg-amber-100 px-1 rounded">暫停(${p.skipTurns})</span>` : ''}
+            </div>
+            <div class="flex flex-wrap gap-1 mt-1">
+              ${superHtml}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function setPrompt(title, contentHtml, badgeText = '系統通知', buttons = []) {
+      document.getElementById('promptTitle').innerText = title;
+      document.getElementById('promptBadge').innerText = badgeText;
+      document.getElementById('promptContent').innerHTML = contentHtml;
+
+      const curP = gameState.players[gameState.currentTurnIndex];
+      const guide = document.getElementById('promptTurnGuide');
+      if (curP) {
+        guide.innerText = `${curP.name} 行動中`;
+        guide.style.color = curP.darkColor;
+        guide.style.backgroundColor = curP.lightBg;
+        guide.style.borderColor = curP.color;
+      }
+
+      const actionsEl = document.getElementById('promptActions');
+      actionsEl.innerHTML = '';
+      buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.className = `px-4 py-2 rounded-xl text-xs sm:text-sm font-black shadow-sm transition active:scale-95 ${btn.class}`;
+        b.innerHTML = btn.text;
+        b.onclick = () => {
+          audio.init();
+          btn.fn();
+        };
+        actionsEl.appendChild(b);
+      });
+    }
+
+    // 檢查全地佔領模式是否結束
+    function checkGameOverCondition() {
+      if (gameState.endMode === 'no_empty') {
+        const emptyCount = TILES.filter(t => t.type === 'normal' && t.owner === null).length;
+        if (emptyCount === 0) {
+          triggerGameVictory('全盤領地皆已佔領完畢！榮耀讚美神！');
+        }
+      }
+    }
+
+    // 提出共識終結
+    function triggerConsensusEnd() {
+      if (!gameState.started || gameState.isGameOver) return;
+      setPrompt(
+        '雙方共識結算',
+        '在場所有玩家是否達成共識，願在此刻彼此謝恩、同享在基督裡的和睦並進行榮耀結算？',
+        '共識提議',
+        [
+          {
+            text: '眾人同心，圓滿結算',
+            class: 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold',
+            fn: () => triggerGameVictory('全體玩家和睦達成共識，圓滿結算！')
+          },
+          {
+            text: '繼續遊玩',
+            class: 'bg-slate-300 text-slate-800 font-bold',
+            fn: () => endTurn()
+          }
+        ]
+      );
+    }
+
+    // 遊戲結算頒獎與彩帶音效
+    function triggerGameVictory(reason) {
+      if (gameState.isGameOver) return;
+      gameState.isGameOver = true;
+      clearInterval(gameState.timerInterval);
+
+      recalcLands();
+      const sorted = [...gameState.players].sort((a, b) => b.lands - a.lands);
+      const winner = sorted[0];
+
+      document.getElementById('vicReason').innerHTML = reason;
+
+      const titleEl = document.getElementById('vicTitle');
+      if (sorted[0].lands === sorted[1].lands) {
+        titleEl.innerText = '🕊️ 榮耀同得！主裡和睦平手！';
+      } else {
+        titleEl.innerText = `🏆 ${winner.name} 領先得勝！`;
+      }
+
+      // 渲染得分榜
+      const grid = document.getElementById('vicPlayersGrid');
+      grid.innerHTML = '';
+      sorted.forEach((p, idx) => {
+        const col = document.createElement('div');
+        col.className = 'p-3 rounded-2xl border-2 text-center bg-white shadow-sm';
+        col.style.borderColor = p.color;
+        col.innerHTML = `
+          <div class="w-8 h-8 rounded-full ${p.avatarBg} text-white font-black text-xs flex items-center justify-center mx-auto mb-1">
+            ${p.symbol}
+          </div>
+          <div class="text-xs font-bold text-slate-800">${p.name}</div>
+          <div class="text-2xl font-black my-1" style="color: ${p.color}">${p.lands}</div>
+          <div class="text-[10px] text-slate-500 font-medium">第 ${idx + 1} 名</div>
+        `;
+        grid.appendChild(col);
+      });
+
+      document.getElementById('victoryModal').classList.remove('hidden');
+
+      // 施放凱旋音樂與彩帶粒子
+      audio.playVictory();
+      spawnConfetti(160);
+      setInterval(() => {
+        if (gameState.isGameOver) spawnConfetti(45);
+      }, 900);
+    }
+
+    /* =========================================================================
+       10. 遊戲前置設定介面切換 (Setup Panel)
+       ========================================================================= */
+
+    function setPlayerCount(count) {
+      gameState.playerCount = count;
+      [2, 3, 4].forEach(n => {
+        const btn = document.getElementById(`btn-count-${n}`);
+        if (n === count) {
+          btn.className = 'py-2 px-2 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs text-center transition';
+        } else {
+          btn.className = 'py-2 px-2 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs text-center transition';
+        }
+      });
+    }
+
+    function setDiceMode(mode) {
+      gameState.diceMode = mode;
+      const bVirt = document.getElementById('btn-dice-virtual');
+      const bPhys = document.getElementById('btn-dice-physical');
+      const desc = document.getElementById('diceModeDesc');
+
+      if (mode === 'virtual') {
+        bVirt.className = 'py-2.5 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs flex items-center justify-center gap-2 transition';
+        bPhys.className = 'py-2.5 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition';
+        desc.innerText = '＊虛擬骰子：點擊棋盤中央即時滾動，並受功能格機率偏好影響。';
+      } else {
+        bPhys.className = 'py-2.5 px-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs flex items-center justify-center gap-2 transition';
+        bVirt.className = 'py-2.5 px-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition';
+        desc.innerText = '＊現場實體骰：輪到玩家時，在下方鍵盤點選實體骰點數前進。';
+      }
+    }
+
+    function setCornerRate(rate) {
+      gameState.cornerWeightRate = rate;
+      const rates = [1.0, 1.2, 1.5, 2.0];
+      const ids = { 1.0: 'btn-rate-1', 1.2: 'btn-rate-12', 1.5: 'btn-rate-15', 2.0: 'btn-rate-2' };
+
+      rates.forEach(r => {
+        const btn = document.getElementById(ids[r]);
+        if (r === rate) {
+          btn.className = 'py-2 px-1 text-center rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs transition';
+        } else {
+          btn.className = 'py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition';
+        }
+      });
+    }
+
+    function setEndCondition(mode) {
+      gameState.endMode = mode;
+      const modes = ['empty', '5', '10', '15'];
+      const map = { 'no_empty': 'empty', 'time_5': '5', 'time_10': '10', 'time_15': '15' };
+
+      modes.forEach(m => {
+        const btn = document.getElementById(`btn-end-${m}`);
+        if (map[mode] === m) {
+          btn.className = 'py-2 px-1 text-center rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-900 font-bold text-xs transition';
+        } else {
+          btn.className = 'py-2 px-1 text-center rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs transition';
+        }
+      });
+    }
+
+    function startGame() {
+      audio.init();
+      document.getElementById('setupModal').classList.add('hidden');
+      gameState.started = true;
+
+      // 依人數初始化玩家列表
+      gameState.players = ALL_PLAYERS_POOL.slice(0, gameState.playerCount).map(p => ({
+        ...p,
+        pos: 0,
+        animPos: 0,
+        superCards: [],
+        skipTurns: 0,
+        lands: 0
+      }));
+
+      // 更新頂部模式與偏好標籤
+      document.getElementById('badge-dice-type').innerText = gameState.diceMode === 'virtual' ? '🎮 虛擬骰子' : '🎯 現場實體骰';
+      document.getElementById('badge-corner-rate').innerText = `功能格 x${gameState.cornerWeightRate.toFixed(1)}`;
+
+      const timerEl = document.getElementById('header-timer');
+      if (gameState.endMode.startsWith('time_')) {
+        timerEl.classList.remove('hidden');
+        const mins = parseInt(gameState.endMode.replace('time_', ''), 10);
+        gameState.timeRemaining = mins * 60;
+        startTimerCountdown();
+      } else {
+        timerEl.classList.add('hidden');
+      }
+
+      updateHeaderUI();
+
+      const firstP = gameState.players[0];
+      if (gameState.diceMode === 'virtual') {
+        setPrompt(
+          `恩典啟航！輪到 ${firstP.name}`,
+          `請點擊中央的金色骰子，為 ${firstP.name} 擲出感恩旅途的第一步！`,
+          '旅程啟動',
+          []
+        );
+      } else {
+        document.getElementById('physicalDicePanel').classList.remove('hidden');
+        setPrompt(
+          `恩典啟航！輪到 ${firstP.name}（實體骰）`,
+          `請在現場投擲實體骰子，並在下方鍵盤點選點數（1 ~ 6）：`,
+          '等待實體骰',
+          []
+        );
+      }
+    }
+
+    function startTimerCountdown() {
+      const timerEl = document.getElementById('header-timer');
+      gameState.timerInterval = setInterval(() => {
+        if (gameState.timeRemaining <= 0) {
+          clearInterval(gameState.timerInterval);
+          triggerGameVictory('設定時間到！感恩之旅圓滿結算！');
+          return;
+        }
+        gameState.timeRemaining--;
+        const m = Math.floor(gameState.timeRemaining / 60).toString().padStart(2, '0');
+        const s = (gameState.timeRemaining % 60).toString().padStart(2, '0');
+        timerEl.innerText = `${m}:${s}`;
+      }, 1000);
+    }
+
+    // 啟動頁面畫布尺寸初始化與渲染循環
+    window.onload = function() {
+      resizeCanvas();
+      renderBoard();
+    };
+  </script>
+</body>
+</html>
