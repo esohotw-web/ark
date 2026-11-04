@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>數算主恩 ‧ 感恩節分享大轉盤</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for Native Audio Synthesis -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Serif+TC:wght@400;600;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            display: ['"Cinzel"', 'serif'],
+            sans: ['"Nunito"', 'sans-serif'],
+          },
+          colors: {
+            harvest: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f',
+              950: '#451a03',
+            },
+            amberWine: '#6B2D1B',
+            autumnGold: '#DA8A2A',
+            warmIvory: '#FDFBF7'
+          },
+          keyframes: {
+            floatWarm: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-10px) rotate(2deg)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 25px rgba(245, 158, 11, 0.4)' },
+              '50%': { boxShadow: '0 0 50px rgba(245, 158, 11, 0.8)' },
+            }
+          },
+          animation: {
+            floatWarm: 'floatWarm 6s ease-in-out infinite',
+            pulseGlow: 'pulseGlow 2.5s infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(254, 243, 199, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d97706;
+      border-radius: 9999px;
+    }
+
+    /* Ambient Warm Background */
+    body {
+      background: radial-gradient(circle at 50% 20%, #451a03 0%, #220e03 60%, #150801 100%);
+      color: #fef3c7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Perspective 3D for Card Flip */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .preserve-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+
+    /* Card Shimmer */
+    .shimmer-badge {
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased flex flex-col justify-between selection:bg-amber-500 selection:text-white">
+
+  <!-- Floating Falling Leaves / Autumn Particles Canvas -->
+  <canvas id="autumnCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- Navigation / Header -->
+  <header class="relative z-10 w-full border-b border-harvest-700/40 bg-harvest-950/70 backdrop-blur-md px-4 py-3 sm:px-8">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="text-3xl filter drop-shadow">🍂</span>
+        <div>
+          <h1 class="font-serif font-black tracking-wider text-xl sm:text-2xl text-harvest-300 drop-shadow-md">
+            數算主恩 ‧ 感恩分享盤
+          </h1>
+          <p class="text-xs text-harvest-200/80 font-serif">「要常常喜樂，不住的禱告，凡事謝恩」— 帖前 5:16-18</p>
+        </div>
+      </div>
+
+      <!-- Controls & Status Top Bar -->
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <!-- Sound Toggle -->
+        <button id="soundToggleBtn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-harvest-900/80 border border-harvest-600/50 hover:bg-harvest-800 text-xs text-harvest-200 transition-all shadow" title="開啟/關閉音效">
+          <span id="soundIcon">🔔</span>
+          <span id="soundText" class="hidden sm:inline">音效：開</span>
+        </button>
+
+        <!-- Category Filter Modal Button -->
+        <button id="categoryBtn" class="px-3 py-1.5 rounded-full bg-harvest-800/80 border border-harvest-600/60 hover:bg-harvest-700 text-xs font-semibold text-harvest-100 transition-all flex items-center space-x-1">
+          <span>🏷️ 分類設定</span>
+        </button>
+
+        <!-- Daily History Drawer Toggle -->
+        <button id="historyToggleBtn" class="px-3 py-1.5 rounded-full bg-amber-700/80 border border-amber-500/60 hover:bg-amber-600 text-xs font-semibold text-white transition-all flex items-center space-x-1 shadow-lg shadow-amber-900/50">
+          <span>📜 本日紀錄</span>
+          <span id="historyCountBadge" class="bg-harvest-200 text-harvest-950 rounded-full px-1.5 py-0.2 text-[10px] font-black">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Activity Container -->
+  <main class="relative z-10 flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center my-auto">
+
+    <!-- Mode Selector Tabs (Dynamic vs Static) -->
+    <div class="w-full max-w-md mx-auto mb-5 p-1.5 bg-harvest-950/80 backdrop-blur-md rounded-2xl border border-harvest-700/60 flex items-center justify-between shadow-lg">
+      <button id="modeStaticBtn" class="flex-1 py-2.5 px-3 rounded-xl font-serif text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center space-x-1.5 bg-gradient-to-r from-amber-600 to-harvest-600 text-white shadow-md">
+        <span>🕊️</span>
+        <span>靜態分享 (100題)</span>
+      </button>
+      <button id="modeDynamicBtn" class="flex-1 py-2.5 px-3 rounded-xl font-serif text-xs sm:text-sm font-bold text-harvest-300 hover:text-harvest-100 transition-all duration-300 flex items-center justify-center space-x-1.5">
+        <span>⚡</span>
+        <span>動態行動 (100題)</span>
+      </button>
+    </div>
+
+    <!-- Progress / Daily Counter Indicator -->
+    <div class="w-full mb-4 flex flex-col sm:flex-row items-center justify-between text-xs text-harvest-300/90 gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span id="todayDateLabel" class="font-serif tracking-wider font-semibold">今日日期</span>
+        <span class="text-harvest-500">•</span>
+        <span id="modeStatusTag" class="px-2 py-0.5 rounded-md bg-amber-900/60 border border-amber-600/50 text-amber-200 text-[11px] font-bold">🕊️ 靜態模式</span>
+        <span class="text-harvest-500">•</span>
+        <span>今日防重複</span>
+      </div>
+      <div class="flex items-center space-x-2 bg-harvest-950/60 px-3 py-1 rounded-full border border-harvest-800">
+        <span>當前題庫進度：</span>
+        <span id="poolStatsText" class="font-bold text-harvest-200">剩餘 100 / 總計 100 題</span>
+      </div>
+    </div>
+
+    <!-- The Prompt Display Card Container -->
+    <div class="w-full relative perspective-1000 mb-6">
+      <div id="cardInner" class="w-full min-h-[300px] sm:min-h-[340px] rounded-3xl p-6 sm:p-10 flex flex-col justify-between items-center text-center transition-all duration-700 preserve-3d shadow-2xl border-2 border-harvest-500/40 relative overflow-hidden bg-gradient-to-br from-[#3b1706] via-[#2a0e03] to-[#1a0802]">
+        
+        <!-- Decorative Ambient Light Blobs -->
+        <div class="absolute -top-16 -left-16 w-44 h-44 bg-harvest-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -right-16 w-52 h-52 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <!-- Card Top Details -->
+        <div class="w-full flex items-center justify-between relative z-10">
+          <div class="flex items-center space-x-2">
+            <span id="cardModeBadge" class="px-3 py-1 rounded-full text-xs font-serif font-black tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              🕊️ 靜態見證
+            </span>
+            <span id="cardCategory" class="px-3.5 py-1 rounded-full text-xs font-serif font-bold tracking-widest uppercase bg-harvest-800/80 text-harvest-200 border border-harvest-600/50 shadow-inner">
+              ✨ 團契破冰 ‧ 感恩分享
+            </span>
+          </div>
+          <span id="cardIndexBadge" class="font-serif text-xs font-semibold text-harvest-400 tracking-wider">
+            #點擊下方按鈕開始
+          </span>
+        </div>
+
+        <!-- Question Body Content -->
+        <div class="my-auto py-6 relative z-10 w-full px-2 sm:px-6">
+          <div id="questionQuoteIcon" class="text-3xl text-harvest-500/50 font-serif mb-2 select-none">❝</div>
+          <h2 id="cardQuestionText" class="font-serif text-xl sm:text-2xl md:text-3xl font-bold leading-relaxed sm:leading-loose text-harvest-100 transition-opacity duration-300">
+            請點擊下方「抽一個感恩題目」開始分享！
+          </h2>
+          <p id="cardVerseText" class="mt-4 text-xs sm:text-sm font-serif italic text-harvest-300/80 transition-opacity duration-300">
+            「凡事要奉我們主耶穌基督的名常常感謝父神。」— 以弗所書 5:20
+          </p>
+        </div>
+
+        <!-- Card Footer Info & Quick Action (Share/Copy) -->
+        <div class="w-full flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-harvest-800/80 text-xs text-harvest-400/90 gap-2 relative z-10">
+          <div id="sharingPromptTip" class="flex items-center space-x-1">
+            <span>💡 輪流分享時，每人可有 1~2 分鐘深度見證</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button id="copyPromptBtn" class="hover:text-harvest-200 transition-colors flex items-center space-x-1 px-2.5 py-1 rounded bg-harvest-900/50 hover:bg-harvest-900 border border-harvest-700/50" title="複製題目">
+              <span>📋 複製題目</span>
+            </button>
+            <button id="toggleTimerMiniBtn" class="hover:text-harvest-200 transition-colors flex items-center space-x-1 px-2.5 py-1 rounded bg-harvest-900/50 hover:bg-harvest-900 border border-harvest-700/50">
+              <span id="timerStatusIcon">⏱️</span>
+              <span id="timerStatusLabel">計時分享</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countdown / Sharing Timer Widget (Collapsible) -->
+    <div id="timerWidget" class="hidden w-full max-w-lg mb-6 bg-harvest-950/90 border border-harvest-700/60 rounded-2xl p-4 backdrop-blur-md shadow-xl transition-all">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-serif text-harvest-300 flex items-center space-x-1">
+          <span>⏳ 分享倒數計時器</span>
+        </span>
+        <div class="flex space-x-1">
+          <button data-seconds="60" class="timer-preset-btn px-2 py-0.5 rounded text-xs bg-harvest-900 hover:bg-harvest-800 text-harvest-200">1 分鐘</button>
+          <button data-seconds="90" class="timer-preset-btn px-2 py-0.5 rounded text-xs bg-harvest-900 hover:bg-harvest-800 text-harvest-200">1.5 分鐘</button>
+          <button data-seconds="120" class="timer-preset-btn px-2 py-0.5 rounded text-xs bg-harvest-900 hover:bg-harvest-800 text-harvest-200">2 分鐘</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-center space-x-4">
+        <div id="timerDisplay" class="font-mono text-3xl font-extrabold text-harvest-300 tracking-wider">01:30</div>
+        <div class="flex space-x-2">
+          <button id="timerStartBtn" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow">開始</button>
+          <button id="timerResetBtn" class="px-3 py-1.5 rounded-lg bg-harvest-800 hover:bg-harvest-700 text-harvest-200 font-bold text-xs">重設</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons Area -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md">
+      <!-- Main Draw Button -->
+      <button id="drawBtn" class="w-full sm:w-auto flex-1 group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-harvest-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-harvest-950 font-serif font-black text-xl shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_45px_rgba(245,158,11,0.7)] transform active:scale-95 transition-all flex items-center justify-center space-x-3 cursor-pointer">
+        <span class="text-2xl group-hover:rotate-12 transition-transform duration-300">🎁</span>
+        <span id="drawBtnText">抽一個感恩題目</span>
+      </button>
+
+      <!-- Reset Daily Pool Button -->
+      <button id="resetTodayPoolBtn" class="w-full sm:w-auto px-4 py-4 rounded-2xl bg-harvest-950/80 hover:bg-harvest-900 text-harvest-300 hover:text-harvest-100 border border-harvest-700/70 font-semibold text-sm transition-all flex items-center justify-center space-x-1.5 shadow" title="清除今日抽題紀錄，重新開始">
+        <span>🔄 重設今日題庫</span>
+      </button>
+    </div>
+
+    <!-- Small Footer Note -->
+    <div class="mt-4 text-center text-xs text-harvest-400/60">
+      適合主日崇拜、小組團契、家庭聚會、詩班與青少年感恩節慶祝活動
+    </div>
+  </main>
+
+  <!-- Footprint & Scripture -->
+  <footer class="relative z-10 w-full text-center py-3 border-t border-harvest-900/60 bg-black/40 backdrop-blur-sm text-harvest-400/80 text-xs font-serif">
+    感恩使我們的心靈豐足 ‧ 數算恩典直到永遠
+  </footer>
+
+  <!-- Today's Drawn Questions History Modal / Drawer -->
+  <div id="historyDrawer" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex justify-end transition-opacity">
+    <div class="w-full max-w-md bg-harvest-950 h-full p-6 border-l border-harvest-700/80 flex flex-col justify-between shadow-2xl transform transition-transform overflow-hidden">
+      <div>
+        <div class="flex items-center justify-between pb-4 border-b border-harvest-800">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">📜</span>
+            <h3 class="font-serif font-bold text-lg text-harvest-200">今日已分享題目</h3>
+          </div>
+          <button id="closeHistoryBtn" class="text-harvest-400 hover:text-harvest-100 p-2 text-xl font-bold rounded-lg">&times;</button>
+        </div>
+        <p class="text-xs text-harvest-400 mt-2">以下是今天小組中抽過並分享的題目（當天自動不再被抽中）：</p>
+        
+        <!-- List container -->
+        <div id="historyListContainer" class="mt-4 space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-harvest-800/80 flex space-x-2">
+        <button id="copyAllHistoryBtn" class="flex-1 py-2 rounded-xl bg-harvest-800 hover:bg-harvest-700 text-xs font-bold text-harvest-200 transition">
+          📋 複製今日分享清單
+        </button>
+        <button id="closeDrawerBottomBtn" class="px-4 py-2 rounded-xl bg-harvest-900 hover:bg-harvest-800 text-xs text-harvest-300">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Filter Modal -->
+  <div id="categoryModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-harvest-950 border border-harvest-600 rounded-3xl p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-harvest-800">
+        <h3 class="font-serif font-bold text-lg text-harvest-200 flex items-center space-x-2">
+          <span>🏷️</span>
+          <span>選擇題目分類</span>
+        </h3>
+        <button id="closeCategoryBtn" class="text-harvest-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-harvest-300/80 my-3">
+        您可以勾選適合今天聚會氛圍的主題分類（全選或挑選特定領域）：
+      </p>
+
+      <!-- Category Badges / Checkboxes -->
+      <div id="categoryCheckboxes" class="grid grid-cols-2 gap-2.5 my-4">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="mt-6 flex justify-end space-x-3">
+        <button id="selectAllCategoryBtn" class="px-3 py-1.5 rounded-lg bg-harvest-900 text-xs text-harvest-200 hover:bg-harvest-800">全選</button>
+        <button id="saveCategoryBtn" class="px-5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow">確定並套用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-harvest-800 text-harvest-100 text-xs font-serif shadow-2xl border border-harvest-500/50 opacity-0 pointer-events-none transition-all duration-300">
+    訊息通知
+  </div>
+
+  <!-- Game Logic & 200 Church Gratitude Questions Script -->
+  <script>
+    /* ========================================================
+       1. 200 題完整教會感恩節題庫 (靜態分享 100 題 + 動態現場行動 100 題)
+       ======================================================== */
+    const STATIC_QUESTIONS = [
+      // 類別 1: 神的恩典與信心生活 (18題)
+      { id: 1, type: "static", cat: "神的恩典", q: "回顧過去這一年，上帝為你成就最意想不到的一件恩典是什麼？", verse: "神能照著運行在我們心裡的大力充充足足地成就一切。（弗 3:20）" },
+      { id: 2, type: "static", cat: "神的恩典", q: "這一年中，有沒有哪一次禱告看似沒有照你的心意成就，事後回想卻滿是化裝的祝福？", verse: "萬事都互相效力，叫愛神的人得益處。（羅 8:28）" },
+      { id: 3, type: "static", cat: "神的恩典", q: "過去這段時間，哪一句聖經的話語曾像黑暗中的明燈，及時安慰了你？", verse: "你的話是我腳前的燈，是我路上的光。（詩 119:105）" },
+      { id: 4, type: "static", cat: "神的恩典", q: "當你感到軟弱無力時，上帝是如何透過環境或話語重新堅固你的信心？", verse: "我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全。（林後 12:9）" },
+      { id: 5, type: "static", cat: "神的恩典", q: "細數上帝今年在經濟、物質或日用飲食上供應你的一個真實經歷。", verse: "我的神必照他極豐富的榮耀，在基督耶穌裡使你們一切所需用的都充足。（腓 4:19）" },
+      { id: 6, type: "static", cat: "神的恩典", q: "在今年的安息日或敬拜中，哪一次特別讓你感受到天父深邃的擁抱與平靜？", verse: "你們得救在乎歸回安息；你們得力在乎平靜安穩。（賽 30:15）" },
+      { id: 7, type: "static", cat: "神的恩典", q: "分享一個上帝向你顯明祂是「信實守約之神」的時刻。", verse: "我們縱然失信，他仍是可信的，因為他不能背乎自己。（提後 2:13）" },
+      { id: 8, type: "static", cat: "神的恩典", q: "今年你在哪件事情上深刻經歷了「饒恕」帶來的自由與釋放？", verse: "主怎樣饒恕了你們，你們也要怎樣饒恕人。（西 3:13）" },
+      { id: 9, type: "static", cat: "神的恩典", q: "回想一次受試煉的過程，神如何在那過程中陶塑你的耐心或品格？", verse: "不但如此，就是在患難中也是歡歡喜喜的。（羅 5:3）" },
+      { id: 10, type: "static", cat: "神的恩典", q: "過去一年中，有哪一首詩歌常常觸摸你的心弦，讓你充滿感謝？", verse: "當用詩章、頌詞、靈歌彼此對說，口唱心和地讚美主。（弗 5:19）" },
+      { id: 11, type: "static", cat: "神的恩典", q: "經歷突如其來的平安（超越理智理解的平靜）是什麼時候？", verse: "神所賜出人意外的平安必在基督耶穌裡保守你們的心懷意念。（腓 4:7）" },
+      { id: 12, type: "static", cat: "神的恩典", q: "感謝神賜予大自然的美好，今年哪一次仰望星空或欣賞自然讓你由衷讚美創造主？", verse: "諸天述說神的榮耀，穹蒼傳揚他的手段。（詩 19:1）" },
+      { id: 13, type: "static", cat: "神的恩典", q: "如果用一種顏色或大自然的景觀來形容神今年給你的恩典，那會是什麼？為什麼？", verse: "你的慈愛比生命更好，我的嘴唇要頌讚你。（詩 63:3）" },
+      { id: 14, type: "static", cat: "神的恩典", q: "回想你在受洗時或是最初信主的喜樂，今天你想對耶穌說一句什麼感謝的話？", verse: "若有人在基督裡，他就是新造的人。（林後 5:17）" },
+      { id: 15, type: "static", cat: "神的恩典", q: "今年哪一次你在看似走投無路時，看見神為你開闢了一條新路？", verse: "看哪，我要做一件新事；如今要發現，你們豈不知道嗎？（賽 43:19）" },
+      { id: 16, type: "static", cat: "神的恩典", q: "在聖靈的提醒與管教中，有哪些事情是你感謝神及時挽回你的？", verse: "因為主所愛的，他必管教。（來 12:6）" },
+      { id: 17, type: "static", cat: "神的恩典", q: "上帝賜給你的恩賜中，今年在哪一次服事或應用中帶給你由衷的甘甜與意義？", verse: "各人要照所得的恩賜彼此服事，作神百般恩賜的好管家。（彼前 4:10）" },
+      { id: 18, type: "static", cat: "神的恩典", q: "如果要為上帝在你生命中的一個屬性（如：憐憫、公義、信實、忍耐）獻上感恩，你選哪一個？", verse: "耶和華有憐憫，有恩典，不輕易發怒，且有豐盛的慈愛。（詩 103:8）" },
+
+      // 類別 2: 家庭與親情 (17題)
+      { id: 19, type: "static", cat: "家庭親情", q: "在你的家人身上，你最欣賞他/她今年展現的哪個優點？", verse: "凡事謙虛、溫柔、忍耐，用愛心互相寬容。（弗 4:2）" },
+      { id: 20, type: "static", cat: "家庭親情", q: "今年家裡發生過哪一件全家人一起歡笑或慶祝的溫馨回憶？", verse: "看哪，弟兄和睦同居是何等的善，何等的美！（詩 133:1）" },
+      { id: 21, type: "static", cat: "家庭親情", q: "感謝父母或長輩過去為你所立下的哪一個好榜樣或智慧教導？", verse: "當孝敬父母，使你的日子在地上得以長久。（出 20:12）" },
+      { id: 22, type: "static", cat: "家庭親情", q: "家人曾為你做過哪一頓飯、或洗過一件衣服，讓你感到被深切地愛著？", verse: "愛是恆久忍耐，又有恩慈。（林前 13:4）" },
+      { id: 23, type: "static", cat: "家庭親情", q: "若有機會當面對一位家人說聲「謝謝你」，你現在最想對誰說？說些什麼？", verse: "我們相愛，不要只在言語和舌頭上，總要在行為和誠實上。（約壹 3:18）" },
+      { id: 24, type: "static", cat: "家庭親情", q: "今年家庭在經歷某些挑戰或意見分歧時，神如何引導你們經歷和睦？", verse: "使人和睦的人有福了！因為他們必稱為神的兒子。（太 5:9）" },
+      { id: 25, type: "static", cat: "家庭親情", q: "感謝家人的健康或陪伴，哪一個平凡無奇的日常片刻讓你感到格外踏實幸福？", verse: "鼎為煉銀，爐為煉金；人的稱讚也試煉人。（箴 27:21）" },
+      { id: 26, type: "static", cat: "家庭親情", q: "身為子女、父母或手足，今年你在家庭中學到了哪一堂重要的「愛的功課」？", verse: "凡你們所做的，都要憑愛心而做。（林前 16:14）" },
+      { id: 27, type: "static", cat: "家庭親情", q: "家中有沒有哪位長輩或家人的代禱，是你生命中最堅強的後盾？", verse: "義人祈禱所發的力量是大有功效的。（雅 5:16）" },
+      { id: 28, type: "static", cat: "家庭親情", q: "分享一個孩子或晚輩天真善良的舉動，曾深深溫暖治癒了你的心。", verse: "兒女是耶和華所賜的產業；所懷的胎是他所給的賞賜。（詩 127:3）" },
+      { id: 29, type: "static", cat: "家庭親情", q: "今年家庭共同克服的困難中，最想歸榮耀給神的是什麼？", verse: "至於我和我家，我們必定事奉耶和華。（書 24:15）" },
+      { id: 30, type: "static", cat: "家庭親情", q: "你有沒有一件從家人傳承下來的溫暖家規、習慣或信仰傳統？", verse: "教養孩童，使他走當行的道，就是到老他也不偏離。（箴 22:6）" },
+      { id: 31, type: "static", cat: "家庭親情", q: "如果家人現在就在身邊，你想給他一個什麼樣的擁抱或感謝小禮物？", verse: "在主裡常常喜樂；我再說，你們要喜樂。（腓 4:4）" },
+      { id: 32, type: "static", cat: "家庭親情", q: "感謝家中默默付出最不起眼家務的那一位，今天你想如何尊榮他？", verse: "各人不要單顧自己的事，也要顧別人的事。（腓 2:4）" },
+      { id: 33, type: "static", cat: "家庭親情", q: "今年神有沒有促成你與某位親戚或家人關係的和好與破冰？", verse: "若是能行，總要盡力與眾人和睦。（羅 12:18）" },
+      { id: 34, type: "static", cat: "家庭親情", q: "這一年裡，家人的支持如何給了你勇氣去面對外面的風浪？", verse: "朋友乃時常親愛，弟兄為患難而生。（箴 17:17）" },
+      { id: 35, type: "static", cat: "家庭親情", q: "為著你目前的居住環境、溫暖的家或一張舒適的床鋪獻上感恩。", verse: "耶和華是我的牧者，我必不致缺乏。（詩 23:1）" },
+
+      // 類別 3: 教會與肢體生活 (17題)
+      { id: 36, type: "static", cat: "教會肢體", q: "在教會小組或團契中，今年有哪位弟兄姊妹的關心或禱告深深支持著你？", verse: "各人的重擔要互相擔當，如此，就成全了基督的律法。（加 6:2）" },
+      { id: 37, type: "static", cat: "教會肢體", q: "回想今年主日講台的信息或查經，哪一篇講道深深扎中你的心並帶來改變？", verse: "你們要按著道而行，不要單單聽道，自己欺哄自己。（雅 1:22）" },
+      { id: 38, type: "static", cat: "教會肢體", q: "感謝教會中默默服事的無名英雄（如音控、招待、司琴、愛宴、清潔），你想向哪一個團隊致謝？", verse: "因為神並非不公義，竟忘記你們所做的工和你們為他名所顯的愛心。（來 6:10）" },
+      { id: 39, type: "static", cat: "教會肢體", q: "在教會的小組分享時，有沒有誰敞開自己的見證，給了你莫大的鼓舞？", verse: "弟兄勝過他，是因羔羊的血和自己所見證的道。（啟 12:11）" },
+      { id: 40, type: "static", cat: "教會肢體", q: "今年你在教會所參與的哪一次服事，讓你深刻體會「施比受更為有福」？", verse: "施比受更為有福。（徒 20:35）" },
+      { id: 41, type: "static", cat: "教會肢體", q: "感謝牧者傳道與領袖的牧養，你想為牧者祝福與代禱些什麼？", verse: "請你們敬重那在你們中間勞苦的人，就是在主裡面治理你們、勸戒你們的。（帖前 5:12）" },
+      { id: 42, type: "static", cat: "教會肢體", q: "今年教會有沒有新朋友加入，因著他的到來為團契帶來了新的活力？", verse: "不可忘記用愛心接待客旅；因為曾有接待客旅的，不知不覺就接待了天使。（來 13:2）" },
+      { id: 43, type: "static", cat: "教會肢體", q: "在彼此代禱的群組中，哪一次禱告蒙應允的喜訊讓全教會同心歡喜？", verse: "若是你們中間有兩個人在地上同心合意地求什麼事，我在天上的父必為他們成全。（太 18:19）" },
+      { id: 44, type: "static", cat: "教會肢體", q: "在團契中，曾有哪位屬靈同伴對你說出愛心的誠實話，幫助你走正路？", verse: "惟用愛心說誠實話，凡事長進，連於元首基督。（弗 4:15）" },
+      { id: 45, type: "static", cat: "教會肢體", q: "感謝神賜給我們聚會的敬拜堂所，回想走進教會感到無比安歇的一刻。", verse: "寧可在你的院宇住一日，勝似在別處住千日。（詩 84:10）" },
+      { id: 46, type: "static", cat: "教會肢體", q: "為著教會的主日學老師或青年輔導獻上感恩，他們哪一點付出感動了你？", verse: "教導的，就當專一教導。（羅 12:7）" },
+      { id: 47, type: "static", cat: "教會肢體", q: "今年教會舉辦的營會、外展或節慶活動中，你最難忘的一幕是什麼？", verse: "你們是世上的光。城造在山上是不能隱藏的。（太 5:14）" },
+      { id: 48, type: "static", cat: "教會肢體", q: "你曾在教會生病或傷心時，收到過哪位肢體帶來的雞湯、卡片或溫暖短訊？", verse: "若一個肢體受苦，所有的肢體就一同受苦；若一個肢體得榮耀，所有的肢體就一同快樂。（林前 12:26）" },
+      { id: 49, type: "static", cat: "教會肢體", q: "分享一個你在團契敬拜時，被身旁弟兄姊妹同心揚聲禱告所感染的震撼經歷。", verse: "他們天天同心合意恆切地在殿裡，且在家中擘餅，存著歡喜、誠實的心用飯。（徒 2:46）" },
+      { id: 50, type: "static", cat: "教會肢體", q: "當你在信仰路上感到疲憊時，誰曾像「亞倫和戶珥」一樣扶著你的手？", verse: "摩西的手發沉……亞倫與戶珥扶著他的手，一個在這邊，一個在那邊。（出 17:12）" },
+      { id: 51, type: "static", cat: "教會肢體", q: "感謝神把不同背景、性格的人放在同一個教會大家庭，你從誰身上看見了不一樣的美麗特質？", verse: "身子原不是一個肢體，乃是許多肢體。（林前 12:14）" },
+      { id: 52, type: "static", cat: "教會肢體", q: "今年你為宣教士或福音機構奉獻/代禱時，神如何擴張了你的國度眼界？", verse: "所以，你們要去，使萬民作我的門徒。（太 28:19）" },
+
+      // 類別 4: 職場、校園與挑戰 (17題)
+      { id: 53, type: "static", cat: "職場校園", q: "在職場或學校中，今年哪一位同事、同學或師長曾對你施以援手？", verse: "人心籌算自己的道路；惟耶和華指引他的腳步。（箴 16:9）" },
+      { id: 54, type: "static", cat: "職場校園", q: "回想今年在工作或學業上克服的最大挑戰，上帝給了你怎樣的智慧或耐力？", verse: "敬畏耶和華是智慧的開端；認識至聖者便是聰明。（箴 9:10）" },
+      { id: 55, type: "static", cat: "職場校園", q: "感謝一份穩定的工作、一份工資或學習的機會，神如何提醒你在職場活出見證？", verse: "無論做什麼，都要從心裡做，像是給主做的，不是給人做的。（西 3:23）" },
+      { id: 56, type: "static", cat: "職場校園", q: "今年在忙碌的高壓時刻，神如何成為你心中的避難所與安歇之地？", verse: "神是我們的避難所，是我們的力量，是我們在患難中隨時的幫助。（詩 46:1）" },
+      { id: 57, type: "static", cat: "職場校園", q: "在工作場合或學校中，你有沒有機會向人展現從基督而來的誠信與善良？", verse: "作光作鹽，叫他們看見你們的好行為，便將榮耀歸給你們在天上的父。（太 5:16）" },
+      { id: 58, type: "static", cat: "職場校園", q: "今年有沒有哪次因著別人的批評或挑剔，反倒促成了你在專業或脾氣上的成熟？", verse: "吃蜜過多是不好的；考究自己的榮耀也是令人厭煩的。（箴 25:27）" },
+      { id: 59, type: "static", cat: "職場校園", q: "感謝每天平安出門、平安回家的交通保守，回想一次神保護你免於危險的經歷。", verse: "你出你入，耶和華要保護你，從今時直到永遠。（詩 121:8）" },
+      { id: 60, type: "static", cat: "職場校園", q: "在學習或工作中學到的一項新技能或新視野，你打算如何用它榮耀神？", verse: "多給誰，就向誰多取；多託誰，就向誰多要。（路 12:48）" },
+      { id: 61, type: "static", cat: "職場校園", q: "分享一位在工作場所總是帶來正能量、笑容或鼓勵的夥伴，你想為他感謝神。", verse: "喜樂的心乃是良藥；憂傷的靈使骨枯乾。（箴 17:22）" },
+      { id: 62, type: "static", cat: "職場校園", q: "今年當你面對工作上的重大抉擇時，上帝如何引導你的心歸向平安？", verse: "你要專心仰賴耶和華，不可倚靠自己的聰明。（箴 3:5）" },
+      { id: 63, type: "static", cat: "職場校園", q: "感謝神賜予你在低谷中依然堅持的毅力，那股支撐你的源頭是什麼？", verse: "靠著那加給我力量的，凡事都能做。（腓 4:13）" },
+      { id: 64, type: "static", cat: "職場校園", q: "在面臨不公義或誤解時，上帝如何教導你把審判與主權交在祂手中？", verse: "不要自己伸冤，寧可讓步，聽憑主怒。（羅 12:19）" },
+      { id: 65, type: "static", cat: "職場校園", q: "感謝今年度過的一次重要考核、考試、升遷或專案結案，心中最大的感觸是什麼？", verse: "尊榮以前，必有謙卑。（箴 15:33）" },
+      { id: 66, type: "static", cat: "職場校園", q: "在每天的工作崗位上，你最喜歡的哪一個小環節讓你感到生命的價值？", verse: "願主—我們神的榮美歸於我們身上。願你堅立我們手所做的工。（詩 90:17）" },
+      { id: 67, type: "static", cat: "職場校園", q: "今年有沒有哪位未信主的朋友或同事，主動向你詢問關於信仰或人生盼望？", verse: "只要心裡尊主基督為聖。有人問你們心中盼望的緣由，就要常作準備。（彼前 3:15）" },
+      { id: 68, type: "static", cat: "職場校園", q: "在休假、連假或放鬆的時刻，神賜給你什麼難忘的舒暢與恢復？", verse: "他使我躺臥在青草地上，領我在可安歇的水邊。（詩 23:2）" },
+      { id: 69, type: "static", cat: "職場校園", q: "面對未來的生涯規劃，你為目前神所擺放的定位獻上什麼感謝？", verse: "我知道我向你們所懷的意念是賜平安的意念，不是降災禍的意念。（耶 29:11）" },
+
+      // 類別 5: 個人成長與心靈蛻變 (16題)
+      { id: 70, type: "static", cat: "個人成長", q: "對比一年前的自己，你發現自己在哪個方面（例如脾氣、焦慮、眼光）變得更成熟、更有平安？", verse: "不要效法這個世界，只要心意更新而變化。（羅 12:2）" },
+      { id: 71, type: "static", cat: "個人成長", q: "今年你學會對哪一件事情「放手交託」，並且在交託之後得到了真正的輕省？", verse: "凡勞苦擔重擔的人可以到我這裡來，我就使你們得安息。（太 11:28）" },
+      { id: 72, type: "static", cat: "個人成長", q: "神在今年如何幫助你勝過一次內心的嫉妒、比較或恐懼？", verse: "愛裡沒有懼怕；愛既完全，就把懼怕除去。（約壹 4:18）" },
+      { id: 73, type: "static", cat: "個人成長", q: "感謝你的身體與健康，即使有軟弱，今年你的身體依然陪伴你完成了哪些重要的事情？", verse: "豈不知你們的身子就是聖靈的殿嗎？（林前 6:19）" },
+      { id: 74, type: "static", cat: "個人成長", q: "過去一年中，你養成了一個怎樣有益身心或靈命的好習慣（如晨禱、讀經、散步）？", verse: "操練身體，益處還少；惟獨敬虔，凡事都有益處。（提前 4:8）" },
+      { id: 75, type: "static", cat: "個人成長", q: "面對自己的不完美與限制，上帝如何教導你接納自己是祂眼中獨一無二的寶貝？", verse: "我受造，奇妙可畏；你的作為奇妙，這是我心深知道的。（詩 139:14）" },
+      { id: 76, type: "static", cat: "個人成長", q: "今年有沒有讀過一本好書，或看過一部電影，帶給你心靈深處的啟發與感恩？", verse: "凡是真實的、可敬的、公義的、清潔的……這些事你們都要思念。（腓 4:8）" },
+      { id: 77, type: "static", cat: "個人成長", q: "當你感到孤單時，你如何發現「原來主一直與我同在」？", verse: "我總不撇下你，也不丟棄你。（來 13:5）" },
+      { id: 78, type: "static", cat: "個人成長", q: "今年你在哪一件小事上實踐了「誠實面對神、誠實面對人」？", verse: "神是個靈，所以拜他的必須用心靈和誠實拜他。（約 4:24）" },
+      { id: 79, type: "static", cat: "個人成長", q: "感謝自己今年流過的眼淚，那些眼淚澆灌並洗滌了你心靈的哪塊田地？", verse: "流淚撒種的，必歡呼收割！（詩 126:5）" },
+      { id: 80, type: "static", cat: "個人成長", q: "你如何從一次失敗或錯誤的決定中，學會更深倚靠神而不是倚靠自己？", verse: "耶和華扶持一切跌倒的，扶起一切被壓下的。（詩 145:14）" },
+      { id: 81, type: "static", cat: "個人成長", q: "今年在時間管理或生活節奏上，神帶給你怎樣的調整與釋放？", verse: "求你指教我們怎樣數算自己的日子，好叫我們得著智慧的心。（詩 90:12）" },
+      { id: 82, type: "static", cat: "個人成長", q: "有沒有一段很久解不開的心結，今年神悄悄替你鬆綁了？", verse: "若有人在基督裡，舊事已過，都變成新的了。（林後 5:17）" },
+      { id: 83, type: "static", cat: "個人成長", q: "感謝主賜給你喜怒哀樂的情感，最近一次因著感動而由衷讚美是什麼時候？", verse: "我的心哪，你要稱頌耶和華！不可忘記他的一切恩惠！（詩 103:2）" },
+      { id: 84, type: "static", cat: "個人成長", q: "如果為今年的自己頒發一個「最值得感謝的勳章」，你會因為自己堅持了什麼而給予肯定？", verse: "那美好的仗我已經打過了，當跑的路我已經跑盡了，所信的道我已經守住了。（提後 4:7）" },
+      { id: 85, type: "static", cat: "個人成長", q: "面對未來的歲月，你對神有怎樣嶄新的期待與渴慕？", verse: "深信那在你們心裡動了善工的，必成全這工，直到耶穌基督的日子。（腓 1:6）" },
+
+      // 類別 6: 日常小確幸與微小恩惠 (15題)
+      { id: 86, type: "static", cat: "日常微恩", q: "分享今天或這週讓你感到特別幸福的一道美食、一杯熱咖啡或一頓聚餐。", verse: "人莫強如吃喝，且在勞碌中享福，這也是出於神的手。（傳 2:24）" },
+      { id: 87, type: "static", cat: "日常微恩", q: "回想一個陌生人曾對你展現的善意微笑、讓座或開門的小舉動。", verse: "不可虧負寄居的，因為你們在埃及地也作過寄居的。（出 22:21）" },
+      { id: 88, type: "static", cat: "日常微恩", q: "感謝一場及時雨，或是一個晴朗溫暖的午後，哪種天氣曾給你好心情？", verse: "他叫日頭照好人，也照歹人；降雨給義人，也給不義的人。（太 5:45）" },
+      { id: 89, type: "static", cat: "日常微恩", q: "分享一件你最近買到、收到或用得很順手的小物件，為這份便利獻上感謝。", verse: "各樣美善的恩賜和各樣全備的賞賜都是從上頭來的。（雅 1:17）" },
+      { id: 90, type: "static", cat: "日常微恩", q: "今天能有視力看見色彩、有聽力聽見音樂、有雙腳能行走，你想為身體的哪個感官感謝造物主？", verse: "能聽的耳，能看的眼，都是耶和華所造的。（箴 20:12）" },
+      { id: 91, type: "static", cat: "日常微恩", q: "最近一次讓你忍不住哈哈大笑的逗趣小插曲是什麼？", verse: "那時，我們滿口喜笑、滿舌歡呼。（詩 126:2）" },
+      { id: 92, type: "static", cat: "日常微恩", q: "身邊的小動物、寵物或路邊的花草樹木，曾如何療癒了你疲憊的心？", verse: "你想野地裡的百合花怎麼長起來；它也不勞苦，也不紡線。（太 6:28）" },
+      { id: 93, type: "static", cat: "日常微恩", q: "感謝科技的進步（例如視訊、社群、導航），它如何幫你拉近了與遠方所愛之人的距離？", verse: "從遠方來的喜信，不如冰水解渴。（箴 25:25）" },
+      { id: 94, type: "static", cat: "日常微恩", q: "這一年中有哪一個安靜的早晨或夜晚，獨處的時光讓你感到格外被滋潤？", verse: "早晨要聽我的聲音；早晨我必向你陳明我的心願，並要警醒！（詩 5:3）" },
+      { id: 95, type: "static", cat: "日常微恩", q: "有沒有哪一次你掉了東西卻失而復得，或事情巧妙剛好趕上的驚險感恩經歷？", verse: "耶和華是我的亮光，是我的拯救，我還怕誰呢？（詩 27:1）" },
+      { id: 96, type: "static", cat: "日常微恩", q: "感謝為我們社會提供乾淨環境與安全的清潔人員、警察或醫護人員，為他們獻上一句感恩祝福。", verse: "因為他是神的用役，是與你有益的。（羅 13:4）" },
+      { id: 97, type: "static", cat: "日常微恩", q: "回想一個你曾收到的溫馨生日祝福或紀念日禮物，那份心意如何溫暖了你？", verse: "朋友加的傷痕出於忠誠；仇敵連連親嘴卻是多餘。（箴 27:6）" },
+      { id: 98, type: "static", cat: "日常微恩", q: "分享一件看似微不足道、但如果沒有它生活會很不方便的事物，並為此感謝。", verse: "人在最小的事上忠心，在大事上也忠心。（路 16:10）" },
+      { id: 99, type: "static", cat: "日常微恩", q: "感謝今晚我們能圍坐在一起，彼此分享、彼此聆聽的這段美好時光。", verse: "我們若彼此相愛，神就住在我們裡面，愛他的心在我們裡面得以完全了。（約壹 4:12）" },
+      { id: 100, type: "static", cat: "神的恩典", q: "【壓軸感恩】在即將展開的新一年，你最盼望帶著哪一份感恩的心志向前奔跑？", verse: "這百姓是我為自己所造的，好述說我的美德。（賽 43:21）" }
+    ];
+
+    /* ========================================================
+       動態題庫：100 題現場感恩行動挑戰 (抽到者現場實際行動)
+       ======================================================== */
+    const DYNAMIC_QUESTIONS = [
+      // 1-20: 肢體尊榮與現場讚美行動
+      { id: 101, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請轉頭看向右手邊的第一位朋友，真誠地說出他/她身上你看見的 3 個屬靈優點或美好品格！", verse: "只要隨事說造就人的好話，叫聽見的人得益處。（弗 4:29）" },
+      { id: 102, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請走到今天到場最年輕或年長的一位朋友身邊，向他深深鞠躬或溫暖握手致謝：「謝謝你的存在成為我們的祝福！」", verse: "在白髮的人面前，你要站起來；也要尊敬老人。（利 19:32）" },
+      { id: 103, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請現場挑選一位同工（或小組長），用雙手合十或溫暖手勢，當面大聲對他說一聲：「這一年服事辛苦了，謝謝你！」", verse: "敬重那在你們中間勞苦的人，在主裡面治理你們的。（帖前 5:12）" },
+      { id: 104, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】邀請你左手邊的朋友，和他熱情擊掌 3 次，並每次擊掌說一句祝福的話（例如：平安！喜樂！蒙恩！）", verse: "你們親嘴問安，彼此務要聖潔。（羅 16:16）" },
+      { id: 105, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請找現場一位平時比較少聊天的肢體，過去給他一個「基督裡的溫暖擁抱」（或握手），並送上一句真誠笑容。", verse: "你們要彼此相愛，像我愛你們一樣；這就是我的命令。（約 15:12）" },
+      { id: 106, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請全組起立，由你帶領全場一起為今天的一位壽星或新朋友熱烈鼓掌歡呼 10 秒鐘！", verse: "你們要向耶和華唱新歌，全地都要向耶和華稱頌！（詩 96:1）" },
+      { id: 107, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請看著坐在你正對面的朋友，用一句話誇讚他今天穿搭、髮型或笑容最棒的地方。", verse: "良言如同蜂房，使心覺甘甜，使骨得醫治。（箴 16:24）" },
+      { id: 108, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請模仿「新聞主播報導好消息」的語氣，生動播報身旁一位肢體今年做過的一件善事！", verse: "人點燈，不放在斗底下，是放在燈臺上。（太 5:15）" },
+      { id: 109, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請現場邀請兩位朋友站起來，你們三人手搭著肩膀，一起同聲大喊：「在主裡我們是一家人！」", verse: "看哪，弟兄和睦同居是何等的善，何等的美！（詩 133:1）" },
+      { id: 110, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請向全場公開感謝一位曾經在私底下幫助過你的人，當場向他致敬！", verse: "凡人所當得的，及時給他；當恭敬的，恭敬他。（羅 13:7）" },
+      { id: 111, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請對現場最辛苦的愛宴、場地或多媒體同工，帶領全組同聲齊說：「感謝無名英雄，願主大大賜福！」", verse: "你在暗中察看，必然報答你。（太 6:6）" },
+      { id: 112, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請為你身邊的人做一個「捶捶背」或「捏捏肩膀」的感恩服事（約 15 秒）。", verse: "總要用愛心互相服事。（加 5:13）" },
+      { id: 113, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請站起來走到講台或房間前方，向全體在場者做一個優雅的感恩鞠躬禮！", verse: "存心謙卑，各人看別人比自己強。（腓 2:3）" },
+      { id: 114, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請選擇一位你覺得很有信心的榜樣，當面向他討教一個信心的秘訣。", verse: "效法他們的信心。（來 13:7）" },
+      { id: 115, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請為你右手邊的朋友遞上一杯水（或茶點），並溫柔地說：「謝謝你今天來參加！」", verse: "無論何人，因為門徒的名，只把一杯涼水給這小子裡的一個喝……不能不得賞賜。（太 10:42）" },
+      { id: 116, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請挑選一位朋友，現場跟他比一個超大愛心手勢，並合照一張感恩拍立得/手機照！", verse: "我們若彼此相愛，神就住在我們裡面。（約壹 4:12）" },
+      { id: 117, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請現場向一位牧者、師母或小組長，給予一個溫暖的問安並說出你從他身上學到的榜樣。", verse: "那善於管理教會的長老，當以為配受加倍的敬奉。（提前 5:17）" },
+      { id: 118, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請對著你的手機前鏡頭，現場向全組展示你最燦爛、最感恩的喜樂笑容 5 秒鐘！", verse: "心中喜樂，面帶笑容。（箴 15:13）" },
+      { id: 119, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請邀請身邊的人握住你的手，並以感恩的眼神注視對方 5 秒鐘，彼此說「感謝神有你」。", verse: "神造萬物，各按其時成為美好。（傳 3:11）" },
+      { id: 120, type: "dynamic", cat: "肢體尊榮", q: "【現場行動】請現場邀請一位你覺得「笑容最甜美」的人，大聲稱讚他是「上帝在地上的微笑代言人」！", verse: "耶和華向你仰臉，賜你平安。（民 6:26）" },
+
+      // 21-40: 現場即時祝福代禱行動
+      { id: 121, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場走到一位肢體身邊，把手輕按在他肩上，開口為他作一個 30 秒的感恩與祝福禱告！", verse: "互相代求，使你們可以得醫治。（雅 5:16）" },
+      { id: 122, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請詢問你左手邊朋友：「這週有沒有一件需要代禱的事？」並現場立刻為他開口呼求神！", verse: "只要凡事藉著禱告、祈求，和感謝，將你們所要的告訴神。（腓 4:6）" },
+      { id: 123, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請帶領現場所有人，同聲開口為我們的國家、城市與教會的復興做一段同聲宣告！", verse: "為萬人懇求、禱告、代求、祝謝；為君王和一切在位的也該如此。（提前 2:1-2）" },
+      { id: 124, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場邀請兩位朋友組成 3 人代禱小組，牽起手為彼此在新的一年工作與家庭大大蒙福禱告！", verse: "若是你們中間有兩個人在地上同心合意地求什麼事，我在天上的父必為他們成全。（太 18:19）" },
+      { id: 125, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請為教會的主日學孩子或下一代青年，作一個充滿盼望的祝福禱告！", verse: "教養孩童，使他走當行的道，就是到老他也不偏離。（箴 22:6）" },
+      { id: 126, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場抽出手機，立刻傳一封祝福代禱的 LINE/簡訊給你今天沒能到場的屬靈同伴！", verse: "我每逢想念你們，就感謝我的神；祈求的時候，常是歡歡喜喜地祈求。（腓 1:3-4）" },
+      { id: 127, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場帶領大家用大衛的詩篇第 23 篇第 1 節：「耶和華是我的牧者，我必不致缺乏」齊聲宣告 3 遍！", verse: "耶和華是我的牧者，我必不致缺乏。（詩 23:1）" },
+      { id: 128, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場為現場某一位正在面臨工作或考試挑戰的朋友，按手為他求「上頭來的智慧」。", verse: "你們中間若有缺少智慧的，應當求那厚賜與眾人也不斥責人的神。（雅 1:5）" },
+      { id: 129, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請邀請身旁朋友一起站起來，舉起雙手為教會的宣教事工與福音外展發出讚美禱告！", verse: "你們要往普天下去，傳福音給萬民聽。（可 16:15）" },
+      { id: 130, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場為一個身體微恙或疲累的弟兄姊妹，奉耶穌基督的名宣告醫治與重新得力！", verse: "因他受的鞭傷，我們得醫治。（賽 53:5）" },
+      { id: 131, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場開口用《民數記 6:24-26》的亞倫祭司祝福，親口祝福全場所有肢體！", verse: "願耶和華賜福給你，保護你。願耶和華使他的臉光照你，賜恩給你。（民 6:24-26）" },
+      { id: 132, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請為今天聚會的司琴、敬拜主領或講員獻上一個感恩的祝福禱告！", verse: "神是個靈，所以拜他的必須用心靈和誠實拜他。（約 4:24）" },
+      { id: 133, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請向神獻上一個「安靜 30 秒的默禱」，全場閉目同心為剛過去一年的平安謝恩。", verse: "我的心默默無聲，專等候神；我的救恩是從他而來。（詩 62:1）" },
+      { id: 134, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請找一位今天第一次來或不太熟悉的朋友，問他的名字並大聲對他說：「主耶穌愛你，我們也愛你！」", verse: "憑著愛心互相接待。（羅 15:7）" },
+      { id: 135, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請為在場所有的家庭、夫妻與親子關係宣告：「基督是我家之主，滿有和睦平安！」", verse: "至於我和我家，我們必定事奉耶和華。（書 24:15）" },
+      { id: 136, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場帶領大家同心齊唱一句「哈利路亞，讚美主！」", verse: "凡有氣息的都要讚美耶和華！你們要讚美耶和華！（詩 150:6）" },
+      { id: 137, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請在現場找一位朋友，並把神賜給你最喜歡的一句經文當面送給他做應許！", verse: "一句話說得合宜，就如金蘋果在銀網子裡。（箴 25:11）" },
+      { id: 138, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場為那些正在孤單或憂傷中的肢體，開口求聖靈如同保惠師般緊緊擁抱他們。", verse: "天天背負我們重擔的主，就是拯救我們的神，是應當稱頌的！（詩 68:19）" },
+      { id: 139, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請現場找一位同性別的朋友，與他互按胸口，彼此祝福新的一年剛強壯膽！", verse: "你當剛強壯膽！不要懼怕，也不要驚惶。（書 1:9）" },
+      { id: 140, type: "dynamic", cat: "代禱祝福", q: "【現場行動】請帶領大家一起做一次長長的深呼吸，並在吐氣時同聲說：「放下重擔，主恩夠用！」", verse: "你們要將一切的憂慮卸給神，因為他顧念你們。（彼前 5:7）" },
+
+      // 41-60: 詩歌讚美與肢體互動行動
+      { id: 141, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場清唱一首你最感恩的詩歌副歌（至少兩句），並邀請大家一起拍手合音！", verse: "當用詩章、頌詞、靈歌彼此對說，口唱心和地讚美主。（弗 5:19）" },
+      { id: 142, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場示範一段「喜樂舞蹈」動作（揮手、轉圈或踏步），並帶領大家一起做一次！", verse: "願他們跳舞讚美他的名，擊鼓彈琴歌頌他！（詩 149:3）" },
+      { id: 143, type: "dynamic", cat: "讚美互動", q: "【現場行動】請用 10 秒鐘的時間，以快問快答方式，現場一口氣講出 5 樣你感謝神創造的美好事物！", verse: "神看著一切所造的都甚好。（創 1:31）" },
+      { id: 144, type: "dynamic", cat: "讚美互動", q: "【現場行動】請和現場左邊與右邊的朋友，三人一起合力比出一個象徵「十字架」或「大南瓜」的手勢！", verse: "三股合成的繩子不容易折斷。（傳 4:12）" },
+      { id: 145, type: "dynamic", cat: "讚美互動", q: "【現場行動】請用你最宏亮的聲音，帶領全場齊聲歡呼「阿們！阿們！阿們！」三次！", verse: "四活物就說：『阿們！』眾長老也俯伏敬拜。（啟 5:14）" },
+      { id: 146, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場清唱《奇異恩典》或《野地的花》第一句，展現感恩歌喉！", verse: "我一生要讚美耶和華！我還活的時候要歌頌我的神！（詩 146:2）" },
+      { id: 147, type: "dynamic", cat: "讚美互動", q: "【現場行動】請帶領全場做一個「傳遞喜樂微笑」遊戲：從你開始對身旁人笑，一個接一個傳遞一圈！", verse: "喜樂的心乃是良藥。（箴 17:22）" },
+      { id: 148, type: "dynamic", cat: "讚美互動", q: "【現場行動】請邀請身邊的人一起打拍子，用桌面敲擊出一段活潑的感恩節節奏！", verse: "要用角聲讚美他，鼓瑟彈琴讚美他！（詩 150:3）" },
+      { id: 149, type: "dynamic", cat: "讚美互動", q: "【現場行動】請用肢體語言（比手畫腳、不講話）演出一個聖經故事或恩典場景，讓大家猜是什麼！", verse: "這事在你看來算為小事，耶和華還要行大事。（王下 3:18）" },
+      { id: 150, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場對著天父做一個「飛吻」或仰天感恩的手勢，感謝祂捨命長闊高深的愛！", verse: "神既不愛惜自己的兒子，為我們眾人捨了……豈不也把萬物白白地賜給我們嗎？（羅 8:32）" },
+      { id: 151, type: "dynamic", cat: "讚美互動", q: "【現場行動】請在現場模仿敲響平安鐘聲，高喊「叮咚！神的恩典降臨了！」", verse: "主發命令，傳喜訊的婦女成了大群。（詩 68:11）" },
+      { id: 152, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場背誦或大聲朗讀主禱文的第一句：「我們在天上的父，願人都尊你的名為聖！」", verse: "所以，你們禱告要這樣說：我們在天上的父……（太 6:9）" },
+      { id: 153, type: "dynamic", cat: "讚美互動", q: "【現場行動】請邀請現場一位同工和你一起比一個「默契大考驗」手勢（剪刀石頭布同時出一樣算過關）！", verse: "同心合意，興旺福音。（腓 1:5）" },
+      { id: 154, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場用讚美的語氣，向身旁三位肢體分別說：「你真好看，因為你是神獨特榮耀的傑作！」", verse: "我們原是他的工作，在基督耶穌裡造成的。（弗 2:10）" },
+      { id: 155, type: "dynamic", cat: "讚美互動", q: "【現場行動】請在現場邀請大家站起來做伸展操：雙手向上伸展摸天，感謝神賜給我們生命氣息！", verse: "生命、氣息、萬物，都是他賜給各人的。（徒 17:25）" },
+      { id: 156, type: "dynamic", cat: "讚美互動", q: "【現場行動】請用饒舌（Rap）或押韻的順口溜方式，講出兩句感謝主耶穌的話！", verse: "我心裡湧出美詞；我論到我為王做的事。（詩 45:1）" },
+      { id: 157, type: "dynamic", cat: "讚美互動", q: "【現場行動】請現場找到一位弟兄/姊妹，與他做一個代表「愛與和平」的握拳碰拳（Fist Bump）！", verse: "使人和睦的人有福了！（太 5:9）" },
+      { id: 158, type: "dynamic", cat: "讚美互動", q: "【現場行動】請帶領大家一同拍手歡呼：「感謝主，凡事謝恩，主恩滿溢！」", verse: "要常常喜樂，不住的禱告，凡事謝恩。（帖前 5:16-18）" },
+      { id: 159, type: "dynamic", cat: "讚美互動", q: "【現場行動】請在現場向大家展示一個你覺得最能表達「完全交託」的肢體姿勢！", verse: "當將你的事交託耶和華，並倚靠他，他就必成全。（詩 37:5）" },
+      { id: 160, type: "dynamic", cat: "讚美互動", q: "【現場行動】請選一首詩歌名稱，現場帶領大家喊出該首詩歌最觸動你的一句歌詞！", verse: "我要向耶和華歌唱，因他大大得勝。（出 15:1）" },
+
+      // 61-80: 現場即時傳愛與簡訊實踐行動
+      { id: 161, type: "dynamic", cat: "即時傳愛", q: "【現場行動】拿出手機，立刻傳訊或傳貼圖給爸爸、媽媽或配偶：「謝謝你一直愛我，感恩節快樂！」", verse: "當孝敬父母，使你的日子在地上得以長久。（出 20:12）" },
+      { id: 162, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請給手機通訊錄中一位好久沒聯絡的基督徒朋友傳訊息：「今天小組聚會想到你，祝你平安喜樂！」", verse: "所親愛、所想念的弟兄們，你們就是我的喜樂，我的冠冕。（腓 4:1）" },
+      { id: 163, type: "dynamic", cat: "即時傳愛", q: "【現場行動】在手機社群動態（IG/FB/LINE）發一則限時動態：「感恩節數算主恩，今天在教會好溫暖！」", verse: "你們是世上的光。城造在山上是不能隱藏的。（太 5:14）" },
+      { id: 164, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場拿一張小紙條（或便利貼），寫下一句祝福經文，悄悄塞給身旁的某位弟兄姊妹！", verse: "智慧人的舌善發知識；愚昧人的口吐出愚昧。（箴 15:2）" },
+      { id: 165, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場將身上的點心、糖果或一顆水果，主動分享給在場的一位朋友！", verse: "只是不可忘記行善和捐輸的事，因為這樣的祭是神所喜悅的。（來 13:16）" },
+      { id: 166, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請傳 LINE 給今天缺席小組的一位組員，告訴他：「我們今天大家都很想念你喔！」", verse: "身體只有一個，聖靈只有一個。（弗 4:4）" },
+      { id: 167, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場向一位平時辛苦準備茶點的同工道謝，並承諾下次聚會願意幫忙一次！", verse: "各人要照所得的恩賜彼此服事，作神百般恩賜的好管家。（彼前 4:10）" },
+      { id: 168, type: "dynamic", cat: "即時傳愛", q: "【現場行動】拿出手機找出一張今年最感恩的家庭照或聚會照，現場亮給身邊的三個人看並分享！", verse: "這事要向主指明，因為耶和華已成全了。（詩 111:2）" },
+      { id: 169, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請傳訊息給你的職場同事或學校同學，感謝他過去在某件工作上的協助。", verse: "你們的光也當這樣照在人前。（太 5:16）" },
+      { id: 170, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請給現場一位朋友一個「讚」的手勢，並說出他在聚會中最認真的地方！", verse: "你見過辦事殷勤的人嗎？他必站在君王面前。（箴 22:29）" },
+      { id: 171, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請當場對一位在場的朋友發出「下週一起喝咖啡/散步」的溫暖邀約！", verse: "兩個人總比一個人好，因為二人勞碌同得美好的果效。（傳 4:9）" },
+      { id: 172, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場起立幫身邊的朋友倒一杯溫開水，展現基督僕人服事的心志。", verse: "正如人子來，不是要受人的服事，乃是要服事人。（太 20:28）" },
+      { id: 173, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請在手機備忘錄寫下今天聽到的第一個感恩見證，作為你今晚睡前的禱告感謝！", verse: "我要默想你的訓詞，看重你的道路。（詩 119:15）" },
+      { id: 174, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場向一位平時默默奉獻的弟兄姊妹，說一聲：「你的忠心神都記在天上！」", verse: "善哉！你這又良善又忠心的僕人。（太 25:21）" },
+      { id: 175, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請用一句幽默逗趣的話，把坐在你旁邊原本嚴肅的朋友逗笑！", verse: "得勝的歡呼在義人的帳棚裡。（詩 118:15）" },
+      { id: 176, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場雙手奉上一顆感恩的糖果給小組長或同工，感謝帶領！", verse: "凡事謝恩；因為這是神在基督耶穌裡向你們所定的旨意。（帖前 5:18）" },
+      { id: 177, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請傳送一則感謝福音老師、牧長或主日學老師的訊息，表達育成之恩！", verse: "那在道理上受教的，當把一切需用的供給施教的人。（加 6:6）" },
+      { id: 178, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場對坐在你斜對面的朋友大聲喊出：「願主賜你平安喜樂，直到永永遠遠！」", verse: "願主的恩惠常與你們同在。（林前 16:23）" },
+      { id: 179, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請為今天在場所有弟兄姊妹拍一張大合照，並負責發在教會團契群組中！", verse: "弟兄和睦同居，是何等的美！（詩 133:1）" },
+      { id: 180, type: "dynamic", cat: "即時傳愛", q: "【現場行動】請現場許下一個承諾：聚會結束後主動留下來幫忙收拾 3 張椅子或垃圾！", verse: "人在最小的事上忠心，在大事上也忠心。（路 16:10）" },
+
+      // 81-100: 現場見證與心靈立志行動
+      { id: 181, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場雙手合十向天，大聲宣告你明年要讀完聖經、穩定靈修的一個新決心！", verse: "求你賜我悟性，我便遵守你的律法，且要一心遵守。（詩 119:34）" },
+      { id: 182, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場向身邊一位朋友公開宣認耶穌基督是你生命的主，並說出信靠祂的福氣！", verse: "你若口裡認耶穌為主，心裡信神叫他從死裡復活，就必得救。（羅 10:9）" },
+      { id: 183, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場公開原諒一件過去曾讓你心裡過不去的小事，宣告在主愛中完全釋放！", verse: "要以恩慈相待，存憐憫的心，彼此饒恕，正如神在基督裡饒恕了你們一樣。（弗 4:32）" },
+      { id: 184, type: "dynamic", cat: "立志見證", q: "【現場行動】請在現場邀請一位同伴，作為你新的一年生活讀經或運動的「屬靈監督同伴」！", verse: "鐵磨鐵，磨出刃來；朋友相感也是如此。（箴 27:17）" },
+      { id: 185, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場大聲背誦出約翰福音 3:16：「神愛世人，甚至將他的獨生子賜給他們……」", verse: "叫一切信他的，不致滅亡，反得永生。（約 3:16）" },
+      { id: 186, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場向全組分享一個你過去一年最感恩神帶領你勝過的壞習慣！", verse: "靠著愛我們的主，在這一切的事上已經得勝有餘了。（羅 8:37）" },
+      { id: 187, type: "dynamic", cat: "立志見證", q: "【現場行動】請向神做一個承諾：在即將到來的聖誕節，至少邀請一位慕道友來教會！", verse: "領人歸義的，必發光如星，直到永永遠遠。（但 12:3）" },
+      { id: 188, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場起立，向全場舉手示意，宣告：「我深信神愛我，祂的恩典一生夠用！」", verse: "我一生一世必有恩惠慈愛隨著我。（詩 23:6）" },
+      { id: 189, type: "dynamic", cat: "立志見證", q: "【現場行動】請找出手機裡今年最讓你心痛或難熬時留下的一張照片或記事，宣告神已經將哀哭變為跳舞！", verse: "你已將我的哀哭變為跳舞，給我披上喜樂。（詩 30:11）" },
+      { id: 190, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場問身邊朋友一題：「你最欣賞耶穌的哪一點？」並互相分享感動！", verse: "你們要思念那忍受罪人這樣頂撞的，免得疲倦灰心。（來 12:3）" },
+      { id: 191, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場向一位服事同工說出「願耶和華照你所行的賞賜你」，並祝福他的後裔！", verse: "願耶和華照你所行的賞賜你。你來投靠耶和華—以色列神的翅膀下。（得 2:12）" },
+      { id: 192, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場示範一次「當你遇到困難時，你如何禱告交託給主」的動作或心境！", verse: "應當一無掛慮，只要凡事藉著禱告祈求。（腓 4:6）" },
+      { id: 193, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場朗讀詩篇 100 篇第 4 節：「當稱謝進入他的門；當讚美進入他的院！」", verse: "當稱謝進入他的門；當讚美進入他的院。當感謝他，稱頌他的名！（詩 100:4）" },
+      { id: 194, type: "dynamic", cat: "立志見證", q: "【現場行動】請在現場邀請全組起立，大家一起手牽手圍成一個大圓圈，同心合意謝恩！", verse: "凡事要奉我們主耶穌基督的名常常感謝父神。（弗 5:20）" },
+      { id: 195, type: "dynamic", cat: "立志見證", q: "【現場行動】請在現場找一位肢體，彼此立志在新的一年「多說讚美的話，少說抱怨批評的話」！", verse: "污穢的言語一句不可出口，只要隨事說造就人的好話。（弗 4:29）" },
+      { id: 196, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場分享一個你在聖經中最佩服的信心人物（如亞伯拉罕、摩西、約瑟、保羅），並說明為什麼！", verse: "這些人都是因信得了美好的證據。（來 11:39）" },
+      { id: 197, type: "dynamic", cat: "立志見證", q: "【現場行動】請走向窗邊或門口，望向天空，口中發出一句由衷的讚美敬拜神！", verse: "主啊，你所造的萬民都要來敬拜你；他們也要榮耀你的名。（詩 86:9）" },
+      { id: 198, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場問一位長輩或資深信徒一個信仰問題：「請問信主這些年，最寶貴的體會是什麼？」", verse: "你要聽從生你的父親；你母親老了，也不可藐視她。（箴 23:22）" },
+      { id: 199, type: "dynamic", cat: "立志見證", q: "【現場行動】請現場向在座所有人熱烈揮揮手，並同聲祝賀「感恩節快樂，主愛滿溢！」", verse: "弟兄們，我藉我們主耶穌基督的名勸你們都說一樣的話。（林前 1:10）" },
+      { id: 200, type: "dynamic", cat: "立志見證", q: "【壓軸動態行動】請現場帶領全場所有弟兄姊妹，一同起立合唱三一頌或主禱文，將最高讚美歸於三一真神！", verse: "但願尊貴、榮耀歸與萬世的君王，就是那不能朽壞、不能看見、永全的神，直到永永遠遠。阿們！（提前 1:17）" }
+    ];
+
+    /* ========================================================
+       2. LocalStorage 每日去重系統 (區分動態與靜態題庫)
+       ======================================================== */
+    const STORAGE_KEY_PREFIX = "thanksgiving_church_drawn_v2_";
+    const SETTINGS_CATEGORIES_KEY = "thanksgiving_active_cats_v2";
+    const CURRENT_MODE_KEY = "thanksgiving_current_mode_v2";
+
+    let currentMode = "static"; // "static" or "dynamic"
+
+    try {
+      const savedMode = localStorage.getItem(CURRENT_MODE_KEY);
+      if (savedMode === "static" || savedMode === "dynamic") {
+        currentMode = savedMode;
+      }
+    } catch(e) {}
+
+    function getTodayKey(mode = currentMode) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${STORAGE_KEY_PREFIX}${mode}_${y}-${m}-${d}`;
+    }
+
+    function getTodayDrawnIds(mode = currentMode) {
+      const key = getTodayKey(mode);
+      try {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveTodayDrawnId(id, mode = currentMode) {
+      const key = getTodayKey(mode);
+      const ids = getTodayDrawnIds(mode);
+      if (!ids.includes(id)) {
+        ids.push(id);
+        localStorage.setItem(key, JSON.stringify(ids));
+      }
+    }
+
+    function clearTodayHistory(mode = currentMode) {
+      const key = getTodayKey(mode);
+      localStorage.removeItem(key);
+    }
+
+    function getCurrentDataset() {
+      return currentMode === "static" ? STATIC_QUESTIONS : DYNAMIC_QUESTIONS;
+    }
+
+    /* ========================================================
+       3. 音效合成系統 (Tone.js Web Audio Synthesizer)
+       ======================================================== */
+    let isSoundEnabled = true;
+    let synth = null;
+    let chimeSynth = null;
+
+    function initAudio() {
+      if (!synth && window.Tone) {
+        try {
+          synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.8 }
+          }).toDestination();
+          synth.volume.value = -8;
+
+          chimeSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.05, decay: 0.5, sustain: 0.3, release: 1.5 }
+          }).toDestination();
+          chimeSynth.volume.value = -6;
+        } catch (e) {
+          console.warn("Audio Context init pending user interaction");
+        }
+      }
+    }
+
+    function playTickSound() {
+      if (!isSoundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') Tone.start();
+        synth.triggerAttackRelease(currentMode === "dynamic" ? "E5" : "C5", "32n");
+      } catch (e) {}
+    }
+
+    function playSuccessFanfare() {
+      if (!isSoundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') Tone.start();
+        const now = Tone.now();
+        if (currentMode === "dynamic") {
+          chimeSynth.triggerAttackRelease("D5", "8n", now);
+          chimeSynth.triggerAttackRelease("F#5", "8n", now + 0.1);
+          chimeSynth.triggerAttackRelease("A5", "8n", now + 0.2);
+          chimeSynth.triggerAttackRelease("D6", "4n", now + 0.32);
+        } else {
+          chimeSynth.triggerAttackRelease("C5", "8n", now);
+          chimeSynth.triggerAttackRelease("E5", "8n", now + 0.12);
+          chimeSynth.triggerAttackRelease("G5", "8n", now + 0.24);
+          chimeSynth.triggerAttackRelease("C6", "4n", now + 0.38);
+        }
+      } catch (e) {}
+    }
+
+    function playTimerBell() {
+      if (!isSoundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') Tone.start();
+        const now = Tone.now();
+        chimeSynth.triggerAttackRelease(["E5", "G#5", "B5"], "2n", now);
+      } catch (e) {}
+    }
+
+    /* ========================================================
+       4. 頁面狀態與分類過濾
+       ======================================================== */
+    let isDrawing = false;
+    let currentQuestion = null;
+
+    // Timer Variables
+    let timerDuration = 90;
+    let timerRemaining = 90;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    /* ========================================================
+       5. DOM 節點引用
+       ======================================================== */
+    const drawBtn = document.getElementById('drawBtn');
+    const drawBtnText = document.getElementById('drawBtnText');
+    const resetTodayPoolBtn = document.getElementById('resetTodayPoolBtn');
+    const cardInner = document.getElementById('cardInner');
+    const cardModeBadge = document.getElementById('cardModeBadge');
+    const cardCategory = document.getElementById('cardCategory');
+    const cardIndexBadge = document.getElementById('cardIndexBadge');
+    const cardQuestionText = document.getElementById('cardQuestionText');
+    const cardVerseText = document.getElementById('cardVerseText');
+    const poolStatsText = document.getElementById('poolStatsText');
+    const todayDateLabel = document.getElementById('todayDateLabel');
+    const modeStatusTag = document.getElementById('modeStatusTag');
+    const copyPromptBtn = document.getElementById('copyPromptBtn');
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
+    const soundText = document.getElementById('soundText');
+    const toast = document.getElementById('toast');
+
+    // Mode Selector Buttons
+    const modeStaticBtn = document.getElementById('modeStaticBtn');
+    const modeDynamicBtn = document.getElementById('modeDynamicBtn');
+
+    // Drawer & Modals
+    const historyToggleBtn = document.getElementById('historyToggleBtn');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    const closeDrawerBottomBtn = document.getElementById('closeDrawerBottomBtn');
+    const historyListContainer = document.getElementById('historyListContainer');
+    const historyCountBadge = document.getElementById('historyCountBadge');
+    const copyAllHistoryBtn = document.getElementById('copyAllHistoryBtn');
+
+    // Category Modal
+    const categoryBtn = document.getElementById('categoryBtn');
+    const categoryModal = document.getElementById('categoryModal');
+    const closeCategoryBtn = document.getElementById('closeCategoryBtn');
+    const categoryCheckboxes = document.getElementById('categoryCheckboxes');
+    const selectAllCategoryBtn = document.getElementById('selectAllCategoryBtn');
+    const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+
+    // Timer Elements
+    const toggleTimerMiniBtn = document.getElementById('toggleTimerMiniBtn');
+    const timerWidget = document.getElementById('timerWidget');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerStartBtn = document.getElementById('timerStartBtn');
+    const timerResetBtn = document.getElementById('timerResetBtn');
+    const timerPresetBtns = document.querySelectorAll('.timer-preset-btn');
+
+    // Categories filter management
+    function getCategoriesForMode(mode = currentMode) {
+      const dataset = mode === "static" ? STATIC_QUESTIONS : DYNAMIC_QUESTIONS;
+      return Array.from(new Set(dataset.map(item => item.cat)));
+    }
+
+    let activeCategories = getCategoriesForMode("static");
+
+    function loadSavedCategories() {
+      try {
+        const saved = localStorage.getItem(`${SETTINGS_CATEGORIES_KEY}_${currentMode}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            activeCategories = parsed;
+            return;
+          }
+        }
+      } catch (e) {}
+      activeCategories = getCategoriesForMode(currentMode);
+    }
+
+    /* ========================================================
+       6. 模式切換邏輯 (靜態 vs 動態)
+       ======================================================== */
+    function switchMode(newMode) {
+      if (isDrawing) return;
+      currentMode = newMode;
+      localStorage.setItem(CURRENT_MODE_KEY, currentMode);
+
+      // Button UI Switch
+      if (currentMode === "static") {
+        modeStaticBtn.className = "flex-1 py-2.5 px-3 rounded-xl font-serif text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center space-x-1.5 bg-gradient-to-r from-amber-600 to-harvest-600 text-white shadow-md";
+        modeDynamicBtn.className = "flex-1 py-2.5 px-3 rounded-xl font-serif text-xs sm:text-sm font-bold text-harvest-300 hover:text-harvest-100 transition-all duration-300 flex items-center justify-center space-x-1.5";
+        
+        modeStatusTag.textContent = "🕊️ 靜態模式";
+        modeStatusTag.className = "px-2 py-0.5 rounded-md bg-amber-900/60 border border-amber-600/50 text-amber-200 text-[11px] font-bold";
+        cardModeBadge.textContent = "🕊️ 靜態見證";
+        cardModeBadge.className = "px-3 py-1 rounded-full text-xs font-serif font-black tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        cardInner.style.border = "2px solid rgba(245, 158, 11, 0.4)";
+        drawBtnText.textContent = "抽一個靜態題目";
+      } else {
+        modeDynamicBtn.className = "flex-1 py-2.5 px-3 rounded-xl font-serif text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center space-x-1.5 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md";
+        modeStaticBtn.className = "flex-1 py-2.5 px-3 rounded-xl font-serif text-xs sm:text-sm font-bold text-harvest-300 hover:text-harvest-100 transition-all duration-300 flex items-center justify-center space-x-1.5";
+        
+        modeStatusTag.textContent = "⚡ 動態行動";
+        modeStatusTag.className = "px-2 py-0.5 rounded-md bg-rose-900/60 border border-rose-500/50 text-rose-200 text-[11px] font-bold";
+        cardModeBadge.textContent = "⚡ 現場行動";
+        cardModeBadge.className = "px-3 py-1 rounded-full text-xs font-serif font-black tracking-wider uppercase bg-rose-500/20 text-rose-300 border border-rose-500/40";
+        cardInner.style.border = "2px solid rgba(225, 29, 72, 0.5)";
+        drawBtnText.textContent = "抽一個動態行動";
+      }
+
+      loadSavedCategories();
+      updateStatsUI();
+      checkLastDrawnCard();
+      showToast(`已切換至「${currentMode === "static" ? "靜態分享" : "動態行動"}」題庫 (100題)`);
+    }
+
+    modeStaticBtn.addEventListener('click', () => switchMode('static'));
+    modeDynamicBtn.addEventListener('click', () => switchMode('dynamic'));
+
+    /* ========================================================
+       7. 核心抽題邏輯 (含同日不重複防護)
+       ======================================================== */
+    function getAvailableQuestions() {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      return dataset.filter(item => {
+        const matchesCategory = activeCategories.includes(item.cat);
+        const notDrawnToday = !drawnIds.includes(item.id);
+        return matchesCategory && notDrawnToday;
+      });
+    }
+
+    function updateStatsUI() {
+      const dataset = getCurrentDataset();
+      const totalFiltered = dataset.filter(q => activeCategories.includes(q.cat)).length;
+      const available = getAvailableQuestions();
+      const drawnToday = getTodayDrawnIds();
+      
+      poolStatsText.textContent = `剩餘 ${available.length} / 符合條件 ${totalFiltered} 題`;
+      historyCountBadge.textContent = drawnToday.length;
+
+      if (available.length === 0) {
+        drawBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        drawBtnText.textContent = `今日${currentMode === 'static' ? '靜態' : '動態'}題目已全部分享完！`;
+      } else {
+        drawBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        drawBtnText.textContent = currentMode === 'static' ? "抽一個靜態題目" : "抽一個動態行動";
+      }
+    }
+
+    function performDraw() {
+      if (isDrawing) return;
+      const available = getAvailableQuestions();
+
+      if (available.length === 0) {
+        showToast(`今日「${currentMode === 'static' ? '靜態' : '動態'}」題庫已全部抽完！可點擊『重設今日題庫』重新開始。`);
+        return;
+      }
+
+      isDrawing = true;
+      drawBtn.disabled = true;
+      cardInner.classList.add('scale-[0.98]', 'brightness-90');
+
+      let steps = 0;
+      const totalSteps = 16;
+      const intervalTime = 65;
+
+      const rollTimer = setInterval(() => {
+        steps++;
+        const randomTemp = available[Math.floor(Math.random() * available.length)];
+        cardQuestionText.textContent = randomTemp.q;
+        cardCategory.textContent = `🎲 隨機中... ${randomTemp.cat}`;
+        playTickSound();
+
+        if (steps >= totalSteps) {
+          clearInterval(rollTimer);
+          
+          const finalIndex = Math.floor(Math.random() * available.length);
+          const chosen = available[finalIndex];
+          
+          currentQuestion = chosen;
+          saveTodayDrawnId(chosen.id);
+
+          setTimeout(() => {
+            cardInner.classList.remove('scale-[0.98]', 'brightness-90');
+            renderChosenCard(chosen);
+            playSuccessFanfare();
+            triggerConfetti();
+            updateStatsUI();
+            isDrawing = false;
+            drawBtn.disabled = false;
+          }, 150);
+        }
+      }, intervalTime);
+    }
+
+    function renderChosenCard(item) {
+      if (item.type === "dynamic") {
+        cardModeBadge.textContent = "⚡ 現場行動";
+        cardModeBadge.className = "px-3 py-1 rounded-full text-xs font-serif font-black tracking-wider uppercase bg-rose-500/20 text-rose-300 border border-rose-500/40";
+      } else {
+        cardModeBadge.textContent = "🕊️ 靜態見證";
+        cardModeBadge.className = "px-3 py-1 rounded-full text-xs font-serif font-black tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40";
+      }
+
+      cardCategory.textContent = `🍁 ${item.cat}`;
+      cardIndexBadge.textContent = `題目編號 #${item.id}`;
+      cardQuestionText.textContent = item.q;
+      cardVerseText.textContent = item.verse;
+
+      const ringColor = item.type === "dynamic" ? 'ring-rose-500/80' : 'ring-amber-400/80';
+      cardInner.classList.add('ring-4', ringColor);
+      setTimeout(() => {
+        cardInner.classList.remove('ring-4', ringColor);
+      }, 1000);
+    }
+
+    function checkLastDrawnCard() {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      if (drawnIds.length > 0) {
+        const lastId = drawnIds[drawnIds.length - 1];
+        const lastItem = dataset.find(q => q.id === lastId);
+        if (lastItem) {
+          currentQuestion = lastItem;
+          renderChosenCard(lastItem);
+          cardCategory.textContent = `🍂 上次抽取 ‧ ${lastItem.cat}`;
+          return;
+        }
+      }
+      // Reset Default prompt if none
+      cardQuestionText.textContent = currentMode === 'static' 
+        ? "請圍繞在同心與主愛中，點擊下方「抽一個靜態題目」分享！"
+        : "現場溫暖連繫！點擊下方「抽一個動態行動」現場實踐愛！";
+      cardVerseText.textContent = currentMode === 'static'
+        ? "「凡事要奉我們主耶穌基督的名常常感謝父神。」— 以弗所書 5:20"
+        : "「我們相愛，不要只在言語和舌頭上，總要在行為和誠實上。」— 約翰一書 3:18";
+      cardCategory.textContent = currentMode === 'static' ? "✨ 團契破冰 ‧ 感恩分享" : "🔥 現場破冰 ‧ 行動之愛";
+      cardIndexBadge.textContent = "#點擊下方按鈕開始";
+    }
+
+    /* ========================================================
+       8. 彩帶與落葉背景特效 (Confetti & Leaves)
+       ======================================================== */
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        const colors = currentMode === "dynamic" 
+          ? ['#f43f5e', '#fb7185', '#fbbf24', '#f59e0b', '#ffffff']
+          : ['#f59e0b', '#d97706', '#fbbf24', '#fef3c7', '#dc2626'];
+
+        confetti({
+          particleCount: 60,
+          spread: 75,
+          origin: { y: 0.65 },
+          colors: colors
+        });
+      }
+    }
+
+    const canvas = document.getElementById('autumnCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let leaves = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Leaf {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = -20 - Math.random() * 50;
+        this.size = 12 + Math.random() * 16;
+        this.speedY = 0.8 + Math.random() * 1.5;
+        this.speedX = Math.sin(Math.random() * 5) * 1.2;
+        this.angle = Math.random() * Math.PI * 2;
+        this.angleSpeed = (Math.random() - 0.5) * 0.03;
+        this.color = ['#d97706', '#b45309', '#f59e0b', '#92400e', '#78350f'][Math.floor(Math.random() * 5)];
+        this.alpha = 0.2 + Math.random() * 0.4;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += Math.sin(this.y * 0.02) + this.speedX * 0.5;
+        this.angle += this.angleSpeed;
+        if (this.y > height + 30) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 35; i++) {
+      const leaf = new Leaf();
+      leaf.y = Math.random() * height;
+      leaves.push(leaf);
+    }
+
+    function animateLeaves() {
+      ctx.clearRect(0, 0, width, height);
+      for (let leaf of leaves) {
+        leaf.update();
+        leaf.draw();
+      }
+      requestAnimationFrame(animateLeaves);
+    }
+    animateLeaves();
+
+    /* ========================================================
+       9. 計時器邏輯
+       ======================================================== */
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+      timerDisplay.textContent = formatTime(timerRemaining);
+      if (timerRemaining <= 10 && timerRemaining > 0) {
+        timerDisplay.classList.add('text-rose-400');
+      } else {
+        timerDisplay.classList.remove('text-rose-400');
+      }
+    }
+
+    function startTimer() {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timerStartBtn.textContent = "繼續";
+        timerStartBtn.classList.replace('bg-amber-600', 'bg-emerald-600');
+        return;
+      }
+
+      isTimerRunning = true;
+      timerStartBtn.textContent = "暫停";
+      timerStartBtn.classList.replace('bg-emerald-600', 'bg-amber-600');
+
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          updateTimerDisplay();
+          if (timerRemaining <= 3 && timerRemaining > 0) {
+            playTickSound();
+          }
+        } else {
+          clearInterval(timerInterval);
+          isTimerRunning = false;
+          timerStartBtn.textContent = "開始";
+          timerStartBtn.classList.replace('bg-amber-600', 'bg-emerald-600');
+          playTimerBell();
+          showToast("⏰ 分享/行動時間到囉！謝謝美好的互動。");
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerRemaining = timerDuration;
+      timerStartBtn.textContent = "開始";
+      timerStartBtn.classList.replace('bg-amber-600', 'bg-emerald-600');
+      updateTimerDisplay();
+    }
+
+    /* ========================================================
+       10. 題目歷史清單渲染與互動
+       ======================================================== */
+    function renderHistoryList() {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      historyListContainer.innerHTML = '';
+
+      if (drawnIds.length === 0) {
+        historyListContainer.innerHTML = `
+          <div class="text-center py-8 text-harvest-400/60 text-xs">
+            今天此模式（${currentMode === 'static' ? '靜態分享' : '動態行動'}）還沒有抽過題目喔！<br>點選首頁按鈕開始。
+          </div>
+        `;
+        return;
+      }
+
+      const reversedIds = [...drawnIds].reverse();
+      reversedIds.forEach((id, index) => {
+        const item = dataset.find(q => q.id === id);
+        if (!item) return;
+
+        const isDynamic = item.type === "dynamic";
+        const row = document.createElement('div');
+        row.className = "bg-harvest-900/60 hover:bg-harvest-900/90 border border-harvest-700/40 rounded-xl p-3 text-xs transition";
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-[11px] text-harvest-400 mb-1">
+            <span class="font-bold ${isDynamic ? 'text-rose-400' : 'text-amber-300'}">
+              ${isDynamic ? '⚡ [動態行動]' : '🕊️ [靜態分享]'} #${item.id} [${item.cat}]
+            </span>
+            <span class="text-harvest-400/80">第 ${drawnIds.length - index} 順位</span>
+          </div>
+          <p class="font-serif text-harvest-100 text-sm mb-1">${item.q}</p>
+          <p class="text-[11px] text-harvest-300/70 italic">${item.verse}</p>
+        `;
+        historyListContainer.appendChild(row);
+      });
+    }
+
+    /* ========================================================
+       11. 分類選擇器渲染
+       ======================================================== */
+    function renderCategorySelector() {
+      categoryCheckboxes.innerHTML = '';
+      const modeCats = getCategoriesForMode(currentMode);
+      const dataset = getCurrentDataset();
+
+      modeCats.forEach(cat => {
+        const isChecked = activeCategories.includes(cat);
+        const count = dataset.filter(q => q.cat === cat).length;
+        const label = document.createElement('label');
+        label.className = `flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition ${
+          isChecked ? 'bg-harvest-800/80 border-amber-500 text-harvest-100' : 'bg-harvest-950/60 border-harvest-800 text-harvest-400'
+        }`;
+        label.innerHTML = `
+          <input type="checkbox" value="${cat}" class="cat-checkbox rounded text-amber-600 focus:ring-0" ${isChecked ? 'checked' : ''}>
+          <span>${cat} (${count}題)</span>
+        `;
+        label.querySelector('input').addEventListener('change', (e) => {
+          if (e.target.checked) {
+            label.className = 'flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition bg-harvest-800/80 border-amber-500 text-harvest-100';
+          } else {
+            label.className = 'flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition bg-harvest-950/60 border-harvest-800 text-harvest-400';
+          }
+        });
+        categoryCheckboxes.appendChild(label);
+      });
+    }
+
+    /* ========================================================
+       12. 輔助功能：Toast 與剪貼簿複製
+       ======================================================== */
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast("已成功複製到剪貼簿！");
+      } catch (err) {
+        showToast("複製失敗，請手動複製");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    /* ========================================================
+       13. 事件監聽器綁定
+       ======================================================== */
+    drawBtn.addEventListener('click', performDraw);
+
+    resetTodayPoolBtn.addEventListener('click', () => {
+      const drawnCount = getTodayDrawnIds().length;
+      if (drawnCount === 0) {
+        showToast(`今日「${currentMode === 'static' ? '靜態' : '動態'}」題庫尚無任何已抽出的題目。`);
+        return;
+      }
+      clearTodayHistory();
+      updateStatsUI();
+      renderHistoryList();
+      showToast(`已重設今日「${currentMode === 'static' ? '靜態' : '動態'}」紀錄！可重新隨機抽取。`);
+    });
+
+    copyPromptBtn.addEventListener('click', () => {
+      if (!currentQuestion) {
+        showToast("尚未抽取題目喔！");
+        return;
+      }
+      const modeLabel = currentQuestion.type === "dynamic" ? "⚡ 動態感恩行動" : "🕊️ 靜態感恩見證";
+      const textToCopy = `【${modeLabel}】\n類別：${currentQuestion.cat}\n題目：${currentQuestion.q}\n默想經文：${currentQuestion.verse}`;
+      fallbackCopy(textToCopy);
+    });
+
+    soundToggleBtn.addEventListener('click', () => {
+      isSoundEnabled = !isSoundEnabled;
+      if (isSoundEnabled) {
+        soundIcon.textContent = "🔔";
+        soundText.textContent = "音效：開";
+        initAudio();
+        showToast("音效已開啟");
+      } else {
+        soundIcon.textContent = "🔕";
+        soundText.textContent = "音效：靜音";
+        showToast("音效已靜音");
+      }
+    });
+
+    historyToggleBtn.addEventListener('click', () => {
+      renderHistoryList();
+      historyDrawer.classList.remove('hidden');
+    });
+    closeHistoryBtn.addEventListener('click', () => historyDrawer.classList.add('hidden'));
+    closeDrawerBottomBtn.addEventListener('click', () => historyDrawer.classList.add('hidden'));
+
+    copyAllHistoryBtn.addEventListener('click', () => {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      if (drawnIds.length === 0) {
+        showToast("今日尚無分享記錄！");
+        return;
+      }
+      const listText = drawnIds.map((id, idx) => {
+        const item = dataset.find(q => q.id === id);
+        return `${idx + 1}. [${item.cat}] ${item.q}`;
+      }).join('\n\n');
+
+      const fullSummary = `【今日教會感恩節小組分享題目彙集 (${currentMode === 'static' ? '靜態分享' : '動態行動'})】\n日期：${todayDateLabel.textContent}\n\n${listText}`;
+      fallbackCopy(fullSummary);
+    });
+
+    categoryBtn.addEventListener('click', () => {
+      renderCategorySelector();
+      categoryModal.classList.remove('hidden');
+    });
+    closeCategoryBtn.addEventListener('click', () => categoryModal.classList.add('hidden'));
+    
+    selectAllCategoryBtn.addEventListener('click', () => {
+      const inputs = categoryCheckboxes.querySelectorAll('input[type="checkbox"]');
+      inputs.forEach(input => {
+        input.checked = true;
+        input.closest('label').className = 'flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition bg-harvest-800/80 border-amber-500 text-harvest-100';
+      });
+    });
+
+    saveCategoryBtn.addEventListener('click', () => {
+      const checkedInputs = categoryCheckboxes.querySelectorAll('input[type="checkbox"]:checked');
+      const selected = Array.from(checkedInputs).map(inp => inp.value);
+      if (selected.length === 0) {
+        showToast("請至少選擇一個題目分類！");
+        return;
+      }
+      activeCategories = selected;
+      localStorage.setItem(`${SETTINGS_CATEGORIES_KEY}_${currentMode}`, JSON.stringify(activeCategories));
+      updateStatsUI();
+      categoryModal.classList.add('hidden');
+      showToast("分類設定已套用！");
+    });
+
+    toggleTimerMiniBtn.addEventListener('click', () => {
+      timerWidget.classList.toggle('hidden');
+    });
+
+    timerStartBtn.addEventListener('click', startTimer);
+    timerResetBtn.addEventListener('click', resetTimer);
+
+    timerPresetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        timerDuration = parseInt(btn.dataset.seconds, 10);
+        resetTimer();
+      });
+    });
+
+    /* ========================================================
+       14. 頁面初始化
+       ======================================================== */
+    window.onload = function() {
+      const now = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+      todayDateLabel.textContent = now.toLocaleDateString('zh-TW', options);
+
+      switchMode(currentMode);
+      resetTimer();
+    };
+  </script>
+</body>
+</html>
