@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>不再流浪的歸途：在愛中重拾你的尊貴身分</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Serif TC & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Serif+TC:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            cinzel: ['"Cinzel"', 'serif'],
+            sans: ['"Inter"', 'sans-serif'],
+          },
+          colors: {
+            grace: {
+              gold: '#C59A47',
+              goldLight: '#E8C170',
+              crimson: '#8C3232',
+              dark: '#14100E'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #120E0D;
+      color: #E8E2DD;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .serif-text {
+      font-family: 'Noto Serif TC', serif;
+    }
+    /* Hide scrollbar for clean horizontal swipe on mobile */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .active-pill {
+      background: linear-gradient(135deg, #C59A47 0%, #9E7422 100%) !important;
+      color: #14100E !important;
+      font-weight: 700 !important;
+      box-shadow: 0 4px 12px rgba(197, 154, 71, 0.35);
+      border-color: transparent !important;
+    }
+    .menu-card-compact {
+      background: linear-gradient(145deg, rgba(32, 25, 23, 0.95) 0%, rgba(22, 17, 15, 0.98) 100%);
+      border: 1px solid rgba(197, 154, 71, 0.18);
+      transition: all 0.2s ease;
+    }
+    .menu-card-compact:active {
+      transform: scale(0.985);
+      border-color: rgba(232, 193, 112, 0.6);
+      background: rgba(38, 30, 27, 0.98);
+    }
+    /* Touch friendly active ripple/glow */
+    .btn-touch:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-amber-900 selection:text-amber-100">
+
+  <!-- BACKGROUND GLOW -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-10 right-0 w-72 h-72 bg-rose-950/20 rounded-full blur-[90px]"></div>
+  </div>
+
+  <!-- STICKY TOP APP HEADER (Optimized for Mobile Portrait) -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-stone-950/90 border-b border-amber-900/40">
+    <div class="px-4 py-2.5 flex items-center justify-between">
+      
+      <!-- Brand Button / Return to Home -->
+      <button onclick="navigateTo('home')" class="flex items-center gap-2.5 focus:outline-none btn-touch">
+        <div class="w-8 h-8 rounded-full border border-amber-500/50 flex items-center justify-center bg-stone-900 text-amber-400">
+          <i class="ph ph-heart-straight text-lg"></i>
+        </div>
+        <div class="text-left">
+          <span class="block text-[10px] tracking-wider uppercase text-amber-400 font-cinzel leading-none">Luke 15 Gospel</span>
+          <span class="text-sm font-bold serif-text text-stone-100">不再流浪的歸途</span>
+        </div>
+      </button>
+
+      <!-- Right Audio & Quick Home Action -->
+      <div class="flex items-center gap-2">
+        <button id="audio-toggle" onclick="toggleAmbience()" class="px-2.5 py-1.5 rounded-full border border-stone-800 bg-stone-900/80 text-stone-300 text-xs flex items-center gap-1 btn-touch" title="背景氛圍音">
+          <i id="audio-icon" class="ph ph-speaker-slash text-amber-400 text-sm"></i>
+          <span class="text-[11px]" id="audio-label">沉思音</span>
+        </button>
+        <button onclick="navigateTo('home')" class="w-8 h-8 rounded-full bg-stone-900 border border-stone-800 text-stone-300 flex items-center justify-center text-sm btn-touch" title="回首頁選單">
+          <i class="ph ph-squares-four text-base text-amber-300"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- HORIZONTAL SCROLLABLE SUB-NAV PILLS (Swipeable on Mobile) -->
+    <nav class="flex items-center gap-1.5 px-3 py-2 overflow-x-auto no-scrollbar border-t border-stone-900 bg-stone-950/95 text-xs">
+      <button id="nav-btn-home" onclick="navigateTo('home')" class="shrink-0 px-3 py-1.5 rounded-full border border-stone-800 bg-stone-900 text-stone-300 btn-touch flex items-center gap-1">
+        <i class="ph ph-house"></i> 首頁
+      </button>
+      <button id="nav-btn-intro" onclick="navigateTo('intro')" class="shrink-0 px-3 py-1.5 rounded-full border border-stone-800 bg-stone-900 text-stone-300 btn-touch">
+        引言：心靈漂泊
+      </button>
+      <button id="nav-btn-point1" onclick="navigateTo('point1')" class="shrink-0 px-3 py-1.5 rounded-full border border-stone-800 bg-stone-900 text-stone-300 btn-touch">
+        痛點：自主幻滅
+      </button>
+      <button id="nav-btn-point2" onclick="navigateTo('point2')" class="shrink-0 px-3 py-1.5 rounded-full border border-stone-800 bg-stone-900 text-stone-300 btn-touch">
+        亮點：恩典顛覆
+      </button>
+      <button id="nav-btn-point3" onclick="navigateTo('point3')" class="shrink-0 px-3 py-1.5 rounded-full border border-stone-800 bg-stone-900 text-stone-300 btn-touch">
+        重量：身分覺醒
+      </button>
+      <button id="nav-btn-conclusion" onclick="navigateTo('conclusion')" class="shrink-0 px-3 py-1.5 rounded-full border border-stone-800 bg-stone-900 text-stone-300 btn-touch">
+        結論：歡迎回家
+      </button>
+      <button id="nav-btn-scripture" onclick="navigateTo('scripture')" class="shrink-0 px-3 py-1.5 rounded-full border border-amber-600/40 bg-amber-950/30 text-amber-300 btn-touch flex items-center gap-1 font-medium">
+        <i class="ph ph-book-open"></i> 經文對照
+      </button>
+    </nav>
+  </header>
+
+  <!-- MAIN APP CONTAINER (Screen-optimized layout) -->
+  <main class="flex-grow z-10 relative">
+
+    <!-- ================= PAGE 1: HOME (Compact Mobile Portrait View) ================= -->
+    <section id="view-home" class="p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Compact Hero Card (Saves height, fits screen) -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-amber-950/40 via-stone-900 to-stone-950 border border-amber-500/30 p-5 mb-4 text-center shadow-lg">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-950/50 text-amber-300 text-[11px] mb-2 font-medium">
+          <i class="ph ph-sparkle text-xs"></i> 聖經路加福音 15:11-32
+        </div>
+        <h1 class="text-2xl font-black serif-text text-stone-100 tracking-tight leading-snug">
+          不再流浪的歸途
+          <span class="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-300 to-amber-500 text-base mt-1 font-semibold">
+            在愛中重拾你的尊貴身分
+          </span>
+        </h1>
+        <p class="text-stone-400 text-xs mt-2 leading-relaxed max-w-xs mx-auto">
+          在遠方流浪疲憊，或在家門口苦毒做工？點擊下方選單，一步步走進天父毫無保留的擁抱。
+        </p>
+
+        <!-- Quick 2 Buttons -->
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button onclick="navigateTo('intro')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 text-stone-950 font-bold text-xs tracking-wide flex items-center justify-center gap-1 btn-touch">
+            開始循序閱讀 <i class="ph ph-arrow-right"></i>
+          </button>
+          <button onclick="navigateTo('scripture')" class="py-2.5 px-3 rounded-xl border border-stone-700 bg-stone-900/80 text-amber-200 font-medium text-xs flex items-center justify-center gap-1 btn-touch">
+            <i class="ph ph-book-open"></i> 查閱完整經文
+          </button>
+        </div>
+      </div>
+
+      <!-- Section Label -->
+      <div class="flex items-center justify-between px-1 mb-2.5 text-xs text-stone-400">
+        <span class="font-semibold text-stone-300 flex items-center gap-1.5">
+          <i class="ph ph-list-dashes text-amber-400"></i> 信息章節導覽
+        </span>
+        <span class="text-[11px] text-amber-400/80 font-cinzel">CLICK TO READ</span>
+      </div>
+
+      <!-- COMPACT VERTICAL MENU LIST (Fits perfectly on mobile screen) -->
+      <div class="space-y-2.5">
+
+        <!-- Item 0: 引言 -->
+        <div onclick="navigateTo('intro')" class="menu-card-compact rounded-xl p-3.5 cursor-pointer flex items-center gap-3.5 group">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+            <i class="ph ph-compass text-xl"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-amber-400/90 font-cinzel tracking-wider">00 · 引言</span>
+              <span class="text-[11px] text-stone-500">心靈探索</span>
+            </div>
+            <h3 class="text-sm font-bold serif-text text-stone-100 truncate mt-0.5">我們到底把家弄丟在哪裡？</h3>
+            <p class="text-stone-400 text-xs truncate mt-0.5">白天光鮮熱鬧，深夜卻莫名空虛與疲憊</p>
+          </div>
+          <i class="ph ph-caret-right text-stone-500 text-lg shrink-0"></i>
+        </div>
+
+        <!-- Item 1: 綱要一 (痛點) -->
+        <div onclick="navigateTo('point1')" class="menu-card-compact rounded-xl p-3.5 cursor-pointer flex items-center gap-3.5 border-rose-950/40">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+            <i class="ph ph-cloud-rain text-xl"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-rose-400 font-cinzel tracking-wider">01 · 痛點之句</span>
+              <span class="text-[10px] text-rose-300/80 font-mono">路 15:16</span>
+            </div>
+            <h3 class="text-sm font-bold serif-text text-stone-100 truncate mt-0.5">自主的幻滅：淪為乾渴囚徒</h3>
+            <p class="text-stone-400 text-xs truncate mt-0.5">「恨不得拿豬的豆莢充飢，也沒有人給他」</p>
+          </div>
+          <i class="ph ph-caret-right text-stone-500 text-lg shrink-0"></i>
+        </div>
+
+        <!-- Item 2: 綱要二 (亮點) -->
+        <div onclick="navigateTo('point2')" class="menu-card-compact rounded-xl p-3.5 cursor-pointer flex items-center gap-3.5 border-amber-500/30 bg-amber-950/20">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shrink-0">
+            <i class="ph ph-sparkle text-xl"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-amber-300 font-cinzel tracking-wider">02 · 亮點之句</span>
+              <span class="text-[10px] text-amber-400/90 font-mono">路 15:20</span>
+            </div>
+            <h3 class="text-sm font-bold serif-text text-amber-100 truncate mt-0.5">恩典的顛覆：毫無保留的擁抱</h3>
+            <p class="text-stone-300 text-xs truncate mt-0.5">「相離還遠，父親動了慈心跑去抱著他」</p>
+          </div>
+          <i class="ph ph-caret-right text-amber-400 text-lg shrink-0"></i>
+        </div>
+
+        <!-- Item 3: 綱要三 (重量) -->
+        <div onclick="navigateTo('point3')" class="menu-card-compact rounded-xl p-3.5 cursor-pointer flex items-center gap-3.5 border-blue-950/40">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+            <i class="ph ph-crown text-xl"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-blue-400 font-cinzel tracking-wider">03 · 重量之句</span>
+              <span class="text-[10px] text-blue-300/80 font-mono">路 15:31</span>
+            </div>
+            <h3 class="text-sm font-bold serif-text text-stone-100 truncate mt-0.5">身分的覺醒：走出雇工心態</h3>
+            <p class="text-stone-400 text-xs truncate mt-0.5">「兒啊！你常和我同在，我所有的都是你的」</p>
+          </div>
+          <i class="ph ph-caret-right text-stone-500 text-lg shrink-0"></i>
+        </div>
+
+        <!-- Item 4: 結論 -->
+        <div onclick="navigateTo('conclusion')" class="menu-card-compact rounded-xl p-3.5 cursor-pointer flex items-center gap-3.5 border-emerald-950/40">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <i class="ph ph-door-open text-xl"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-emerald-400 font-cinzel tracking-wider">04 · 激勵結論</span>
+              <span class="text-[11px] text-stone-500">生活落實</span>
+            </div>
+            <h3 class="text-sm font-bold serif-text text-stone-100 truncate mt-0.5">卸下重擔，重回為你預備的盛宴</h3>
+            <p class="text-stone-400 text-xs truncate mt-0.5">走出自責與比較，今日生活實踐三部曲</p>
+          </div>
+          <i class="ph ph-caret-right text-stone-500 text-lg shrink-0"></i>
+        </div>
+
+        <!-- Item 5: 經文對照 -->
+        <div onclick="navigateTo('scripture')" class="menu-card-compact rounded-xl p-3.5 cursor-pointer flex items-center gap-3.5 border-stone-800">
+          <div class="w-10 h-10 rounded-xl bg-stone-800 border border-stone-700 flex items-center justify-center text-amber-300 shrink-0">
+            <i class="ph ph-scroll text-xl"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold text-stone-400 font-cinzel tracking-wider">BIBLE · 經文</span>
+              <span class="text-[11px] text-stone-500">和合本全覽</span>
+            </div>
+            <h3 class="text-sm font-bold serif-text text-stone-200 truncate mt-0.5">路加福音 15:11-32 對照庫</h3>
+            <p class="text-stone-400 text-xs truncate mt-0.5">高亮痛點、亮點與重量句，逐節研讀</p>
+          </div>
+          <i class="ph ph-caret-right text-stone-500 text-lg shrink-0"></i>
+        </div>
+
+      </div>
+
+      <!-- Quick Bottom Action & Prayer Banner -->
+      <div class="mt-4 p-4 rounded-xl bg-stone-900/60 border border-amber-900/30 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold serif-text text-amber-300 block">心靈的回應時刻</span>
+          <span class="text-[11px] text-stone-400">若你心裡有感動，點擊即可禱告</span>
+        </div>
+        <button onclick="openPrayerModal()" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center gap-1 btn-touch">
+          <i class="ph ph-hands-praying"></i> 禱告
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ================= SUBPAGE 1: INTRO (引言) ================= -->
+    <article id="view-intro" class="hidden p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Top Action Row -->
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-800 text-xs">
+        <button onclick="navigateTo('home')" class="text-amber-400 hover:text-amber-300 flex items-center gap-1 btn-touch font-medium">
+          <i class="ph ph-caret-left text-sm"></i> 返回首頁選單
+        </button>
+        <span class="text-stone-500 font-cinzel">00 / INTRO</span>
+      </div>
+
+      <!-- Title Area -->
+      <div class="mb-4">
+        <span class="text-[11px] font-bold text-amber-400 bg-amber-950/60 border border-amber-800/40 px-2 py-0.5 rounded-full inline-block mb-1.5">
+          震撼引言
+        </span>
+        <h2 class="text-xl font-extrabold serif-text text-stone-100 leading-snug">
+          我們到底把家弄丟在哪裡了？
+        </h2>
+        <p class="text-stone-400 text-xs mt-1">當追求自由換來疲憊，當拚命自律換來冰冷</p>
+      </div>
+
+      <!-- Compact Content Blocks -->
+      <div class="space-y-3.5 text-stone-300 text-sm leading-relaxed serif-text">
+        <p class="first-letter:text-3xl first-letter:font-bold first-letter:text-amber-400 first-letter:float-left first-letter:mr-2">
+          朋友，你是否曾在深夜獨自一人的時刻，心裡湧上一種難以言喻的空虛？白天看似光鮮充實，但靈魂深處卻有著說不出的漂泊感與疲憊。
+        </p>
+
+        <!-- Visual Contrast Box (Compact) -->
+        <div class="p-3.5 rounded-xl bg-stone-900 border-l-4 border-amber-500 font-sans text-xs space-y-2">
+          <div>
+            <span class="text-amber-300 font-bold block">1. 叛逆者的錯覺：</span>
+            <span class="text-stone-300">以為自由就是「擺脫一切管轄、自己說了算」，結果卻陷入無盡空虛。</span>
+          </div>
+          <div class="pt-1.5 border-t border-stone-800">
+            <span class="text-amber-300 font-bold block">2. 自律者的緊繃：</span>
+            <span class="text-stone-300">以為安全感來自於「我表現夠好、我賺夠多」，心裡卻常堆滿計較與冷漠。</span>
+          </div>
+        </div>
+
+        <p>
+          兩千年前，耶穌講述了一對兄弟與一位父親的故事。這不僅是古老比喻，更是我們內心最真實的鏡子：
+        </p>
+
+        <div class="p-4 rounded-xl bg-gradient-to-r from-amber-950/40 to-stone-900 border border-amber-900/40 text-center my-2">
+          <p class="text-base font-bold text-amber-200 serif-text leading-snug">
+            「我們不是在世界的荒野中迷失，<br>就是在自己刻板的心牢裡流浪。」
+          </p>
+          <p class="text-stone-400 text-[11px] mt-1 font-sans">但今天，有一個超越世俗邏輯的擁抱正等待著你。</p>
+        </div>
+      </div>
+
+      <!-- Quick Bottom Prev/Next Navigation -->
+      <div class="mt-6 pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
+        <button onclick="navigateTo('home')" class="px-3 py-2 rounded-lg bg-stone-900 text-stone-400 flex items-center gap-1 btn-touch">
+          <i class="ph ph-house"></i> 首頁
+        </button>
+        <button onclick="navigateTo('point1')" class="px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-bold flex items-center gap-1 btn-touch">
+          下一篇：痛點 <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+    </article>
+
+    <!-- ================= SUBPAGE 2: POINT 1 (痛點) ================= -->
+    <article id="view-point1" class="hidden p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Top Action Row -->
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-800 text-xs">
+        <button onclick="navigateTo('home')" class="text-amber-400 hover:text-amber-300 flex items-center gap-1 btn-touch font-medium">
+          <i class="ph ph-caret-left text-sm"></i> 返回首頁選單
+        </button>
+        <span class="text-rose-400 font-cinzel">01 / PAIN POINT</span>
+      </div>
+
+      <!-- Title & Highlight scripture -->
+      <div class="mb-4">
+        <span class="text-[11px] font-bold text-rose-300 bg-rose-950/60 border border-rose-800/40 px-2 py-0.5 rounded-full inline-block mb-1.5">
+          綱要一 · 痛點之句
+        </span>
+        <h2 class="text-xl font-extrabold serif-text text-stone-100 leading-snug">
+          自主的幻滅：離開源頭的自由，終將淪為乾渴囚徒
+        </h2>
+      </div>
+
+      <!-- Compact Scripture Highlight -->
+      <div class="p-3.5 rounded-xl bg-rose-950/30 border-l-4 border-rose-500 mb-4">
+        <span class="text-[10px] font-mono text-rose-400 uppercase tracking-wider block">路加福音 15:16</span>
+        <p class="serif-text text-base font-bold text-stone-100 mt-0.5">
+          「他恨不得拿豬所吃的豆莢充飢，也沒有人給他。」
+        </p>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-3.5 text-stone-300 text-sm leading-relaxed serif-text">
+        <p>
+          小兒子急著切斷與父親的關係，帶著資財前往遠方揮霍。我們常以為只要擺脫約束就能活出真我，但當生命寄託在金錢、掌聲或感官刺激時，繁華散盡後往往跌入靈魂的大饑荒。
+        </p>
+
+        <div class="p-3 rounded-xl bg-stone-900 border border-stone-800 text-xs font-sans space-y-1.5">
+          <div class="text-amber-300 font-semibold flex items-center gap-1">
+            <i class="ph ph-arrow-fat-line-right text-rose-400"></i> 我們掏空靈魂討好世界
+          </div>
+          <p class="text-stone-400">
+            用青春、尊嚴與精力迎合世俗，但世界卻在我們耗盡價值時無情轉身，甚至連豬吃的豆莢都不給。
+          </p>
+        </div>
+
+        <p>
+          真正的危機不是物質匱乏，而是離開生命源頭後，世上沒有任何事物能填補內心永恆的黑洞。
+        </p>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="mt-6 pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
+        <button onclick="navigateTo('intro')" class="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-300 flex items-center gap-1 btn-touch">
+          <i class="ph ph-caret-left"></i> 引言
+        </button>
+        <button onclick="navigateTo('point2')" class="px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-bold flex items-center gap-1 btn-touch">
+          下一篇：亮點 <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+    </article>
+
+    <!-- ================= SUBPAGE 3: POINT 2 (亮點) ================= -->
+    <article id="view-point2" class="hidden p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Top Action Row -->
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-800 text-xs">
+        <button onclick="navigateTo('home')" class="text-amber-400 hover:text-amber-300 flex items-center gap-1 btn-touch font-medium">
+          <i class="ph ph-caret-left text-sm"></i> 返回首頁選單
+        </button>
+        <span class="text-amber-400 font-cinzel">02 / BRIGHT POINT</span>
+      </div>
+
+      <!-- Title & Highlight scripture -->
+      <div class="mb-4">
+        <span class="text-[11px] font-bold text-amber-300 bg-amber-950/60 border border-amber-800/40 px-2 py-0.5 rounded-full inline-block mb-1.5">
+          綱要二 · 亮點之句
+        </span>
+        <h2 class="text-xl font-extrabold serif-text text-stone-100 leading-snug">
+          恩典的顛覆：不是靠洗心革面去賺取，而是被毫無保留的愛接納
+        </h2>
+      </div>
+
+      <!-- Scripture Highlight -->
+      <div class="p-3.5 rounded-xl bg-amber-950/30 border-l-4 border-amber-400 border border-amber-900/40 mb-4">
+        <span class="text-[10px] font-mono text-amber-400 uppercase tracking-wider block">路加福音 15:20b</span>
+        <p class="serif-text text-base font-bold text-amber-100 mt-0.5 leading-snug">
+          「相離還遠，他父親看見，就動了慈心，跑去抱著他的頸項，連連與他親嘴。」
+        </p>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-3.5 text-stone-300 text-sm leading-relaxed serif-text">
+        <p>
+          小兒子回家時心想：「我不配稱為兒子，把我當個雇工吧。」許多慕道朋友也認為自己罪孽深重、不夠好，必須先戒除惡習或修正道德才配來到上帝面前。
+        </p>
+
+        <!-- Cultural note callout -->
+        <div class="p-3.5 rounded-xl bg-stone-900 border border-amber-500/30 font-sans text-xs">
+          <div class="font-bold text-amber-300 flex items-center gap-1 mb-1">
+            <i class="ph ph-heartbeat text-sm"></i> 父親奔跑的震撼涵義：
+          </div>
+          <p class="text-stone-300 leading-relaxed">
+            在第一世紀猶太社會，年長尊貴者當眾提袍奔跑是極其失態與羞辱的舉動。然而父親為了在村民嘲弄唾棄兒子之前保護他，放下所有尊嚴，奔跑到泥濘中緊緊抱住滿身豬糞臭氣的兒子！
+          </p>
+        </div>
+
+        <p>
+          上帝對我們的愛，從來不是看我們能為祂做什麼。在我們還滿身污穢、不知所措的時刻，祂就已經主動屈尊降卑，用完全的恩典遮蓋我們的羞恥。
+        </p>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="mt-6 pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
+        <button onclick="navigateTo('point1')" class="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-300 flex items-center gap-1 btn-touch">
+          <i class="ph ph-caret-left"></i> 綱要一
+        </button>
+        <button onclick="navigateTo('point3')" class="px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-bold flex items-center gap-1 btn-touch">
+          下一篇：重量 <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+    </article>
+
+    <!-- ================= SUBPAGE 4: POINT 3 (重量) ================= -->
+    <article id="view-point3" class="hidden p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Top Action Row -->
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-800 text-xs">
+        <button onclick="navigateTo('home')" class="text-amber-400 hover:text-amber-300 flex items-center gap-1 btn-touch font-medium">
+          <i class="ph ph-caret-left text-sm"></i> 返回首頁選單
+        </button>
+        <span class="text-blue-400 font-cinzel">03 / WEIGHT POINT</span>
+      </div>
+
+      <!-- Title & Highlight scripture -->
+      <div class="mb-4">
+        <span class="text-[11px] font-bold text-blue-300 bg-blue-950/60 border border-blue-800/40 px-2 py-0.5 rounded-full inline-block mb-1.5">
+          綱要三 · 重量之句
+        </span>
+        <h2 class="text-xl font-extrabold serif-text text-stone-100 leading-snug">
+          身分的覺醒：走出表現主義心牢，安歇在兒女的名分裡
+        </h2>
+      </div>
+
+      <!-- Scripture Highlight -->
+      <div class="p-3.5 rounded-xl bg-blue-950/30 border-l-4 border-blue-400 border border-blue-900/40 mb-4">
+        <span class="text-[10px] font-mono text-blue-400 uppercase tracking-wider block">路加福音 15:31</span>
+        <p class="serif-text text-base font-bold text-blue-100 mt-0.5 leading-snug">
+          「兒啊！你常和我同在，我一切所有的都是你的。」
+        </p>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-3.5 text-stone-300 text-sm leading-relaxed serif-text">
+        <p>
+          大兒子從不違規犯錯，但看見弟弟被接納設宴時，內心卻充滿憤怒與不甘：「我服事你這麼多年，從來沒有違背過你的命，你並沒有給我一隻山羊羔……」
+        </p>
+        <p>
+          大兒子揭示了另一種更隱蔽的流浪：<strong>肉體留在家中，心靈卻如同雇工。</strong>用順服換取認可，一輩子活在「必須優秀才能被愛」的重擔下，內心苛刻防備。
+        </p>
+
+        <div class="p-3.5 rounded-xl bg-stone-900 border border-blue-900/40 font-sans text-xs text-center">
+          <p class="text-blue-300 font-bold text-sm mb-1 serif-text">「我一切所有的都是你的」</p>
+          <p class="text-stone-300">
+            在上帝眼中，我們不是來打工的長工，不必靠完美的表現討好祂；同在與承繼是基於真實的生命關係，而非行為交換！
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="mt-6 pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
+        <button onclick="navigateTo('point2')" class="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-300 flex items-center gap-1 btn-touch">
+          <i class="ph ph-caret-left"></i> 綱要二
+        </button>
+        <button onclick="navigateTo('conclusion')" class="px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-bold flex items-center gap-1 btn-touch">
+          下一篇：結論 <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+    </article>
+
+    <!-- ================= SUBPAGE 5: CONCLUSION (結論) ================= -->
+    <article id="view-conclusion" class="hidden p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Top Action Row -->
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-800 text-xs">
+        <button onclick="navigateTo('home')" class="text-amber-400 hover:text-amber-300 flex items-center gap-1 btn-touch font-medium">
+          <i class="ph ph-caret-left text-sm"></i> 返回首頁選單
+        </button>
+        <span class="text-emerald-400 font-cinzel">04 / CONCLUSION</span>
+      </div>
+
+      <!-- Title Area -->
+      <div class="mb-4">
+        <span class="text-[11px] font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-full inline-block mb-1.5">
+          激勵結論
+        </span>
+        <h2 class="text-xl font-extrabold serif-text text-stone-100 leading-snug">
+          卸下重擔，走進為你預備的盛宴
+        </h2>
+      </div>
+
+      <!-- Issue Analysis (Compact) -->
+      <div class="p-3.5 rounded-xl bg-stone-900 border border-amber-900/30 mb-4 text-xs font-sans">
+        <div class="text-amber-400 font-bold flex items-center gap-1 mb-1">
+          <i class="ph ph-target text-sm"></i> 核心生命議題：
+        </div>
+        <p class="text-stone-300 leading-relaxed">
+          無論是放縱私慾的叛逆，還是自以為義的苦毒，根源都在於<strong>遺忘了天父的愛</strong>，把兒子的名分活成了孤兒與雇工的焦慮。唯一的出路，就是轉向在門口守望的天父。
+        </p>
+      </div>
+
+      <!-- 3 Practical Applications (Streamlined for Mobile) -->
+      <div class="space-y-2 mb-5 font-sans text-xs">
+        <div class="p-3 rounded-xl bg-stone-900/70 border border-stone-800 flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center shrink-0">1</span>
+          <div>
+            <span class="font-bold text-stone-200 block">坦然卸下偽裝</span>
+            <span class="text-stone-400">不必等完美才來找神，帶著軟弱與不堪向祂坦誠，經歷被全然接納。</span>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-stone-900/70 border border-stone-800 flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center shrink-0">2</span>
+          <div>
+            <span class="font-bold text-stone-200 block">放下比較與苦毒</span>
+            <span class="text-stone-400">不再用世俗績效標籤衡量自己與他人，深知自己是天父珍貴的兒女。</span>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-stone-900/70 border border-stone-800 flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center shrink-0">3</span>
+          <div>
+            <span class="font-bold text-stone-200 block">邁步走入這份關係</span>
+            <span class="text-stone-400">天父已預備好袍子與戒指，只等你點頭，跨出回家的第一步。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Climax Box -->
+      <div class="text-center p-5 rounded-2xl bg-gradient-to-b from-amber-950/50 to-stone-950 border border-amber-500/40">
+        <p class="text-sm serif-text text-amber-200 mb-1">不要在遠方挨餓，也不要在家門口抱怨</p>
+        <p class="text-xl font-black serif-text text-white">
+          今天，天父對你說：<br>
+          <span class="text-amber-400 underline decoration-amber-500/40 underline-offset-4">「歡迎回家。」</span>
+        </p>
+
+        <button onclick="openPrayerModal()" class="w-full mt-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-bold text-xs tracking-wide shadow-lg shadow-amber-600/30 btn-touch flex items-center justify-center gap-1.5">
+          <i class="ph ph-hands-praying text-base"></i> 做出回應：回家禱告
+        </button>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="mt-6 pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
+        <button onclick="navigateTo('point3')" class="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-300 flex items-center gap-1 btn-touch">
+          <i class="ph ph-caret-left"></i> 綱要三
+        </button>
+        <button onclick="navigateTo('scripture')" class="px-4 py-2 rounded-lg border border-amber-500/50 text-amber-300 font-semibold flex items-center gap-1 btn-touch">
+          查看經文 <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+    </article>
+
+    <!-- ================= SUBPAGE 6: SCRIPTURE (經文對照) ================= -->
+    <article id="view-scripture" class="hidden p-4 max-w-lg mx-auto pb-8">
+      
+      <!-- Top Action Row -->
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-800 text-xs">
+        <button onclick="navigateTo('home')" class="text-amber-400 hover:text-amber-300 flex items-center gap-1 btn-touch font-medium">
+          <i class="ph ph-caret-left text-sm"></i> 返回首頁選單
+        </button>
+        <span class="text-stone-400 font-cinzel">LUKE 15:11-32</span>
+      </div>
+
+      <!-- Header -->
+      <div class="mb-3">
+        <span class="text-[11px] font-bold text-amber-400 bg-amber-950/60 border border-amber-800/40 px-2 py-0.5 rounded-full inline-block mb-1">
+          經文對照庫
+        </span>
+        <h2 class="text-lg font-extrabold serif-text text-stone-100">
+          路加福音 15:11-32 和合本
+        </h2>
+        <p class="text-stone-400 text-xs">已特別高亮標示三大關鍵信息之句</p>
+      </div>
+
+      <!-- Fast Section Filter Tabs (To avoid long scrolling) -->
+      <div class="flex items-center gap-1 mb-3 text-[11px] overflow-x-auto no-scrollbar py-1">
+        <button onclick="scrollToVerse('v11')" class="px-2.5 py-1 rounded bg-stone-800 text-stone-300 shrink-0 btn-touch">11-16 離家放蕩</button>
+        <button onclick="scrollToVerse('v17')" class="px-2.5 py-1 rounded bg-amber-950/70 text-amber-300 shrink-0 btn-touch">17-24 醒悟歸家</button>
+        <button onclick="scrollToVerse('v25')" class="px-2.5 py-1 rounded bg-blue-950/70 text-blue-300 shrink-0 btn-touch">25-32 長子心牢</button>
+      </div>
+
+      <!-- Compact Scripture Body -->
+      <div class="space-y-2.5 font-serif text-sm text-stone-300 leading-relaxed bg-stone-950/80 p-4 rounded-xl border border-stone-800">
+        
+        <p id="v11"><span class="text-amber-500 font-mono text-xs mr-1">11</span>耶穌又說：「一個人有兩個兒子。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">12</span>小兒子對父親說：『父親，請你把我應得的家業分給我。』他父親就把產業分給他們。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">13</span>過了不多幾日，小兒子就把他一切所有的都收拾起來，往遠方去了。在那裡任意放蕩，浪費資財。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">14</span>既耗盡了一切所有的，又遇著那地方大遭饑荒，就窮苦起來。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">15</span>於是去投靠那地方的一個人；那人打發他到田裡去放豬。</p>
+        
+        <!-- Highlight 1: 痛點之句 -->
+        <div class="p-3 rounded-lg bg-rose-950/50 border border-rose-800/80 text-rose-100 my-2">
+          <div class="flex items-center gap-1 text-[11px] font-sans text-rose-300 font-bold mb-0.5">
+            <i class="ph ph-lightning"></i> 綱要一核心痛點句
+          </div>
+          <span class="text-rose-400 font-mono text-xs mr-1 font-bold">16</span>
+          <strong class="text-white">他恨不得拿豬所吃的豆莢充飢，也沒有人給他。</strong>
+        </div>
+
+        <p id="v17"><span class="text-amber-500 font-mono text-xs mr-1">17</span>他醒悟過來，就說：『我父親有多少的雇工，口糧有餘，我倒在這裡餓死嗎？</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">18</span>我要起來，到我父親那裡去，向他說：父親！我得罪了天，又得罪了你；</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">19</span>從今以後，我不配稱為你的兒子，把我當作一個雇工吧！』</p>
+        
+        <!-- Highlight 2: 亮點之句 -->
+        <div class="p-3 rounded-lg bg-amber-950/60 border border-amber-600/70 text-amber-100 my-2">
+          <div class="flex items-center gap-1 text-[11px] font-sans text-amber-300 font-bold mb-0.5">
+            <i class="ph ph-sparkle"></i> 綱要二核心亮點句
+          </div>
+          <span class="text-amber-400 font-mono text-xs mr-1 font-bold">20</span>
+          於是起來，往他父親那裡去。<strong class="text-amber-200">相離還遠，他父親看見，就動了慈心，跑去抱著他的頸項，連連與他親嘴。</strong>
+        </div>
+
+        <p><span class="text-amber-500 font-mono text-xs mr-1">21</span>兒子說：『父親！我得罪了天，又得罪了你；從今以後，我不配稱為你的兒子。』</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">22</span>父親卻吩咐僕人說：『把那上好的袍子快拿出來給他穿；把戒指戴在他指頭上；把鞋穿在他腳上；</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">23</span>把那肥牛犢牽來宰了，我們可以吃喝快樂；</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">24</span>因為我這個兒子是死而復活，失而又得的。』他們就快樂起來。</p>
+        
+        <p id="v25"><span class="text-amber-500 font-mono text-xs mr-1">25</span>那時，大兒子正在田裡。他回來，離家不遠，聽見作樂跳舞的聲音，</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">26</span>便叫過一個僕人來，問是什麼事。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">27</span>僕人說：『你兄弟來了；你父親因為得他無災無病地回來，把肥牛犢宰了。』</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">28</span>大兒子卻生氣，不肯進去；他父親就出來勸他。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">29</span>他對父親說：『我服事你這多年，從來沒有違背過你的命，你並沒有給我一隻山羊羔，叫我和朋友一同快樂。</p>
+        <p><span class="text-amber-500 font-mono text-xs mr-1">30</span>但你這個兒子和娼妓吞盡了你的產業，他一來了，你倒為他宰了肥牛犢。』</p>
+
+        <!-- Highlight 3: 重量之句 -->
+        <div class="p-3 rounded-lg bg-blue-950/50 border border-blue-800/80 text-blue-100 my-2">
+          <div class="flex items-center gap-1 text-[11px] font-sans text-blue-300 font-bold mb-0.5">
+            <i class="ph ph-crown"></i> 綱要三核心重量句
+          </div>
+          <span class="text-blue-400 font-mono text-xs mr-1 font-bold">31</span>
+          父親對他說：<strong class="text-blue-200">『兒啊！你常和我同在，我一切所有的都是你的；</strong>
+        </div>
+
+        <p><span class="text-amber-500 font-mono text-xs mr-1">32</span>只是你這個兄弟是死而復活、失而又得的，所以我們理當歡喜快樂。』」</p>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="mt-6 pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
+        <button onclick="navigateTo('conclusion')" class="px-3.5 py-2 rounded-lg bg-stone-900 text-stone-300 flex items-center gap-1 btn-touch">
+          <i class="ph ph-caret-left"></i> 結論
+        </button>
+        <button onclick="navigateTo('home')" class="px-4 py-2 rounded-lg bg-amber-500 text-stone-950 font-bold flex items-center gap-1 btn-touch">
+          返回首頁 <i class="ph ph-house"></i>
+        </button>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- PRAYER / RESPONSE MODAL (Mobile Bottom-Sheet Style) -->
+  <div id="prayer-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-stone-900 border-t sm:border border-amber-500/40 rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-5 sm:p-7 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+      
+      <!-- Close Button -->
+      <button onclick="closePrayerModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-200 text-xl p-1 btn-touch">
+        <i class="ph ph-x"></i>
+      </button>
+
+      <div class="text-center mb-4">
+        <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center mx-auto mb-2">
+          <i class="ph ph-hands-praying text-xl"></i>
+        </div>
+        <h3 class="text-lg font-bold serif-text text-stone-100">回家的心靈禱告</h3>
+        <p class="text-stone-400 text-xs mt-0.5">誠心在心中或輕聲讀出這段禱詞：</p>
+      </div>
+
+      <div class="bg-stone-950/90 p-4 rounded-xl border border-stone-800 serif-text text-stone-200 text-xs sm:text-sm leading-relaxed mb-4">
+        「親愛的天父：<br><br>
+        我承認在生活中，我常想靠自己掌控一切，甚至在遠方流浪疲憊，心靈感到乾渴飢餓；我也常陷入想靠自己的好表現換取接納的焦慮中。<br><br>
+        今天，我感謝祢毫無保留的愛。謝謝祢不是在遠處審判，而是奔跑來擁抱我。我願意放下偽裝與恐懼，接受祢的救恩，回到祢的家中做祢尊貴的兒女。<br><br>
+        奉耶穌基督的名禱告，阿們！」
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <button onclick="copyPrayer()" id="copy-btn" class="py-2.5 rounded-xl border border-amber-600/40 text-amber-300 bg-stone-950 text-xs font-semibold flex items-center justify-center gap-1 btn-touch">
+          <i class="ph ph-copy text-sm"></i> 複製禱詞
+        </button>
+        <button onclick="closePrayerModal()" class="py-2.5 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs btn-touch">
+          阿們，收下這份愛
+        </button>
+      </div>
+      <div id="copy-feedback" class="text-center text-xs text-emerald-400 mt-2 hidden">已成功複製到剪貼簿！</div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-stone-900 border border-amber-500/60 text-stone-200 px-4 py-2 rounded-full shadow-2xl text-xs hidden items-center gap-1.5 whitespace-nowrap">
+    <i class="ph ph-check-circle text-amber-400 text-base"></i>
+    <span id="toast-text">已更新</span>
+  </div>
+
+  <!-- COMPACT MOBILE FOOTER -->
+  <footer class="mt-auto border-t border-stone-900 bg-stone-950/80 py-4 px-4 text-center text-[11px] text-stone-500 z-10 relative">
+    <p>路加福音 15:11-32 福音信息 · 願這份愛成為你一生的錨</p>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    let currentView = 'home';
+    const views = ['home', 'intro', 'point1', 'point2', 'point3', 'conclusion', 'scripture'];
+
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    let isPlayingAmbience = false;
+    let osc1, osc2, gainNode;
+
+    function initAudio() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+
+        osc1 = audioCtx.createOscillator();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(130.81, audioCtx.currentTime);
+
+        osc2 = audioCtx.createOscillator();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(196.00, audioCtx.currentTime);
+
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc1.start();
+        osc2.start();
+      } catch (e) {
+        console.log("Audio not supported");
+      }
+    }
+
+    function toggleAmbience() {
+      if (!audioCtx) initAudio();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+      const icon = document.getElementById('audio-icon');
+      const label = document.getElementById('audio-label');
+
+      if (!isPlayingAmbience) {
+        if (gainNode) gainNode.gain.linearRampToValueAtTime(0.035, audioCtx.currentTime + 1.2);
+        isPlayingAmbience = true;
+        icon.className = 'ph ph-speaker-high text-amber-400 text-sm';
+        label.textContent = '播放中';
+        showToast("已開啟沉思氛圍音");
+      } else {
+        if (gainNode) gainNode.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+        isPlayingAmbience = false;
+        icon.className = 'ph ph-speaker-slash text-amber-400 text-sm';
+        label.textContent = '沉思音';
+        showToast("已暫停氛圍音");
+      }
+    }
+
+    // Navigation logic with horizontal pill auto-scroll
+    function navigateTo(targetView) {
+      if (!views.includes(targetView)) return;
+
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.add('hidden');
+
+        const btn = document.getElementById(`nav-btn-${v}`);
+        if (btn) btn.classList.remove('active-pill');
+      });
+
+      const targetEl = document.getElementById(`view-${targetView}`);
+      if (targetEl) {
+        targetEl.classList.remove('hidden');
+        targetEl.style.opacity = 0;
+        setTimeout(() => {
+          targetEl.style.transition = 'opacity 0.2s ease-out';
+          targetEl.style.opacity = 1;
+        }, 10);
+      }
+
+      const activeBtn = document.getElementById(`nav-btn-${targetView}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active-pill');
+        // Auto-scroll pill into visible view on mobile
+        activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      currentView = targetView;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Scroll to specific verse in scripture
+    function scrollToVerse(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('text-amber-300');
+        setTimeout(() => el.classList.remove('text-amber-300'), 1500);
+      }
+    }
+
+    // Modal
+    function openPrayerModal() {
+      document.getElementById('prayer-modal').classList.remove('hidden');
+    }
+
+    function closePrayerModal() {
+      document.getElementById('prayer-modal').classList.add('hidden');
+      document.getElementById('copy-feedback').classList.add('hidden');
+    }
+
+    // Clipboard API
+    function copyPrayer() {
+      const text = `親愛的天父：
+我承認在生活中，我常想靠自己掌控一切，甚至在遠方流浪疲憊，心靈感到乾渴飢餓；我也常陷入想靠自己的好表現換取接納的焦慮中。
+今天，我感謝祢毫無保留的愛。謝謝祢不是在遠處審判，而是奔跑來擁抱我。我願意放下偽裝與恐懼，接受祢的救恩，回到祢的家中做祢尊貴的兒女。
+奉耶穌基督的名禱告，阿們！`;
+
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        document.execCommand('copy');
+        const feedback = document.getElementById('copy-feedback');
+        feedback.classList.remove('hidden');
+        setTimeout(() => feedback.classList.add('hidden'), 2500);
+      } catch (err) {
+        console.error('Copying failed', err);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-text');
+      text.innerText = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 2000);
+    }
+
+    window.onload = function() {
+      navigateTo('home');
+    };
+  </script>
+</body>
+</html>
