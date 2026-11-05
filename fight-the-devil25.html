@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>打擊魔鬼街機挑戰</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Web Audio Synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        arcade: {
+                            base: '#06070d',
+                            surface: '#0d101d',
+                            panel: '#13182b',
+                            red: '#ff1744',
+                            gold: '#ffb300',
+                            blue: '#00e5ff',
+                            purple: '#7c4dff'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-red': '0 0 20px rgba(255, 23, 68, 0.55), 0 0 40px rgba(255, 23, 68, 0.2)',
+                        'neon-gold': '0 0 20px rgba(255, 179, 0, 0.55), 0 0 40px rgba(255, 179, 0, 0.2)',
+                        'neon-blue': '0 0 20px rgba(0, 229, 255, 0.55), 0 0 40px rgba(0, 229, 255, 0.2)',
+                        'card-glow': '0 10px 30px -10px rgba(0, 229, 255, 0.15)',
+                        'hole-inset': 'inset 0 10px 18px rgba(0, 0, 0, 0.98), inset 0 2px 4px rgba(255, 255, 255, 0.08), 0 2px 4px rgba(255,255,255,0.02)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #06070d;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
+        }
+
+        /* 街機復古科技背景網格與光暈 */
+        .arcade-bg {
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(225, 29, 72, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 10% 90%, rgba(0, 229, 255, 0.1) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(255, 179, 0, 0.1) 0%, transparent 45%),
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+        }
+
+        /* 掃描線特效 (微弱街機感) */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* 敲擊動畫 */
+        @keyframes whackImpact {
+            0% { transform: scale(1); filter: brightness(1); }
+            35% { transform: scale(0.85); filter: brightness(2.4) contrast(1.2); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        .impact-anim {
+            animation: whackImpact 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        /* 警告燈呼吸閃爍 */
+        @keyframes redPulse {
+            0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 2px #ff1744); transform: scale(0.95); }
+            50% { opacity: 1; filter: drop-shadow(0 0 10px #ff1744); transform: scale(1.1); }
+        }
+        .warning-red {
+            animation: redPulse 0.22s infinite ease-in-out;
+        }
+
+        @keyframes bluePulse {
+            0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 2px #00e5ff); transform: scale(0.95); }
+            50% { opacity: 1; filter: drop-shadow(0 0 10px #00e5ff); transform: scale(1.1); }
+        }
+        .warning-blue {
+            animation: bluePulse 0.22s infinite ease-in-out;
+        }
+
+        @keyframes goldPulse {
+            0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 2px #ffb300); transform: scale(0.95); }
+            50% { opacity: 1; filter: drop-shadow(0 0 10px #ffb300); transform: scale(1.1); }
+        }
+        .warning-gold {
+            animation: goldPulse 0.22s infinite ease-in-out;
+        }
+
+        /* 浮動得分飄字 */
+        @keyframes floatUpFade {
+            0% { opacity: 0; transform: translate(-50%, 8px) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -12px) scale(1.2); text-shadow: 0 0 12px currentColor; }
+            75% { opacity: 1; transform: translate(-50%, -36px) scale(1.05); }
+            100% { opacity: 0; transform: translate(-50%, -52px) scale(0.8); }
+        }
+        .float-text {
+            position: absolute;
+            pointer-events: none;
+            animation: floatUpFade 0.7s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            z-index: 40;
+            font-weight: 900;
+        }
+
+        /* 按鈕炫光流動特效 */
+        @keyframes shineSweep {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .animate-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .animate-shine::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.25), transparent);
+            transform: skewX(-25deg);
+            animation: shineSweep 3.5s infinite;
+        }
+
+        /* 柔和自訂捲軸 */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-[100dvh] max-h-[100dvh] w-full text-slate-100 overflow-hidden arcade-bg relative">
+
+    <!-- 掃描線層 (街機螢幕微光質感) -->
+    <div class="fixed inset-0 scanlines z-0 pointer-events-none opacity-30"></div>
+
+    <!-- 主容器：嚴格 flex-1 與 min-h-0，杜絕卷軸晃動 -->
+    <div class="relative z-10 flex-1 min-h-0 w-full max-w-md mx-auto flex flex-col justify-between p-2.5 sm:p-3 select-none">
+        
+        <!-- 頂部資訊列 (HEADER) -->
+        <header class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-800/80 bg-slate-950/40 backdrop-blur-md px-2.5 py-1.5 rounded-2xl border border-white/5 shadow-lg flex-shrink-0">
+            <!-- 遊戲 Logo 標題 -->
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 p-[1px] shadow-neon-red flex items-center justify-center">
+                    <div class="w-full h-full bg-slate-950 rounded-[11px] flex items-center justify-center text-rose-500 text-sm">
+                        <i class="fa-solid fa-ghost animate-pulse"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1">
+                        <h1 class="text-xs sm:text-sm font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-amber-300 to-cyan-400 leading-none">打擊魔鬼</h1>
+                        <span class="text-[8px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-400 font-mono font-bold border border-rose-500/30">V5 STAGES</span>
+                    </div>
+                    <span class="text-[8px] text-slate-400 font-mono tracking-widest uppercase">Arcade Edition</span>
+                </div>
+            </div>
+
+            <!-- 關卡標籤 -->
+            <div id="stageBadge" class="px-2.5 py-1 rounded-full bg-red-950/70 border border-red-500/40 text-red-300 text-[10px] font-bold flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"></span>
+                <span id="stageLabel">第 1 關 / 共 5 關</span>
+            </div>
+
+            <!-- 玩家名 (支援點擊修改) 與 排行榜按鈕 -->
+            <div class="flex items-center gap-1.5">
+                <!-- 修改名字按鈕 -->
+                <button onclick="openNameModal()" title="點擊修改名字" class="group relative px-2 py-1 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-400/70 text-[11px] font-medium text-slate-200 flex items-center gap-1.5 transition-all active:scale-95 shadow-sm max-w-[95px]">
+                    <i class="fa-solid fa-user-pen text-amber-400 text-[10px] group-hover:scale-110 transition-transform"></i>
+                    <span id="headerPlayerName" class="truncate font-semibold text-slate-100">獵魔勇者</span>
+                </button>
+                <!-- 排行榜按鈕 -->
+                <button onclick="openLeaderboard()" title="全球排行榜" class="w-8 h-8 rounded-xl bg-gradient-to-b from-amber-500/20 to-amber-600/10 border border-amber-500/50 hover:border-amber-400 text-amber-300 flex items-center justify-center text-xs shadow-neon-gold active:scale-95 transition-all">
+                    <i class="fa-solid fa-trophy"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ================= 儀表看板 (SCORE / TIMER / HIGH) ================= -->
+        <section class="grid grid-cols-3 gap-2 my-1.5 text-center flex-shrink-0">
+            <!-- 分數面板 -->
+            <div class="relative group bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800/90 hover:border-amber-500/40 rounded-2xl p-2 flex flex-col justify-center shadow-lg transition-all">
+                <div class="flex items-center justify-center gap-1 text-[9px] tracking-wider font-bold text-slate-400 uppercase">
+                    <i class="fa-solid fa-bolt text-amber-400 text-[8px]"></i> 得分 SCORE
+                </div>
+                <div id="scoreDisplay" class="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 font-mono leading-tight tracking-tight mt-0.5">0</div>
+                <div id="comboBadge" class="text-[9px] font-extrabold text-rose-400 h-3.5 leading-3.5 truncate">連擊: 0x</div>
+            </div>
+            
+            <!-- 倒數時間 -->
+            <div class="relative group bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800/90 hover:border-rose-500/40 rounded-2xl p-2 flex flex-col justify-center shadow-lg transition-all overflow-hidden">
+                <div class="flex items-center justify-center gap-1 text-[9px] tracking-wider font-bold text-slate-400 uppercase">
+                    <i class="fa-regular fa-clock text-rose-400 text-[8px]"></i> 倒數 TIME
+                </div>
+                <div id="timerDisplay" class="text-xl sm:text-2xl font-black text-rose-500 font-mono leading-tight tracking-tight mt-0.5">30</div>
+                <!-- 倒數進度條 -->
+                <div class="w-full bg-slate-950 h-1 rounded-full mt-1 overflow-hidden border border-slate-800/60 p-[0.5px]">
+                    <div id="timerBar" class="h-full bg-gradient-to-r from-amber-400 via-rose-500 to-purple-500 transition-all duration-300 w-full rounded-full shadow-neon-red"></div>
+                </div>
+            </div>
+
+            <!-- 最高紀錄 -->
+            <div class="relative group bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800/90 hover:border-cyan-500/40 rounded-2xl p-2 flex flex-col justify-center shadow-lg transition-all">
+                <div class="flex items-center justify-center gap-1 text-[9px] tracking-wider font-bold text-slate-400 uppercase">
+                    <i class="fa-solid fa-crown text-amber-400 text-[8px]"></i> 最佳 BEST
+                </div>
+                <div id="highScoreDisplay" class="text-xl sm:text-2xl font-black text-slate-100 font-mono leading-tight tracking-tight mt-0.5">0</div>
+                <div id="targetCount" class="text-[9px] text-cyan-400/90 h-3.5 leading-3.5 truncate font-medium">擊殺: 0</div>
+            </div>
+        </section>
+
+        <!-- ================= 核心打擊九宮格 (3欄 x 4列 = 12洞口) ================= -->
+        <main class="flex-1 min-h-0 w-full flex items-center justify-center py-1">
+            <div id="arenaGrid" class="w-full h-full max-h-[58vh] aspect-[3/4] grid grid-cols-3 grid-rows-4 gap-2 sm:gap-2.5 p-2 sm:p-2.5 bg-gradient-to-b from-slate-900/90 via-[#0b0e1b]/95 to-slate-950 border border-slate-800/90 rounded-2xl shadow-2xl relative">
+                <!-- 12 個立體洞口由 JavaScript 自動填入 -->
+            </div>
+        </main>
+
+        <!-- ================= 底部控制按鈕列 (FOOTER) ================= -->
+        <footer class="pt-1.5 flex flex-col gap-1.5 flex-shrink-0">
+            <!-- 投幣/啟動主按鈕 -->
+            <button id="startBtn" onclick="handleStartButtonClick()" class="animate-shine group w-full py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-rose-600 via-red-500 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-black text-xs sm:text-sm tracking-widest shadow-neon-red active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-white/20">
+                <i class="fa-solid fa-play text-xs group-hover:scale-125 transition-transform"></i>
+                <span id="startBtnText">投幣啟動 / START</span>
+            </button>
+
+            <!-- 規則與修改名字小提示 -->
+            <div class="flex items-center justify-between text-[9px] text-slate-400 px-2 py-1 font-mono bg-slate-950/70 rounded-xl border border-slate-800/80 overflow-x-auto whitespace-nowrap gap-2">
+                <span class="flex items-center gap-1 text-rose-400 font-bold"><i class="fa-solid fa-circle text-[5px]"></i>紅+100</span>
+                <span class="flex items-center gap-1 text-amber-400 font-bold"><i class="fa-solid fa-circle text-[5px]"></i>黃+160</span>
+                <span class="flex items-center gap-1 text-cyan-400 font-bold"><i class="fa-solid fa-circle text-[5px]"></i>青+240</span>
+                <span class="flex items-center gap-1 text-emerald-400 font-bold"><i class="fa-solid fa-circle text-[5px]"></i>綠+350</span>
+                <span class="flex items-center gap-1 text-blue-500 font-bold"><i class="fa-solid fa-crown text-[6px]"></i>藍+500</span>
+                <span class="flex items-center gap-1 text-slate-400"><i class="fa-solid fa-person text-[7px]"></i>人-100</span>
+                <span class="flex items-center gap-1 text-white font-bold"><i class="fa-solid fa-cross text-[7px]"></i>天使-250</span>
+                <button onclick="openNameModal()" class="text-amber-300 hover:text-amber-200 underline decoration-slate-600 flex items-center gap-1 ml-auto">
+                    <i class="fa-solid fa-pen text-[7px]"></i>改名
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ================= 關卡轉換提示橫幅 (TRANSITION BANNER 獨立彈窗) ================= -->
+    <div id="stageTransitionBanner" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-6 text-center select-none">
+        <div id="transIcon" class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/60 flex items-center justify-center text-amber-400 text-3xl shadow-neon-gold mb-3 animate-bounce">
+            <i class="fa-solid fa-forward-step"></i>
+        </div>
+        <h2 id="transTitle" class="text-2xl font-black text-amber-400 mb-1.5 drop-shadow-[0_0_12px_rgba(255,179,0,0.6)]">第 2 關即將開始！</h2>
+        <p id="transDesc" class="text-xs text-slate-300 mb-3 max-w-xs leading-relaxed">小心！魔鬼將同時兩隻竄出，注意不要誤傷天使！</p>
+        
+        <!-- 新登場敵人或特徵卡片 -->
+        <div id="transEnemyCard" class="w-full max-w-xs bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 mb-3 flex items-center gap-3">
+            <div id="transEnemyIcon" class="w-12 h-12 flex items-center justify-center bg-slate-950 rounded-xl flex-shrink-0 border border-slate-800">
+                <!-- 動態注入新敵人 SVG -->
+            </div>
+            <div class="text-left flex-1 min-w-0">
+                <div id="transEnemyName" class="text-xs font-black text-amber-300 truncate">新敵人介紹</div>
+                <div id="transEnemyDetail" class="text-[10px] text-slate-400 leading-tight mt-0.5">特徵與得分說明</div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 my-1">
+            <span class="text-xs text-slate-400 font-medium">準備倒數：</span>
+            <span id="transCountdown" class="text-3xl font-black text-rose-500 font-mono animate-ping">3</span>
+        </div>
+    </div>
+
+    <!-- ================= 遊戲結束結算彈窗 (GAME OVER MODAL 獨立最上層) ================= -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[70] hidden flex items-center justify-center p-4 select-none">
+        <div class="bg-gradient-to-b from-slate-900 via-[#0e1324] to-slate-950 border border-rose-500/50 rounded-3xl w-full max-w-xs p-4 flex flex-col shadow-neon-red">
+            <div class="text-center pb-2 border-b border-slate-800">
+                <span class="text-[9px] font-mono tracking-widest text-slate-400 uppercase">Challenge Finished</span>
+                <h2 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-amber-300">遊戲結算</h2>
+                <div id="settleRankTag" class="text-[11px] font-bold text-amber-400 mt-0.5">見習驅魔士</div>
+            </div>
+
+            <!-- 成績儀表板 -->
+            <div class="grid grid-cols-2 gap-2 my-2.5 text-center text-xs">
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[9px] text-slate-400 block">最終得分</span>
+                    <span id="settleScore" class="text-xl font-black text-amber-400 font-mono">0</span>
+                </div>
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[9px] text-slate-400 block">最大連擊</span>
+                    <span id="settleCombo" class="text-xl font-black text-rose-400 font-mono">0x</span>
+                </div>
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[9px] text-slate-400 block">魔鬼討伐</span>
+                    <span id="settleDemons" class="text-sm font-bold text-slate-200">0 隻</span>
+                </div>
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[9px] text-slate-400 block">誤傷無辜 (人/天使)</span>
+                    <span id="settleInnocents" class="text-sm font-bold text-cyan-400">0 次</span>
+                </div>
+            </div>
+
+            <!-- 玩家資訊條 -->
+            <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 mb-2 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-1.5 truncate">
+                    <i class="fa-solid fa-user text-amber-400 text-[10px]"></i>
+                    <span id="settlePlayerName" class="font-bold text-slate-200 truncate">獵魔勇者</span>
+                </div>
+                <button onclick="openNameModal()" class="text-[10px] text-amber-400 hover:text-amber-300 underline flex items-center gap-1 flex-shrink-0">
+                    <i class="fa-solid fa-pen"></i> 改名
+                </button>
+            </div>
+
+            <!-- 雲端成績上傳狀態提示 -->
+            <div id="settleUploadStatus" class="text-[9px] text-center font-mono py-1 px-2 rounded-lg bg-slate-950/90 border border-slate-800 mb-2.5 text-amber-300 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-cloud-arrow-up animate-pulse"></i>
+                <span id="settleUploadText">正在將成績同步至雲端...</span>
+            </div>
+
+            <!-- 控制按鈕區 (加入 1.5 秒防誤觸倒數鎖定) -->
+            <div class="flex flex-col gap-2 pt-1">
+                <button id="replayBtn" onclick="handlePlayAgain()" disabled class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed transition-all flex items-center justify-center gap-1.5 border border-slate-700 select-none">
+                    <i class="fa-solid fa-lock text-[10px]"></i>
+                    <span id="replayBtnLabel">結算防誤觸鎖定 (1.5s)</span>
+                </button>
+                <button onclick="openLeaderboard()" class="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/40 flex items-center justify-center gap-1 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> 查看全網排行榜
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 玩家名字修改彈窗 (PLAYER NAME MODAL) ================= -->
+    <div id="nameModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-700 rounded-2xl w-full max-w-xs p-4 flex flex-col shadow-2xl">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2.5">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-id-badge"></i>
+                    </div>
+                    <h3 class="text-xs font-black text-white">修改勇者名稱</h3>
+                </div>
+                <button onclick="closeNameModal()" class="text-slate-400 hover:text-white text-xs w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-800">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-[10px] text-slate-400 mb-2 leading-relaxed">
+                規則：純中文最多 5 字、純英文最多 10 字母、中英混合上限 15 字元。
+            </p>
+
+            <div class="relative mb-1">
+                <input id="playerNameInput" type="text" maxlength="15" placeholder="輸入您的勇者稱號..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-amber-400 pr-12" />
+                <span id="nameCharCount" class="absolute right-2.5 top-2.5 text-[9px] text-slate-500 font-mono">0/15</span>
+            </div>
+            <div id="nameError" class="text-[10px] text-rose-400 h-4 leading-4 font-medium"></div>
+
+            <div class="flex gap-2 mt-2">
+                <button onclick="savePlayerName()" class="w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs active:scale-95 transition-all shadow-neon-gold">
+                    確定並儲存名稱
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 英雄排行榜彈窗 (LEADERBOARD MODAL 提升至最高層級 z-[90]) ================= -->
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[90] hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-slate-900 via-[#0d1224] to-slate-950 border border-amber-500/50 rounded-2xl w-full max-w-xs max-h-[85vh] flex flex-col p-4 shadow-neon-gold relative">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <h3 class="text-xs font-black text-amber-400">全球英雄榜 (跨手機互通)</h3>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span id="syncStatusBadge" class="text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center gap-1 font-mono">
+                        ● 未驗證
+                    </span>
+                    <button onclick="closeLeaderboard()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-xs active:scale-95 transition-all">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 排行榜清單 -->
+            <div id="leaderboardList" class="flex-1 overflow-y-auto space-y-1 pr-1 py-1 text-xs">
+                <!-- 動態注入 -->
+            </div>
+
+            <!-- 伺服器即時狀態資訊 -->
+            <div id="syncDebugInfo" class="text-[9px] text-slate-400 text-center py-1 font-mono bg-slate-950/80 rounded-lg border border-slate-800/80 my-1 truncate px-1">
+                正在檢查雲端連線...
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 mt-1 flex gap-2">
+                <button onclick="fetchOnlineLeaderboard(true)" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold active:scale-95 transition-transform flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-arrows-rotate"></i> 重新整理
+                </button>
+                <button id="retryUploadBtn" onclick="manualRetryUpload()" class="py-2 px-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] font-mono active:scale-95 transition-transform hidden" title="手動補傳尚未同步的成績">
+                    立即補傳
+                </button>
+                <button onclick="sendTestScore()" class="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono active:scale-95 transition-transform" title="發送測試封包以驗證雙機互通">
+                    測試上傳
+                </button>
+                <button onclick="closeLeaderboard()" class="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black active:scale-95 transition-transform">
+                    返回
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT GAME LOGIC ================= -->
+    <script>
+        /* ==========================================================
+           1. CONSTANTS & GAME STATE
+           ========================================================== */
+        const TOTAL_HOLES = 12; // 3 欄 x 4 列 = 12 個洞口
+        const STAGE_DURATION = 30; // 每一關 30 秒
+        const MAX_STAGES = 5;      // 總共 5 個關卡
+
+        let currentStage = 1;      // 1, 2, 3, 4, 5
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem("demon_strike_highscore") || "0", 10);
+        let timeLeft = STAGE_DURATION;
+        let combo = 0;
+        let maxCombo = 0;
+        let demonsHit = 0;
+        let humansHit = 0;
+        let angelsHit = 0;
+
+        let isPlaying = false;
+        let isTransitioning = false;
+        let playerName = localStorage.getItem("demon_strike_player_name") || "獵魔勇者";
+
+        let mainTimerInterval = null;
+        let spawnLoopTimeout = null;
+        let selfHealingInterval = null; // 自癒守護計時器
+        let replayCooldownTimer = null; // 防誤觸冷卻計時器
+
+        // 洞口狀態管理
+        // activeStartTime: 用於逾時自癒檢測
+        const holes = Array.from({ length: TOTAL_HOLES }, () => ({
+            active: false,
+            type: null,
+            timeoutId: null,
+            warningTimeoutId: null,
+            activeStartTime: 0,
+            token: 0
+        }));
+
+        // 各種角色的屬性表 (強度越高：分數越高、停留時間越短)
+        const CHARACTER_CONFIG = {
+            red: {
+                name: "紅色魔鬼",
+                color: "#ff1744",
+                score: 100,
+                stayDuration: 850,
+                lightClass: "bg-red-500 shadow-[0_0_8px_#ff1744]",
+                rimClass: "border-red-500/50 shadow-[inset_0_0_12px_rgba(255,23,68,0.25)]"
+            },
+            yellow: {
+                name: "黃色魔鬼",
+                color: "#ffb300",
+                score: 160,
+                stayDuration: 720,
+                lightClass: "bg-amber-400 shadow-[0_0_8px_#ffb300]",
+                rimClass: "border-amber-500/60 shadow-[inset_0_0_12px_rgba(255,179,0,0.3)]"
+            },
+            cyan: {
+                name: "青色狂魔",
+                color: "#00e5ff",
+                score: 240,
+                stayDuration: 600,
+                lightClass: "bg-cyan-400 shadow-[0_0_8px_#00e5ff]",
+                rimClass: "border-cyan-500/60 shadow-[inset_0_0_12px_rgba(0,229,255,0.3)]"
+            },
+            green: {
+                name: "綠色毒魔",
+                color: "#00e676",
+                score: 350,
+                stayDuration: 480,
+                lightClass: "bg-emerald-400 shadow-[0_0_10px_#00e676]",
+                rimClass: "border-emerald-500/60 shadow-[inset_0_0_12px_rgba(0,230,118,0.35)]"
+            },
+            blue: {
+                name: "深淵藍魔王",
+                color: "#2979ff",
+                score: 500,
+                stayDuration: 380,
+                lightClass: "bg-blue-500 shadow-[0_0_12px_#2979ff]",
+                rimClass: "border-blue-500/80 shadow-[inset_0_0_15px_rgba(41,121,255,0.45)]"
+            },
+            human: {
+                name: "平民人類",
+                color: "#94a3b8",
+                penalty: 100, // 人類扣分程度 < 天使
+                stayDuration: 700,
+                lightClass: "bg-slate-400 shadow-[0_0_6px_#94a3b8]",
+                rimClass: "border-slate-500/50 shadow-[inset_0_0_10px_rgba(148,163,184,0.2)]"
+            },
+            angel: {
+                name: "守護天使",
+                color: "#ffffff",
+                penalty: 250, // 天使重度扣分
+                stayDuration: 600,
+                lightClass: "bg-white shadow-[0_0_10px_#ffffff]",
+                rimClass: "border-white/70 shadow-[inset_0_0_15px_rgba(255,255,255,0.4)]"
+            }
+        };
+
+        // 鍵盤映射 (九宮格與常用按鍵)
+        const KEY_MAP = {
+            '1': 0, '2': 1, '3': 2,
+            '4': 3, '5': 4, '6': 5,
+            '7': 6, '8': 7, '9': 8,
+            '*': 9, '0': 10, '#': 11,
+            'q': 0, 'w': 1, 'e': 2,
+            'a': 3, 's': 4, 'd': 5,
+            'z': 6, 'x': 7, 'c': 8,
+            'v': 9, 'b': 10, 'n': 11
+        };
+
+        /* ==========================================================
+           2. TONE.JS AUDIO SYNTHESIS
+           ========================================================== */
+        let audioInitialized = false;
+        let sfxHit = null;
+        let sfxBadHit = null;
+        let sfxRare = null;
+        let sfxWarn = null;
+        let sfxStage = null;
+        let bgmSynth = null;
+        let bgmLoop = null;
+
+        function initAudio() {
+            if (audioInitialized) return;
+            try {
+                Tone.start();
+
+                // 打擊普通魔鬼音效
+                sfxHit = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 4,
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 }
+                }).toDestination();
+
+                // 擊中人類或天使扣分音效
+                sfxBadHit = new Tone.Synth({
+                    oscillator: { type: "sawtooth" },
+                    envelope: { attack: 0.01, decay: 0.35, sustain: 0, release: 0.1 }
+                }).toDestination();
+
+                // 高級魔鬼(青/綠/藍)音效
+                sfxRare = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.01, decay: 0.25, sustain: 0.1, release: 0.3 }
+                }).toDestination();
+
+                // 警告燈預警音
+                sfxWarn = new Tone.Synth({
+                    oscillator: { type: "square" },
+                    envelope: { attack: 0.005, decay: 0.06, sustain: 0, release: 0.02 },
+                    volume: -12
+                }).toDestination();
+
+                // 關卡晉升音效
+                sfxStage = new Tone.PolySynth(Tone.Synth, {
+                    volume: -4
+                }).toDestination();
+
+                // 背景音律旋律 (8-bit 循環)
+                bgmSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    volume: -14
+                }).toDestination();
+
+                const bassNotes = ["C3", "E3", "G3", "B2", "A2", "C3", "E3", "G2"];
+                let noteIndex = 0;
+                bgmLoop = new Tone.Loop((time) => {
+                    const note = bassNotes[noteIndex % bassNotes.length];
+                    bgmSynth.triggerAttackRelease(note, "16n", time);
+                    noteIndex++;
+                }, "8n");
+
+                audioInitialized = true;
+            } catch (e) {
+                console.warn("Audio initialization issue:", e);
+            }
+        }
+
+        function playHitSound(type) {
+            if (!audioInitialized) return;
+            if (type === 'blue' || type === 'green') {
+                sfxRare?.triggerAttackRelease(["E5", "G#5", "C6"], "8n");
+            } else if (type === 'cyan' || type === 'yellow') {
+                sfxRare?.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+            } else {
+                sfxHit?.triggerAttackRelease("C2", "8n");
+            }
+        }
+
+        function playBadHitSound(isAngel = false) {
+            if (!audioInitialized) return;
+            sfxBadHit?.triggerAttackRelease(isAngel ? "D1" : "F#1", "4n");
+        }
+
+        function playWarningSound() {
+            if (!audioInitialized) return;
+            sfxWarn?.triggerAttackRelease("A5", "32n");
+        }
+
+        function playStageUpSound() {
+            if (!audioInitialized) return;
+            sfxStage?.triggerAttackRelease(["C4", "E4", "G4", "C5", "E5"], "4n");
+        }
+
+        function startBGM(bpm = 135) {
+            if (!audioInitialized) return;
+            Tone.Transport.bpm.value = bpm;
+            bgmLoop.start(0);
+            Tone.Transport.start();
+        }
+
+        function stopBGM() {
+            if (!audioInitialized) return;
+            bgmLoop?.stop();
+            Tone.Transport?.stop();
+        }
+
+        /* ==========================================================
+           3. ARENA CREATION & SVG SPRITES (5種魔鬼 + 2種亂入角色)
+           ========================================================== */
+        // 1. 紅色魔鬼 (基礎：小尖角、圓圓臉)
+        const SVG_RED_DEVIL = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_10px_rgba(255,23,68,0.75)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="52" r="36" fill="#e11d48"/>
+                <path d="M 28 26 L 18 10 Q 32 16 38 26 Z" fill="#9f1239"/>
+                <path d="M 72 26 L 82 10 Q 68 16 62 26 Z" fill="#9f1239"/>
+                <circle cx="38" cy="46" r="5" fill="#0f172a"/>
+                <circle cx="62" cy="46" r="5" fill="#0f172a"/>
+                <circle cx="40" cy="44" r="2" fill="#fff"/>
+                <circle cx="64" cy="44" r="2" fill="#fff"/>
+                <path d="M 38 64 Q 50 74 62 64" stroke="#0f172a" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <polygon points="44,65 47,71 50,65" fill="#fff"/>
+                <polygon points="50,65 53,71 56,65" fill="#fff"/>
+            </svg>
+        `;
+
+        // 2. 黃色魔鬼 (長角彎曲、雙側獠牙)
+        const SVG_YELLOW_DEVIL = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_12px_rgba(255,179,0,0.85)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="52" r="37" fill="#f59e0b"/>
+                <path d="M 26 28 L 10 4 Q 28 14 36 24 Z" fill="#b45309"/>
+                <path d="M 74 28 L 90 4 Q 72 14 64 24 Z" fill="#b45309"/>
+                <circle cx="36" cy="48" r="6" fill="#451a03"/>
+                <circle cx="64" cy="48" r="6" fill="#451a03"/>
+                <circle cx="38" cy="46" r="2" fill="#fef08a"/>
+                <circle cx="66" cy="46" r="2" fill="#fef08a"/>
+                <!-- 額頭邪紋 -->
+                <path d="M 45 28 L 50 20 L 55 28" stroke="#78350f" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 34 62 Q 50 78 66 62" stroke="#451a03" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <polygon points="36,62 40,73 44,62" fill="#ffffff"/>
+                <polygon points="56,62 60,73 64,62" fill="#ffffff"/>
+            </svg>
+        `;
+
+        // 3. 青色魔鬼 (狂魔：側刺利角、邪惡橫瞳、下顎尖齒)
+        const SVG_CYAN_DEVIL = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_12px_rgba(0,229,255,0.9)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="52" r="37" fill="#06b6d4"/>
+                <!-- 雙重利刺角 -->
+                <path d="M 26 26 L 8 4 Q 24 16 34 22 Z" fill="#0e7490"/>
+                <path d="M 18 36 L 4 28 Q 18 38 24 42 Z" fill="#0891b2"/>
+                <path d="M 74 26 L 92 4 Q 76 16 66 22 Z" fill="#0e7490"/>
+                <path d="M 82 36 L 96 28 Q 82 38 76 42 Z" fill="#0891b2"/>
+                <!-- 邪惡橫瞳眼 -->
+                <ellipse cx="36" cy="46" rx="7" ry="4" fill="#082f49"/>
+                <ellipse cx="64" cy="46" rx="7" ry="4" fill="#082f49"/>
+                <line x1="32" y1="46" x2="40" y2="46" stroke="#a5f3fc" stroke-width="2"/>
+                <line x1="60" y1="46" x2="68" y2="46" stroke="#a5f3fc" stroke-width="2"/>
+                <!-- 尖銳鋸齒嘴 -->
+                <polygon points="32,64 36,74 42,64 48,74 52,64 58,74 64,64 68,74 72,64" fill="#082f49"/>
+            </svg>
+        `;
+
+        // 4. 綠色魔鬼 (毒魔：三重倒刺、劇毒裂痕、凶光外露)
+        const SVG_GREEN_DEVIL = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_14px_rgba(0,230,118,0.95)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="54" r="38" fill="#10b981"/>
+                <!-- 毒刺大角 -->
+                <path d="M 24 24 L 6 -2 Q 22 8 32 18 Z" fill="#047857"/>
+                <path d="M 16 36 L 0 28 Q 16 42 22 46 Z" fill="#065f46"/>
+                <path d="M 76 24 L 94 -2 Q 78 8 68 18 Z" fill="#047857"/>
+                <path d="M 84 36 L 100 28 Q 84 42 78 46 Z" fill="#065f46"/>
+                <!-- 毒印裂痕 -->
+                <path d="M 50 18 L 47 30 L 53 38" stroke="#064e3b" stroke-width="3" fill="none"/>
+                <!-- 凶狠三角眼 -->
+                <polygon points="30,42 42,42 36,52" fill="#022c22"/>
+                <circle cx="36" cy="44" r="2.5" fill="#6ee7b7"/>
+                <polygon points="70,42 58,42 64,52" fill="#022c22"/>
+                <circle cx="64" cy="44" r="2.5" fill="#6ee7b7"/>
+                <!-- 裂嘴獠牙 -->
+                <path d="M 30 64 Q 50 86 70 64" fill="#064e3b"/>
+                <polygon points="35,64 40,78 45,64" fill="#f0fdf4"/>
+                <polygon points="55,64 60,78 65,64" fill="#f0fdf4"/>
+            </svg>
+        `;
+
+        // 5. 藍色魔鬼 (深淵魔王：最可怕造型、巨刃霸角、火焰印記、血口吞噬)
+        const SVG_BLUE_DEVIL = `
+            <svg class="w-11 h-11 sm:w-13 sm:h-13 pointer-events-none drop-shadow-[0_4px_18px_rgba(41,121,255,1)]" viewBox="0 0 100 100">
+                <circle cx="50" cy="54" r="39" fill="#1d4ed8"/>
+                <!-- 霸氣巨角 -->
+                <path d="M 22 22 L 2 -10 Q 24 -2 34 14 Z" fill="#1e3a8a"/>
+                <path d="M 78 22 L 98 -10 Q 76 -2 66 14 Z" fill="#1e3a8a"/>
+                <path d="M 14 36 L -2 24 Q 14 44 20 48 Z" fill="#172554"/>
+                <path d="M 86 36 L 102 24 Q 86 44 80 48 Z" fill="#172554"/>
+                <!-- 皇冠魔尊標誌 -->
+                <path d="M 38 18 L 44 26 L 50 12 L 56 26 L 62 18 L 60 28 L 40 28 Z" fill="#93c5fd" stroke="#1d4ed8" stroke-width="1.5"/>
+                <!-- 凶光紅眼瞳 -->
+                <polygon points="28,40 42,44 32,54" fill="#0f172a"/>
+                <circle cx="34" cy="46" r="3" fill="#ff1744"/>
+                <polygon points="72,40 58,44 68,54" fill="#0f172a"/>
+                <circle cx="66" cy="46" r="3" fill="#ff1744"/>
+                <!-- 恐怖魔焰巨嘴與交錯獠牙 -->
+                <path d="M 26 62 Q 50 92 74 62 Z" fill="#090d16"/>
+                <polygon points="32,62 37,76 42,62" fill="#ffffff"/>
+                <polygon points="44,62 49,78 54,62" fill="#ffffff"/>
+                <polygon points="56,62 61,76 66,62" fill="#ffffff"/>
+                <polygon points="38,82 43,70 48,82" fill="#93c5fd"/>
+                <polygon points="52,82 57,70 62,82" fill="#93c5fd"/>
+            </svg>
+        `;
+
+        // 6. 人類 (灰色：無辜戴帽子的人類平民，誤打扣 100 分)
+        const SVG_HUMAN = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_10px_rgba(148,163,184,0.6)]" viewBox="0 0 100 100">
+                <!-- 灰色便帽 -->
+                <ellipse cx="50" cy="24" rx="34" ry="10" fill="#64748b"/>
+                <path d="M 26 24 C 26 6 74 6 74 24 Z" fill="#475569"/>
+                <!-- 臉蛋 -->
+                <circle cx="50" cy="54" r="33" fill="#cbd5e1"/>
+                <!-- 眉毛與眼睛 (驚恐表情) -->
+                <path d="M 32 38 Q 38 34 44 38" stroke="#334155" stroke-width="3" fill="none"/>
+                <path d="M 68 38 Q 62 34 56 38" stroke="#334155" stroke-width="3" fill="none"/>
+                <circle cx="38" cy="48" r="4.5" fill="#1e293b"/>
+                <circle cx="62" cy="48" r="4.5" fill="#1e293b"/>
+                <circle cx="39" cy="47" r="1.5" fill="#fff"/>
+                <circle cx="63" cy="47" r="1.5" fill="#fff"/>
+                <!-- 圓圓驚訝嘴 -->
+                <ellipse cx="50" cy="68" rx="6" ry="8" fill="#475569"/>
+                <!-- 臉頰汗珠 -->
+                <path d="M 72 56 Q 76 60 72 64 Q 68 60 72 56 Z" fill="#38bdf8"/>
+            </svg>
+        `;
+
+        // 7. 天使 (純白神聖光環、雙翼光芒，誤打扣 250 分)
+        const SVG_ANGEL = `
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 pointer-events-none drop-shadow-[0_4px_14px_rgba(255,255,255,0.9)]" viewBox="0 0 100 100">
+                <!-- 金色神聖光環 -->
+                <ellipse cx="50" cy="12" rx="24" ry="6" fill="none" stroke="#fef08a" stroke-width="4.5"/>
+                <!-- 天使之翼羽毛 -->
+                <path d="M 24 44 C 6 36 2 18 16 12 C 22 28 28 36 30 46 Z" fill="#ffffff" opacity="0.95"/>
+                <path d="M 76 44 C 94 36 98 18 84 12 C 78 28 72 36 70 46 Z" fill="#ffffff" opacity="0.95"/>
+                <!-- 純白臉龐 -->
+                <circle cx="50" cy="50" r="33" fill="#f8fafc"/>
+                <!-- 溫柔大眼 -->
+                <ellipse cx="36" cy="46" rx="5" ry="6" fill="#0284c7"/>
+                <ellipse cx="64" cy="46" rx="5" ry="6" fill="#0284c7"/>
+                <circle cx="38" cy="44" r="2" fill="#ffffff"/>
+                <circle cx="66" cy="44" r="2" fill="#ffffff"/>
+                <!-- 腮紅與微笑 -->
+                <ellipse cx="30" cy="56" rx="5" ry="2.5" fill="#f472b6" opacity="0.7"/>
+                <ellipse cx="70" cy="56" rx="5" ry="2.5" fill="#f472b6" opacity="0.7"/>
+                <path d="M 42 62 Q 50 70 58 62" stroke="#0369a1" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        function getSvgByType(type) {
+            switch(type) {
+                case 'red': return SVG_RED_DEVIL;
+                case 'yellow': return SVG_YELLOW_DEVIL;
+                case 'cyan': return SVG_CYAN_DEVIL;
+                case 'green': return SVG_GREEN_DEVIL;
+                case 'blue': return SVG_BLUE_DEVIL;
+                case 'human': return SVG_HUMAN;
+                case 'angel': return SVG_ANGEL;
+                default: return SVG_RED_DEVIL;
+            }
+        }
+
+        function buildArena() {
+            const grid = document.getElementById("arenaGrid");
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                const hole = document.createElement("div");
+                hole.className = "group relative rounded-2xl bg-gradient-to-b from-[#060810] to-[#0b0f1d] shadow-hole-inset flex items-center justify-center overflow-hidden border border-slate-800 hover:border-slate-700 cursor-pointer active:scale-95 transition-all";
+                hole.id = `hole-${i}`;
+                
+                hole.innerHTML = `
+                    <!-- 頂部信號指示燈 -->
+                    <div id="light-${i}" class="absolute top-2 w-3.5 h-1 rounded-full bg-slate-800 transition-all opacity-40 shadow-sm"></div>
+                    
+                    <!-- 角色彈出容器 -->
+                    <div id="char-${i}" class="w-full h-full flex items-center justify-center transform translate-y-full transition-transform duration-150 ease-out">
+                        <!-- 動態插入 SVG -->
+                    </div>
+
+                    <!-- 洞口邊緣光暈環 -->
+                    <div id="rim-${i}" class="absolute inset-0 rounded-2xl pointer-events-none border border-transparent transition-all"></div>
+                `;
+
+                hole.addEventListener("pointerdown", (e) => {
+                    e.preventDefault();
+                    whackHole(i);
+                });
+
+                grid.appendChild(hole);
+            }
+        }
+
+        /* ==========================================================
+           4. GAME MECHANICS & LOOP (5 關卡推進)
+           ========================================================== */
+        function handleStartButtonClick() {
+            initAudio();
+            if (isPlaying) {
+                endGame();
+            } else {
+                startGame();
+            }
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            isPlaying = true;
+            isTransitioning = false;
+            currentStage = 1;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            demonsHit = 0;
+            humansHit = 0;
+            angelsHit = 0;
+            timeLeft = STAGE_DURATION;
+
+            updateStatsUI();
+            updateStageUI();
+
+            const startBtn = document.getElementById("startBtn");
+            startBtn.classList.remove("from-rose-600", "via-red-500", "to-amber-500", "shadow-neon-red");
+            startBtn.classList.add("from-slate-800", "to-slate-900", "border-slate-700");
+            document.getElementById("startBtnText").innerText = "中止遊戲 / STOP";
+
+            startBGM(125);
+            startTimer();
+            scheduleNextSpawn();
+        }
+
+        function startTimer() {
+            clearInterval(mainTimerInterval);
+            mainTimerInterval = setInterval(() => {
+                if (isTransitioning) return;
+
+                timeLeft--;
+                const timerEl = document.getElementById("timerDisplay");
+                if (timerEl) timerEl.innerText = String(timeLeft).padStart(2, '0');
+                const progressPct = (timeLeft / STAGE_DURATION) * 100;
+                const barEl = document.getElementById("timerBar");
+                if (barEl) barEl.style.width = `${progressPct}%`;
+
+                if (timeLeft <= 0) {
+                    if (currentStage === 1) {
+                        transitionToStage(
+                            2,
+                            "第 2 關：雙魔並起！",
+                            "魔鬼開始成對竄出！切記不要誤傷灰色平民！",
+                            140,
+                            'yellow',
+                            "黃色狂魔強勢登場",
+                            "得分 +160 | 停留 720ms | 攻擊性更強"
+                        );
+                    } else if (currentStage === 2) {
+                        transitionToStage(
+                            3,
+                            "第 3 關：青魔現世＆神聖天使！",
+                            "青色魔鬼現身！注意：白色天使降臨，萬不可擊打！",
+                            155,
+                            'cyan',
+                            "青色狂魔 & 守護天使",
+                            "青魔 +240 分 | 天使誤打重扣 -250 分！"
+                        );
+                    } else if (currentStage === 3) {
+                        transitionToStage(
+                            4,
+                            "第 4 關：劇毒裂痕！",
+                            "綠色毒魔高速竄出！眼明手快，保護無辜者！",
+                            170,
+                            'green',
+                            "綠色毒淵魔將",
+                            "得分 +350 | 停留僅 480ms | 毒角獠牙"
+                        );
+                    } else if (currentStage === 4) {
+                        transitionToStage(
+                            5,
+                            "第 5 關：深淵魔尊降臨！",
+                            "終極試煉！深淵藍魔瞬息即逝，極速討伐！",
+                            185,
+                            'blue',
+                            "深淵藍魔王 (BOSS)",
+                            "得分 +500 | 停留僅 380ms 極速！"
+                        );
+                    } else {
+                        // 第 5 關結束，進入結算
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function transitionToStage(nextStage, title, desc, bpm, enemyType, enemyName, enemyDetail) {
+            isTransitioning = true;
+            clearAllHoles();
+            playStageUpSound();
+
+            const banner = document.getElementById("stageTransitionBanner");
+            const titleEl = document.getElementById("transTitle");
+            const descEl = document.getElementById("transDesc");
+            const countEl = document.getElementById("transCountdown");
+            const iconContainer = document.getElementById("transEnemyIcon");
+            const nameEl = document.getElementById("transEnemyName");
+            const detailEl = document.getElementById("transEnemyDetail");
+
+            if (titleEl) titleEl.innerText = title;
+            if (descEl) descEl.innerText = desc;
+            if (iconContainer) iconContainer.innerHTML = getSvgByType(enemyType);
+            if (nameEl) nameEl.innerText = enemyName;
+            if (detailEl) detailEl.innerText = enemyDetail;
+            
+            let count = 3;
+            if (countEl) countEl.innerText = count;
+            if (banner) banner.classList.remove("hidden");
+
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    if (countEl) countEl.innerText = count;
+                    playWarningSound();
+                } else {
+                    clearInterval(countInterval);
+                    if (banner) banner.classList.add("hidden");
+                    currentStage = nextStage;
+                    timeLeft = STAGE_DURATION;
+                    isTransitioning = false;
+                    updateStageUI();
+                    startBGM(bpm);
+                    scheduleNextSpawn();
+                }
+            }, 1000);
+        }
+
+        function updateStageUI() {
+            const label = document.getElementById("stageLabel");
+            const badge = document.getElementById("stageBadge");
+            if (!label || !badge) return;
+
+            switch(currentStage) {
+                case 1:
+                    label.innerText = "第 1 關 (紅/黃/人)";
+                    badge.className = "px-2.5 py-1 rounded-full bg-red-950/70 border border-red-500/50 text-red-300 text-[10px] font-bold flex items-center gap-1.5 shadow-sm";
+                    break;
+                case 2:
+                    label.innerText = "第 2 關 (魔群雙出)";
+                    badge.className = "px-2.5 py-1 rounded-full bg-amber-950/70 border border-amber-500/50 text-amber-300 text-[10px] font-bold flex items-center gap-1.5 shadow-neon-gold";
+                    break;
+                case 3:
+                    label.innerText = "第 3 關 (青魔+天使)";
+                    badge.className = "px-2.5 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/50 text-cyan-300 text-[10px] font-bold flex items-center gap-1.5 shadow-neon-blue";
+                    break;
+                case 4:
+                    label.innerText = "第 4 關 (綠毒狂潮)";
+                    badge.className = "px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 text-[10px] font-bold flex items-center gap-1.5 shadow-sm";
+                    break;
+                case 5:
+                    label.innerText = "第 5 關 (深淵魔尊)";
+                    badge.className = "px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-500/70 text-blue-300 text-[10px] font-bold flex items-center gap-1.5 shadow-[0_0_15px_#2979ff] animate-pulse";
+                    break;
+            }
+        }
+
+        /* ==========================================================
+           5. SPAWN LOGIC & TIMING (各關出現種類與頻率分配)
+           ========================================================== */
+        // Fisher-Yates 真隨機洗牌，避免陣列排序偏差
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function getRandomTargetTypeForStage(stage) {
+            let pool = [];
+
+            if (stage === 1) {
+                pool = [
+                    { type: 'red', weight: 60 },
+                    { type: 'yellow', weight: 25 },
+                    { type: 'human', weight: 25 }
+                ];
+            } else if (stage === 2) {
+                pool = [
+                    { type: 'red', weight: 55 },
+                    { type: 'yellow', weight: 30 },
+                    { type: 'human', weight: 30 }
+                ];
+            } else if (stage === 3) {
+                pool = [
+                    { type: 'red', weight: 46 },
+                    { type: 'yellow', weight: 22 },
+                    { type: 'cyan', weight: 14 },
+                    { type: 'human', weight: 22 },
+                    { type: 'angel', weight: 14 }
+                ];
+            } else if (stage === 4) {
+                pool = [
+                    { type: 'red', weight: 38 },
+                    { type: 'yellow', weight: 24 },
+                    { type: 'cyan', weight: 16 },
+                    { type: 'green', weight: 10 },
+                    { type: 'human', weight: 16 },
+                    { type: 'angel', weight: 10 }
+                ];
+            } else {
+                pool = [
+                    { type: 'red', weight: 30 },
+                    { type: 'yellow', weight: 22 },
+                    { type: 'cyan', weight: 16 },
+                    { type: 'green', weight: 12 },
+                    { type: 'blue', weight: 8 },
+                    { type: 'human', weight: 12 },
+                    { type: 'angel', weight: 8 }
+                ];
+            }
+
+            const totalWeight = pool.reduce((acc, cur) => acc + cur.weight, 0);
+            let rand = Math.random() * totalWeight;
+            for (let item of pool) {
+                if (rand < item.weight) return item.type;
+                rand -= item.weight;
+            }
+            return 'red';
+        }
+
+        // 自癒守護機制：防止任何非同步計時器在極速時死鎖特定洞口
+        function startSelfHealingWatchdog() {
+            clearInterval(selfHealingInterval);
+            selfHealingInterval = setInterval(() => {
+                if (!isPlaying || isTransitioning) return;
+                const now = Date.now();
+                for (let i = 0; i < TOTAL_HOLES; i++) {
+                    const h = holes[i];
+                    // 若洞口標記為 active 超過 1300ms（任何角色的最長存活是 850ms + 140ms 預警），強制復原
+                    if (h.active && h.activeStartTime > 0 && (now - h.activeStartTime > 1300)) {
+                        hideHole(i);
+                    }
+                }
+            }, 350);
+        }
+
+        function scheduleNextSpawn() {
+            if (!isPlaying || isTransitioning) return;
+
+            let targetCount = 1;
+            if (currentStage === 2) {
+                targetCount = Math.random() < 0.45 ? 2 : 1;
+            } else if (currentStage === 3) {
+                targetCount = Math.random() < 0.65 ? 2 : 1;
+            } else if (currentStage === 4) {
+                const r = Math.random();
+                targetCount = r < 0.35 ? 3 : (r < 0.75 ? 2 : 1);
+            } else if (currentStage === 5) {
+                const r = Math.random();
+                targetCount = r < 0.5 ? 3 : (r < 0.85 ? 2 : 1);
+            }
+
+            // 尋找閒置洞口
+            const availableHoles = [];
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                if (!holes[i].active) {
+                    availableHoles.push(i);
+                }
+            }
+
+            if (availableHoles.length > 0) {
+                shuffleArray(availableHoles);
+                const actualCount = Math.min(targetCount, availableHoles.length);
+                const chosen = availableHoles.slice(0, actualCount);
+
+                chosen.forEach((holeIdx, index) => {
+                    // 重要：立即佔用鎖定，防止同時間排程重疊挑選
+                    holes[holeIdx].active = true;
+                    holes[holeIdx].activeStartTime = Date.now();
+
+                    const delay = (currentStage >= 2 && Math.random() < 0.5) ? (index * 110) : 0;
+                    setTimeout(() => {
+                        if (isPlaying && !isTransitioning) {
+                            spawnTargetAtHole(holeIdx);
+                        } else {
+                            hideHole(holeIdx);
+                        }
+                    }, delay);
+                });
+            }
+
+            let nextDelay = 800;
+            switch(currentStage) {
+                case 1: nextDelay = 650 + Math.random() * 320; break;
+                case 2: nextDelay = 540 + Math.random() * 260; break;
+                case 3: nextDelay = 440 + Math.random() * 240; break;
+                case 4: nextDelay = 360 + Math.random() * 200; break;
+                case 5: nextDelay = 300 + Math.random() * 180; break;
+            }
+
+            clearTimeout(spawnLoopTimeout);
+            spawnLoopTimeout = setTimeout(scheduleNextSpawn, nextDelay);
+        }
+
+        function spawnTargetAtHole(index) {
+            if (!isPlaying || isTransitioning) {
+                hideHole(index);
+                return;
+            }
+
+            const hole = holes[index];
+            hole.active = true;
+            hole.activeStartTime = Date.now();
+            hole.token = (hole.token + 1) % 100000;
+            const currentToken = hole.token;
+
+            const targetType = getRandomTargetTypeForStage(currentStage);
+            hole.type = targetType;
+            const config = CHARACTER_CONFIG[targetType];
+
+            const lightEl = document.getElementById(`light-${index}`);
+            const charEl = document.getElementById(`char-${index}`);
+            const rimEl = document.getElementById(`rim-${index}`);
+
+            playWarningSound();
+            if (lightEl) lightEl.className = `absolute top-2 w-4 h-1.5 rounded-full ${config.lightClass}`;
+            if (rimEl) rimEl.className = `absolute inset-0 rounded-2xl pointer-events-none border ${config.rimClass} transition-all`;
+
+            clearTimeout(hole.warningTimeoutId);
+            hole.warningTimeoutId = setTimeout(() => {
+                if (!isPlaying || isTransitioning || !hole.active || hole.token !== currentToken) {
+                    hideHole(index);
+                    return;
+                }
+
+                if (charEl) {
+                    charEl.innerHTML = getSvgByType(targetType);
+                    charEl.style.transform = "translateY(0%)";
+                }
+
+                clearTimeout(hole.timeoutId);
+                hole.timeoutId = setTimeout(() => {
+                    if (hole.token === currentToken) {
+                        hideHole(index);
+                    }
+                }, config.stayDuration);
+            }, 140);
+        }
+
+        function hideHole(index) {
+            const hole = holes[index];
+            clearTimeout(hole.timeoutId);
+            clearTimeout(hole.warningTimeoutId);
+
+            const charEl = document.getElementById(`char-${index}`);
+            const lightEl = document.getElementById(`light-${index}`);
+            const rimEl = document.getElementById(`rim-${index}`);
+
+            if (charEl) charEl.style.transform = "translateY(100%)";
+            if (lightEl) lightEl.className = "absolute top-2 w-3.5 h-1 rounded-full bg-slate-800 transition-all opacity-40 shadow-sm";
+            if (rimEl) rimEl.className = "absolute inset-0 rounded-2xl pointer-events-none border border-transparent transition-all";
+
+            hole.active = false;
+            hole.type = null;
+            hole.activeStartTime = 0;
+        }
+
+        function clearAllHoles() {
+            clearTimeout(spawnLoopTimeout);
+            for (let i = 0; i < TOTAL_HOLES; i++) {
+                hideHole(i);
+            }
+        }
+
+        /* ==========================================================
+           6. WHACKING LOGIC (敲擊與計分處理)
+           ========================================================== */
+        function whackHole(index) {
+            if (!isPlaying || isTransitioning) return;
+            const hole = holes[index];
+            const holeEl = document.getElementById(`hole-${index}`);
+
+            // 敲擊觸覺視覺回饋動畫
+            if (holeEl) {
+                holeEl.classList.remove("impact-anim");
+                void holeEl.offsetWidth;
+                holeEl.classList.add("impact-anim");
+            }
+
+            // 揮空：中斷連擊
+            if (!hole.active || !hole.type) {
+                combo = 0;
+                updateStatsUI();
+                return;
+            }
+
+            const targetType = hole.type;
+            const config = CHARACTER_CONFIG[targetType];
+            const rect = holeEl.getBoundingClientRect();
+            const posX = rect.left + rect.width / 2;
+            const posY = rect.top + rect.height / 2;
+
+            if (targetType === 'human') {
+                // 誤傷人類：扣分、歸零連擊
+                combo = 0;
+                humansHit++;
+                score = Math.max(0, score - config.penalty);
+                playBadHitSound(false);
+                showFloatingText(`-${config.penalty} 誤傷平民!`, posX, posY, "#94a3b8");
+            } else if (targetType === 'angel') {
+                // 誤傷天使：重扣分數、歸零連擊
+                combo = 0;
+                angelsHit++;
+                score = Math.max(0, score - config.penalty);
+                playBadHitSound(true);
+                showFloatingText(`-${config.penalty} 誤傷天使!`, posX, posY, "#38bdf8");
+            } else {
+                // 擊中魔鬼：增加連擊與得分
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+                demonsHit++;
+
+                // 連擊加成最高 +200 分
+                const comboBonus = Math.min((combo - 1) * 12, 200);
+                const gained = config.score + comboBonus;
+                score += gained;
+
+                playHitSound(targetType);
+
+                let floatLabel = `+${gained}`;
+                if (targetType === 'blue') floatLabel += " CRIT BOSS!";
+                else if (combo >= 5) floatLabel += ` ${combo}x!`;
+                showFloatingText(floatLabel, posX, posY, config.color);
+            }
+
+            hideHole(index);
+            updateStatsUI();
+        }
+
+        function showFloatingText(text, x, y, color) {
+            const el = document.createElement("div");
+            el.className = "float-text text-xs sm:text-sm font-black";
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.color = color;
+            el.innerText = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 700);
+        }
+
+        function updateStatsUI() {
+            const scoreEl = document.getElementById("scoreDisplay");
+            const targetEl = document.getElementById("targetCount");
+            const comboEl = document.getElementById("comboBadge");
+            const highEl = document.getElementById("highScoreDisplay");
+
+            if (scoreEl) scoreEl.innerText = score;
+            if (targetEl) targetEl.innerText = `擊殺: ${demonsHit}`;
+
+            if (comboEl) {
+                if (combo > 1) {
+                    comboEl.innerText = `連擊: ${combo}x 🔥`;
+                    comboEl.classList.add("animate-pulse");
+                } else {
+                    comboEl.innerText = `連擊: ${combo}x`;
+                    comboEl.classList.remove("animate-pulse");
+                }
+            }
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem("demon_strike_highscore", highScore);
+            }
+            if (highEl) highEl.innerText = highScore;
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            isPlaying = true;
+            isTransitioning = false;
+            currentStage = 1;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            demonsHit = 0;
+            humansHit = 0;
+            angelsHit = 0;
+            timeLeft = STAGE_DURATION;
+
+            updateStatsUI();
+            updateStageUI();
+
+            const startBtn = document.getElementById("startBtn");
+            startBtn.classList.remove("from-rose-600", "via-red-500", "to-amber-500", "shadow-neon-red");
+            startBtn.classList.add("from-slate-800", "to-slate-900", "border-slate-700");
+            document.getElementById("startBtnText").innerText = "中止遊戲 / STOP";
+
+            startBGM(125);
+            startTimer();
+            startSelfHealingWatchdog();
+            scheduleNextSpawn();
+        }
+
+        function endGame() {
+            isPlaying = false;
+            isTransitioning = false;
+            clearInterval(mainTimerInterval);
+            clearInterval(selfHealingInterval);
+            clearAllHoles();
+            stopBGM();
+
+            const startBtn = document.getElementById("startBtn");
+            if (startBtn) {
+                startBtn.classList.add("from-rose-600", "via-red-500", "to-amber-500", "shadow-neon-red");
+                startBtn.classList.remove("from-slate-800", "to-slate-900", "border-slate-700");
+            }
+            const btnText = document.getElementById("startBtnText");
+            if (btnText) btnText.innerText = "投幣啟動 / START";
+
+            let rankTag = "C級 • 見習驅魔士";
+            if (score >= 9000) rankTag = "EX級 • 傳奇地獄獵神";
+            else if (score >= 6500) rankTag = "SSS級 • 深淵主宰剋星";
+            else if (score >= 4500) rankTag = "S級 • 頂尖驅魔大師";
+            else if (score >= 2500) rankTag = "A級 • 精英聖騎士";
+            else if (score >= 1200) rankTag = "B級 • 熟練獵魔者";
+
+            const rankEl = document.getElementById("settleRankTag");
+            const scoreEl = document.getElementById("settleScore");
+            const demonsEl = document.getElementById("settleDemons");
+            const innocentsEl = document.getElementById("settleInnocents");
+            const comboEl = document.getElementById("settleCombo");
+            const settlePlayerNameEl = document.getElementById("settlePlayerName");
+
+            if (rankEl) rankEl.innerText = rankTag;
+            if (scoreEl) scoreEl.innerText = score;
+            if (demonsEl) demonsEl.innerText = `${demonsHit} 隻`;
+            if (innocentsEl) innocentsEl.innerText = `${humansHit + angelsHit} 次 (人${humansHit}/天${angelsHit})`;
+            if (comboEl) comboEl.innerText = `${maxCombo}x`;
+            if (settlePlayerNameEl) settlePlayerNameEl.innerText = playerName;
+
+            const uploadText = document.getElementById("settleUploadText");
+            if (uploadText) {
+                uploadText.innerText = score > 0 ? "正在將成績同步至雲端..." : "無有效分數，未上傳";
+            }
+
+            initReplayButtonCooldown();
+
+            const modal = document.getElementById("gameOverModal");
+            if (modal) modal.classList.remove("hidden");
+
+            saveScoreRecord();
+        }
+
+        function initReplayButtonCooldown() {
+            const replayBtn = document.getElementById("replayBtn");
+            const replayLabel = document.getElementById("replayBtnLabel");
+            if (!replayBtn || !replayLabel) return;
+
+            // 預設鎖定
+            replayBtn.disabled = true;
+            replayBtn.className = "w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed transition-all flex items-center justify-center gap-1.5 border border-slate-700 select-none opacity-80";
+            
+            clearInterval(replayCooldownTimer);
+            let remainingMs = 1500;
+            replayLabel.innerHTML = `結算防誤觸鎖定 (${(remainingMs / 1000).toFixed(1)}s)`;
+
+            replayCooldownTimer = setInterval(() => {
+                remainingMs -= 100;
+                if (remainingMs > 0) {
+                    replayLabel.innerHTML = `結算防誤觸鎖定 (${(remainingMs / 1000).toFixed(1)}s)`;
+                } else {
+                    clearInterval(replayCooldownTimer);
+                    replayBtn.disabled = false;
+                    replayBtn.className = "w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-500 text-white font-black text-xs shadow-neon-red active:scale-95 transition-transform flex items-center justify-center gap-1.5 border border-amber-400/30 cursor-pointer";
+                    replayLabel.innerHTML = `<i class="fa-solid fa-rotate-right mr-1"></i> 再次挑戰 / REPLAY`;
+                }
+            }, 100);
+        }
+
+        function handlePlayAgain() {
+            const replayBtn = document.getElementById("replayBtn");
+            if (replayBtn && replayBtn.disabled) return;
+
+            clearInterval(replayCooldownTimer);
+            const modal = document.getElementById("gameOverModal");
+            if (modal) modal.classList.add("hidden");
+            startGame();
+        }
+
+        /* ==========================================================
+           8. PLAYER NAME MANAGEMENT & MODAL (隨時修改名字功能)
+           ========================================================== */
+        function updatePlayerNameDisplays() {
+            const headerName = document.getElementById("headerPlayerName");
+            if (headerName) headerName.innerText = playerName;
+            const settleName = document.getElementById("settlePlayerName");
+            if (settleName) settleName.innerText = playerName;
+        }
+
+        function openNameModal() {
+            const input = document.getElementById("playerNameInput");
+            if (input) {
+                input.value = playerName;
+                updateCharCount(input.value);
+            }
+            const errEl = document.getElementById("nameError");
+            if (errEl) errEl.innerText = "";
+            const modal = document.getElementById("nameModal");
+            if (modal) modal.classList.remove("hidden");
+            if (input) {
+                setTimeout(() => input.focus(), 50);
+            }
+        }
+
+        function closeNameModal() {
+            const modal = document.getElementById("nameModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function updateCharCount(val) {
+            const countEl = document.getElementById("nameCharCount");
+            if (countEl) countEl.innerText = `${val.length}/15`;
+        }
+
+        // 即時監聽輸入字數
+        document.getElementById("playerNameInput")?.addEventListener("input", (e) => {
+            updateCharCount(e.target.value);
+            const errEl = document.getElementById("nameError");
+            if (errEl) errEl.innerText = "";
+        });
+
+        // 支援 Enter 鍵快速儲存
+        document.getElementById("playerNameInput")?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                savePlayerName();
+            }
+        });
+
+        function validateName(str) {
+            const trimmed = str.trim();
+            if (!trimmed) return { valid: false, msg: "名字不能為空，請輸入勇者稱號！" };
+
+            const isPureChinese = /^[\u4e00-\u9fa5]+$/.test(trimmed);
+            const isPureEnglish = /^[a-zA-Z0-9\s]+$/.test(trimmed);
+
+            if (isPureChinese) {
+                if (trimmed.length > 5) return { valid: false, msg: "純中文名字最多 5 個字！" };
+            } else if (isPureEnglish) {
+                if (trimmed.length > 10) return { valid: false, msg: "純英文名字最多 10 個字母！" };
+            } else {
+                if (trimmed.length > 15) return { valid: false, msg: "中英混合名字最多 15 個字元！" };
+            }
+
+            return { valid: true, name: trimmed };
+        }
+
+        function savePlayerName() {
+            const input = document.getElementById("playerNameInput");
+            if (!input) return;
+            const res = validateName(input.value);
+            if (!res.valid) {
+                const errEl = document.getElementById("nameError");
+                if (errEl) errEl.innerText = res.msg;
+                return;
+            }
+
+            playerName = res.name;
+            localStorage.setItem("demon_strike_player_name", playerName);
+            updatePlayerNameDisplays();
+            closeNameModal();
+
+            // 若目前排行榜已開啟，即時更新自己的顯示
+            renderLeaderboard();
+        }
+
+        /* ==========================================================
+           9. KEYBOARD SHORTCUTS
+           ========================================================== */
+        window.addEventListener("keydown", (e) => {
+            // 如果正在輸入名字，不觸發遊戲快捷鍵
+            if (document.activeElement?.id === "playerNameInput") return;
+
+            if (e.code === "Space") {
+                e.preventDefault();
+                handleStartButtonClick();
+                return;
+            }
+
+            const key = e.key.toLowerCase();
+            if (KEY_MAP.hasOwnProperty(key)) {
+                e.preventDefault();
+                whackHole(KEY_MAP[key]);
+            }
+        });
+
+        /* ==========================================================
+           10. CLOUD LEADERBOARD (Firebase Realtime Database REST)
+           ========================================================== */
+        // IMPORTANT: Replace with the EXACT Realtime Database URL shown in Firebase Console.
+        // Example: https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app
+        // DO NOT include /leaderboard or .json in the value below.
+        const FIREBASE_DATABASE_ROOT = "https://arcade-demon-whacker-default-rtdb.asia-southeast1.firebasedatabase.app";
+        const FIREBASE_DB_URL = FIREBASE_DATABASE_ROOT.replace(/\/$/, "") + "/leaderboard";
+        const BACKUP_STORAGE_KEY = "demon_whacker_shared_scores_v12";
+        const PENDING_STORAGE_KEY = "demon_whacker_pending_scores_v1";
+        const PLAYER_ID_KEY = "demon_whacker_player_id_v1";
+        const PLAYER_ID = localStorage.getItem(PLAYER_ID_KEY) || createRecordId();
+        localStorage.setItem(PLAYER_ID_KEY, PLAYER_ID);
+
+        let leaderboardData = [];
+        let isSyncing = false;
+        let lastSubmittedId = null;
+
+        function createRecordId() {
+            if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+            return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+        }
+
+        function updateSyncBadge(text, classStyle) {
+            const badge = document.getElementById("syncStatusBadge");
+            if (!badge) return;
+            badge.className = `text-[8px] px-1 py-0.5 rounded border flex items-center gap-1 ${classStyle}`;
+            badge.textContent = "● " + text;
+        }
+
+        function updateDebugInfo(msg) {
+            const debugEl = document.getElementById("syncDebugInfo");
+            if (debugEl) {
+                debugEl.textContent = msg;
+                debugEl.title = msg;
+                debugEl.classList.remove("truncate");
+                debugEl.classList.add("break-words");
+            }
+        }
+
+        function getPending() {
+            try {
+                const value = JSON.parse(localStorage.getItem(PENDING_STORAGE_KEY) || "[]");
+                if (!Array.isArray(value)) return [];
+                // 自動修復：將以前待補傳紀錄修正為 stage <= 5
+                return value.map(r => ({
+                    ...r,
+                    stage: Math.min(5, Math.max(1, Number(r.stage) || 1))
+                }));
+            } catch (_) { return []; }
+        }
+        function setPending(records) {
+            localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(records));
+        }
+
+        async function safeFetch(url, options = {}, timeoutMs = 12000) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, {
+                    cache: "no-store", ...options, signal: controller.signal
+                });
+                if (!response.ok) {
+                    const detail = (await response.text()).slice(0, 240);
+                    throw new Error(`HTTP ${response.status}: ${detail || response.statusText}`);
+                }
+                return response;
+            } catch (err) {
+                if (err.name === "AbortError") throw new Error("連線逾時：請檢查網路或資料庫網址");
+                throw err;
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+
+        function sanitizeRecords(raw) {
+            if (raw === null) return [];
+            if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+                throw new Error("雲端資料格式不正確");
+            }
+            return Object.entries(raw).map(([id, record]) => ({
+                id,
+                playerId: String(record?.playerId || ""),
+                name: String(record?.name || "無名勇者").slice(0, 15),
+                score: Number(record?.score) || 0,
+                stage: Number(record?.stage) || 1,
+                date: String(record?.date || ""),
+                timestamp: Number(record?.timestamp) || 0
+            })).filter(r => Number.isFinite(r.score) && r.score >= 0)
+              .sort((a, b) => b.score - a.score || a.timestamp - b.timestamp)
+              .slice(0, 30);
+        }
+
+        function renderCachedOnly(error) {
+            try {
+                const cached = JSON.parse(localStorage.getItem(BACKUP_STORAGE_KEY) || "[]");
+                leaderboardData = Array.isArray(cached) ? cached : [];
+            } catch (_) { leaderboardData = []; }
+            renderLeaderboard();
+            updateSyncBadge("離線：僅本機快取", "text-rose-400 bg-rose-950 border-rose-800");
+            updateDebugInfo(`雲端讀取失敗：${error.message}｜本機資料不是全球排名`);
+        }
+
+        async function uploadRecord(record) {
+            // 嚴格遵守 Firebase Rules 規範：
+            // 1. 必須是 PUT /leaderboard/$recordId.json
+            // 2. 必須只包含且完整擁有七個欄位: id, playerId, name, score, stage, date, timestamp
+            // 3. stage 支援 1 到 5 關
+            const cleanRecord = {
+                id: String(record.id),
+                playerId: String(record.playerId),
+                name: String(record.name).slice(0, 15),
+                score: Math.min(10000000, Math.max(0, Number(record.score) || 0)),
+                stage: Math.min(5, Math.max(1, Number(record.stage) || 1)),
+                date: String(record.date || new Date().toLocaleDateString("zh-TW")),
+                timestamp: Number(record.timestamp) || Date.now()
+            };
+
+            const url = `${FIREBASE_DB_URL}/${encodeURIComponent(cleanRecord.id)}.json`;
+            await safeFetch(url, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(cleanRecord)
+            });
+        }
+
+        async function retryPendingScores() {
+            const queued = getPending();
+            if (!queued.length) return 0;
+            let uploaded = 0;
+            for (const record of queued) {
+                try {
+                    await uploadRecord(record);
+                    // 上傳成功立刻移除，避免重複發送
+                    setPending(getPending().filter(item => item.id !== record.id));
+                    uploaded++;
+                } catch (err) {
+                    console.warn("成績待補傳", record.id, err);
+                    throw new Error(`待補傳 ${getPending().length} 筆：${err.message}`);
+                }
+            }
+            return uploaded;
+        }
+
+        async function fetchOnlineLeaderboard(manual = false) {
+            if (isSyncing) return;
+            isSyncing = true;
+            updateSyncBadge("雲端同步中", "text-amber-400 bg-amber-950 border-amber-800");
+            updateDebugInfo("正在連線 Firebase，讀取跨手機成績...");
+            try {
+                let pendingError = "";
+                try { await retryPendingScores(); }
+                catch (err) { pendingError = err.message; }
+
+                const response = await safeFetch(`${FIREBASE_DB_URL}.json?t=${Date.now()}`, {
+                    method: "GET", headers: { "Accept": "application/json" }
+                });
+                leaderboardData = sanitizeRecords(await response.json());
+                localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(leaderboardData));
+                renderLeaderboard();
+                if (pendingError) {
+                    updateSyncBadge("可讀取，待補傳", "text-amber-400 bg-amber-950 border-amber-800");
+                    updateDebugInfo(`已取得雲端排名，但${pendingError}`);
+                } else {
+                    updateSyncBadge(`雲端已同步 (${leaderboardData.length}筆)`, "text-emerald-400 bg-emerald-950 border-emerald-800");
+                    updateDebugInfo(`雲端讀取成功：${new Date().toLocaleString('zh-TW')}｜待補傳 0 筆`);
+                }
+            } catch (err) {
+                console.error("Firebase 排行榜讀取失敗：", err);
+                renderCachedOnly(err);
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        async function submitRecord(record) {
+            const pending = getPending();
+            if (!pending.some(r => r.id === record.id)) {
+                pending.push(record);
+                setPending(pending);
+            }
+            updateSyncBadge("成績上傳中", "text-amber-400 bg-amber-950 border-amber-800");
+            updateDebugInfo("正在寫入 Firebase，尚未確認成功...");
+
+            const settleUploadText = document.getElementById("settleUploadText");
+            if (settleUploadText) {
+                settleUploadText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在寫入雲端伺服器...`;
+            }
+
+            try {
+                await uploadRecord(record);
+                setPending(getPending().filter(r => r.id !== record.id));
+                updateSyncBadge("已成功寫入雲端", "text-emerald-400 bg-emerald-950 border-emerald-800");
+                updateDebugInfo(`成績 ${record.score} 分已上傳；正在更新排行榜`);
+                
+                if (settleUploadText) {
+                    settleUploadText.innerHTML = `<span class="text-emerald-400"><i class="fa-solid fa-circle-check mr-1"></i> 成績已成功登錄雲端英雄榜！</span>`;
+                }
+
+                await fetchOnlineLeaderboard(false);
+            } catch (err) {
+                console.error("Firebase 成績寫入失敗：", err);
+                updateSyncBadge("未上傳：待補傳", "text-rose-400 bg-rose-950 border-rose-800");
+                updateDebugInfo(`上傳失敗：${err.message}｜已在本機排隊，下次連線補傳`);
+
+                if (settleUploadText) {
+                    settleUploadText.innerHTML = `<span class="text-amber-400"><i class="fa-solid fa-clock-rotate-left mr-1"></i> 尚未同步至雲端，待連線補傳</span>`;
+                }
+            }
+        }
+
+        function saveScoreRecord() {
+            if (score <= 0) return;
+            // Capture score/name immediately; global game state can change during awaits.
+            const record = {
+                id: createRecordId(),
+                playerId: PLAYER_ID,
+                name: playerName.slice(0, 15),
+                score: Number(score),
+                // 完整支援第 1 ~ 5 關記錄
+                stage: Math.min(5, Math.max(1, Number(currentStage))),
+                date: new Date().toLocaleDateString("zh-TW"),
+                timestamp: Date.now()
+            };
+            lastSubmittedId = record.id;
+            return submitRecord(record);
+        }
+
+        async function sendTestScore() {
+            const testRecord = {
+                id: createRecordId(),
+                playerId: PLAYER_ID,
+                name: (playerName + "測").slice(0, 15),
+                score: Math.floor(1000 + Math.random() * 2500),
+                stage: 1,
+                date: new Date().toLocaleDateString("zh-TW"),
+                timestamp: Date.now()
+            };
+            await submitRecord(testRecord);
+        }
+
+        function openLeaderboard() {
+            const modal = document.getElementById("leaderboardModal");
+            if (modal) modal.classList.remove("hidden");
+            renderLeaderboard();
+            fetchOnlineLeaderboard(true);
+        }
+
+        function closeLeaderboard() {
+            const modal = document.getElementById("leaderboardModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, ch => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;",
+                '"': "&quot;", "'": "&#39;"
+            })[ch]);
+        }
+
+        function renderLeaderboard() {
+            const list = document.getElementById("leaderboardList");
+            if (!list) return;
+            list.innerHTML = "";
+            if (!leaderboardData?.length) {
+                list.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">尚無可顯示的排行榜成績</div>`;
+                return;
+            }
+            const sorted = [...leaderboardData].sort((a, b) => Number(b.score) - Number(a.score));
+            sorted.forEach((item, index) => {
+                const row = document.createElement("div");
+                const isCurrent = item.id === lastSubmittedId;
+                const isMyRecord = item.playerId === PLAYER_ID;
+                const rankBadge = ["🥇", "🥈", "🥉"][index] || String(index + 1);
+                row.className = `flex items-center justify-between p-2 rounded-xl border transition-all ${
+                    isCurrent 
+                        ? "bg-amber-500/20 border-amber-500/70 text-amber-200 shadow-neon-gold" 
+                        : isMyRecord 
+                            ? "bg-slate-900 border-amber-500/40 text-slate-200" 
+                            : "bg-slate-950/70 border-slate-800/80 text-slate-300"
+                }`;
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="w-5 text-center text-xs font-bold font-mono">${rankBadge}</span>
+                        <div class="flex flex-col min-w-0">
+                            <div class="font-bold truncate max-w-[120px] text-[11px] flex items-center gap-1">
+                                ${escapeHtml(item.name)}
+                                ${isMyRecord ? '<span class="text-[8px] px-1 rounded bg-amber-500/25 text-amber-300 border border-amber-500/40 font-normal">你</span>' : ''}
+                            </div>
+                            <span class="text-[8px] text-slate-500">第 ${Number(item.stage) || 1} 關 • ${escapeHtml(item.date || "未記錄日期")}</span>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span class="font-black text-amber-400 font-mono text-xs">${Number(item.score) || 0}</span>
+                        <span class="text-[8px] text-slate-500 block leading-tight font-mono">PTS</span>
+                    </div>`;
+                list.appendChild(row);
+            });
+        }
+
+        /* ==========================================================
+           11. INITIALIZATION
+           ========================================================== */
+        window.addEventListener("DOMContentLoaded", () => {
+            updatePlayerNameDisplays();
+            const highEl = document.getElementById("highScoreDisplay");
+            if (highEl) highEl.innerText = highScore;
+            buildArena();
+
+            // 載入本地快取
+            const cached = localStorage.getItem(BACKUP_STORAGE_KEY);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        leaderboardData = parsed;
+                        renderLeaderboard();
+                    }
+                } catch(e) {}
+            }
+
+            // 背景連線更新排行榜
+            fetchOnlineLeaderboard(false);
+
+            // 首次如果沒有自訂名字，引導設定
+            const storedName = localStorage.getItem("demon_strike_player_name");
+            if (!storedName) {
+                setTimeout(() => {
+                    openNameModal();
+                }, 350);
+            }
+        });
+    </script>
+</body>
+</html>
