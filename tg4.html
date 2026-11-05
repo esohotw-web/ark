@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>數算主恩 ‧ 感恩節分享大轉盤</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for Native Audio Synthesis -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Serif+TC:wght@400;600;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            display: ['"Cinzel"', 'serif'],
+            sans: ['"Nunito"', 'sans-serif'],
+          },
+          colors: {
+            harvest: {
+              50: '#fffbeb',
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f',
+              950: '#451a03',
+            },
+            amberWine: '#6B2D1B',
+            autumnGold: '#DA8A2A',
+            warmIvory: '#FDFBF7'
+          },
+          keyframes: {
+            floatWarm: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-10px) rotate(2deg)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 25px rgba(245, 158, 11, 0.4)' },
+              '50%': { boxShadow: '0 0 50px rgba(245, 158, 11, 0.8)' },
+            }
+          },
+          animation: {
+            floatWarm: 'floatWarm 6s ease-in-out infinite',
+            pulseGlow: 'pulseGlow 2.5s infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(254, 243, 199, 0.2);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d97706;
+      border-radius: 9999px;
+    }
+
+    /* Ambient Warm Background */
+    body {
+      background: radial-gradient(circle at 50% 20%, #451a03 0%, #220e03 60%, #150801 100%);
+      color: #fef3c7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Perspective 3D for Card Flip */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .preserve-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+
+    /* Card Shimmer */
+    .shimmer-badge {
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased flex flex-col justify-between selection:bg-amber-500 selection:text-white">
+
+  <!-- Floating Falling Leaves / Autumn Particles Canvas -->
+  <canvas id="autumnCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- ==========================================
+       SCREEN 1: 遊戲初始選擇頁 (Welcome & Mode Selector)
+       ========================================== -->
+  <div id="welcomeScreen" class="relative z-10 flex-1 flex flex-col items-center justify-center p-4 min-h-screen max-w-lg mx-auto w-full transition-all duration-300">
+    <div class="w-full bg-harvest-950/85 backdrop-blur-md border border-harvest-700/60 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+      
+      <!-- Top Festive Badge -->
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-harvest-900/80 border border-harvest-600/50 text-harvest-300 text-xs font-serif mb-3">
+        <span>🍂</span>
+        <span>教會感恩節 ‧ 破冰分享遊戲</span>
+      </div>
+
+      <h1 class="font-serif font-black text-2xl sm:text-3xl text-harvest-200 tracking-wider mb-1 drop-shadow">
+        數算主恩 ‧ 感恩分享盤
+      </h1>
+      <p class="text-xs text-harvest-300/80 font-serif mb-5">
+        「要常常喜樂，不住的禱告，凡事謝恩」
+      </p>
+
+      <!-- Selection 1: 參與對象 -->
+      <div class="w-full text-left mb-4">
+        <label class="text-xs font-serif font-bold text-harvest-300 mb-1.5 flex items-center space-x-1.5">
+          <span>👥</span>
+          <span>第一步：選擇參與對象</span>
+        </label>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" id="initRoleSeeker" class="role-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-harvest-900/50 border-harvest-700 text-harvest-200 hover:border-emerald-500/80">
+            <div class="flex items-center justify-between w-full mb-1">
+              <span class="text-lg">🌱</span>
+              <span class="role-radio w-3.5 h-3.5 rounded-full border border-harvest-500 flex items-center justify-center"></span>
+            </div>
+            <div class="font-serif font-bold text-xs sm:text-sm text-harvest-100">慕道友 / 新朋友</div>
+            <div class="text-[10px] text-harvest-300/70 mt-0.5">生活感恩 ‧ 零信仰門檻</div>
+          </button>
+
+          <button type="button" id="initRoleChristian" class="role-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-emerald-950/70 border-emerald-500 text-white shadow-md">
+            <div class="flex items-center justify-between w-full mb-1">
+              <span class="text-lg">✝️</span>
+              <span class="role-radio w-3.5 h-3.5 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="font-serif font-bold text-xs sm:text-sm text-harvest-100">基督徒弟兄姊妹</div>
+            <div class="text-[10px] text-emerald-200/80 mt-0.5">信心見證 ‧ 屬靈深化</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Selection 2: 題目形式 -->
+      <div class="w-full text-left mb-6">
+        <label class="text-xs font-serif font-bold text-harvest-300 mb-1.5 flex items-center space-x-1.5">
+          <span>🎯</span>
+          <span>第二步：選擇分享形式</span>
+        </label>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" id="initModeStatic" class="mode-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-amber-950/70 border-amber-500 text-white shadow-md">
+            <div class="flex items-center justify-between w-full mb-1">
+              <span class="text-lg">🕊️</span>
+              <span class="mode-radio w-3.5 h-3.5 rounded-full bg-amber-400"></span>
+            </div>
+            <div class="font-serif font-bold text-xs sm:text-sm text-harvest-100">靜態分享</div>
+            <div class="text-[10px] text-amber-200/80 mt-0.5">言語交流 ‧ 數算恩典</div>
+          </button>
+
+          <button type="button" id="initModeDynamic" class="mode-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-harvest-900/50 border-harvest-700 text-harvest-200 hover:border-rose-500/80">
+            <div class="flex items-center justify-between w-full mb-1">
+              <span class="text-lg">⚡</span>
+              <span class="mode-radio w-3.5 h-3.5 rounded-full border border-harvest-500 flex items-center justify-center"></span>
+            </div>
+            <div class="font-serif font-bold text-xs sm:text-sm text-harvest-100">動態行動</div>
+            <div class="text-[10px] text-harvest-300/70 mt-0.5">現場互動 ‧ 暖心實踐</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Start Button -->
+      <button id="startGameBtn" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-harvest-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-harvest-950 font-serif font-black text-base sm:text-lg shadow-lg shadow-amber-600/30 transform active:scale-95 transition-all flex items-center justify-center space-x-2">
+        <span>✨ 進入感恩轉盤</span>
+        <span>➔</span>
+      </button>
+
+      <div class="mt-4 text-[11px] text-harvest-400/70 font-serif">
+        同一天內抽出的題目自動排除 ‧ 聚會不重複
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       SCREEN 2: 遊戲主舞台 (Game Screen - Single Viewport Optimized)
+       ========================================== -->
+  <div id="gameScreen" class="relative z-10 flex-1 flex flex-col justify-between hidden h-screen max-w-xl mx-auto w-full px-3 py-2 sm:px-4 sm:py-3 select-none overflow-hidden">
+    
+    <!-- Top Compact Header Bar -->
+    <header class="flex items-center justify-between py-1.5 px-3 bg-harvest-950/80 backdrop-blur-md rounded-2xl border border-harvest-800/80 shadow-md">
+      <!-- Back button & current badges -->
+      <div class="flex items-center space-x-2">
+        <button id="backToSetupBtn" class="p-1.5 rounded-xl bg-harvest-900/80 hover:bg-harvest-800 text-harvest-200 text-xs font-semibold flex items-center space-x-1 border border-harvest-700/60" title="返回設定">
+          <span>‹</span>
+          <span class="text-[11px]">設定</span>
+        </button>
+        <span id="roleStatusTag" class="px-2 py-0.5 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-[10px] font-bold">✝️ 基督徒</span>
+        <span id="modeStatusTag" class="px-2 py-0.5 rounded-lg bg-amber-900/60 border border-amber-600/50 text-amber-200 text-[10px] font-bold">🕊️ 靜態模式</span>
+      </div>
+
+      <!-- Quick Action Utilities -->
+      <div class="flex items-center space-x-1.5">
+        <!-- Sound Toggle -->
+        <button id="soundToggleBtn" class="p-1.5 rounded-xl bg-harvest-900/70 hover:bg-harvest-800 text-xs text-harvest-200 border border-harvest-700/40" title="音效">
+          <span id="soundIcon">🔔</span>
+        </button>
+        <!-- Timer Quick Toggle -->
+        <button id="toggleTimerBtn" class="px-2 py-1 rounded-xl bg-harvest-900/70 hover:bg-harvest-800 text-[11px] font-mono text-harvest-200 border border-harvest-700/40 flex items-center space-x-1" title="計時器">
+          <span>⏱️</span>
+          <span id="miniTimerDisplay">01:30</span>
+        </button>
+        <!-- History Drawer Button -->
+        <button id="historyToggleBtn" class="px-2.5 py-1 rounded-xl bg-amber-700/80 hover:bg-amber-600 text-xs font-bold text-white border border-amber-500/50 flex items-center space-x-1 shadow">
+          <span>📜</span>
+          <span id="historyCountBadge" class="bg-harvest-200 text-harvest-950 rounded-full px-1.5 text-[9px] font-black">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Center Card Stage (Responsive Flex Grow, No Scroll) -->
+    <main class="flex-1 my-2 sm:my-3 flex flex-col justify-center relative perspective-1000 min-h-0">
+      <div id="cardInner" class="w-full h-full max-h-[62vh] rounded-3xl p-4 sm:p-7 flex flex-col justify-between items-center text-center transition-all duration-500 preserve-3d shadow-2xl border border-harvest-500/30 relative overflow-hidden bg-gradient-to-br from-[#3b1706] via-[#260c02] to-[#160701]">
+        
+        <!-- Ambient Glow -->
+        <div class="absolute -top-12 -left-12 w-32 h-32 bg-harvest-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-36 h-36 bg-amber-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <!-- Card Meta Badges -->
+        <div class="w-full flex items-center justify-between relative z-10 text-[11px]">
+          <div class="flex items-center space-x-1.5 flex-wrap">
+            <span id="cardCategory" class="px-2.5 py-0.5 rounded-full font-serif font-bold uppercase bg-harvest-800/90 text-harvest-200 border border-harvest-600/50">
+              ✨ 團契破冰 ‧ 感恩分享
+            </span>
+          </div>
+          <span id="cardIndexBadge" class="font-serif font-semibold text-harvest-400/90 text-[10px]">
+            #點擊下方按鈕
+          </span>
+        </div>
+
+        <!-- Question Body (Flexible scroll inside card only if text is exceptionally long) -->
+        <div class="my-auto py-2 relative z-10 w-full overflow-y-auto px-1 max-h-[38vh]">
+          <div id="questionQuoteIcon" class="text-2xl text-harvest-500/40 font-serif leading-none mb-1 select-none">❝</div>
+          <h2 id="cardQuestionText" class="font-serif text-lg sm:text-2xl font-bold leading-relaxed sm:leading-loose text-harvest-100 transition-opacity duration-300">
+            請點擊下方按鈕開始抽取感恩題目！
+          </h2>
+          <p id="cardVerseText" class="mt-2.5 text-xs sm:text-sm font-serif italic text-harvest-300/80 transition-opacity duration-300">
+            「凡事要奉我們主耶穌基督的名常常感謝父神。」— 以弗所書 5:20
+          </p>
+        </div>
+
+        <!-- Card Bottom Bar (Copy & Progress status) -->
+        <div class="w-full flex items-center justify-between pt-2.5 border-t border-harvest-800/80 text-[11px] text-harvest-400 relative z-10">
+          <div class="flex items-center space-x-1 truncate max-w-[65%]">
+            <span id="poolStatsText" class="truncate font-serif">剩餘 -- / 總數 --</span>
+          </div>
+          <button id="copyPromptBtn" class="hover:text-harvest-200 flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-harvest-900/60 hover:bg-harvest-900 border border-harvest-700/50 transition">
+            <span>📋</span>
+            <span>複製題目</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Controls (Draw & Category Settings) -->
+    <footer class="w-full flex flex-col space-y-2 pb-1">
+      <!-- Main Draw Button -->
+      <button id="drawBtn" class="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-harvest-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-harvest-950 font-serif font-black text-lg sm:text-xl shadow-[0_0_25px_rgba(245,158,11,0.35)] active:scale-98 transition-all flex items-center justify-center space-x-2">
+        <span class="text-xl">🎁</span>
+        <span id="drawBtnText">抽一個感恩題目</span>
+      </button>
+
+      <!-- Bottom Secondary Controls -->
+      <div class="flex items-center justify-between text-xs text-harvest-400 px-1">
+        <button id="categoryBtn" class="hover:text-harvest-200 flex items-center space-x-1 py-1 px-2 rounded-lg bg-harvest-950/60 border border-harvest-800">
+          <span>🏷️ 分類篩選</span>
+        </button>
+        <span id="todayDateLabel" class="font-serif text-[11px] text-harvest-400/80"></span>
+        <button id="resetTodayPoolBtn" class="hover:text-harvest-200 flex items-center space-x-1 py-1 px-2 rounded-lg bg-harvest-950/60 border border-harvest-800">
+          <span>🔄 重設</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Floating Timer Modal Pop-up -->
+  <div id="timerModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-harvest-950 border border-harvest-600/80 rounded-3xl p-5 shadow-2xl flex flex-col items-center">
+      <div class="w-full flex justify-between items-center mb-3">
+        <span class="text-xs font-serif font-bold text-harvest-300 flex items-center space-x-1">
+          <span>⏱️</span>
+          <span>分享倒數計時</span>
+        </span>
+        <button id="closeTimerModalBtn" class="text-harvest-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <div id="timerDisplay" class="font-mono text-4xl font-extrabold text-harvest-200 tracking-wider my-2">01:30</div>
+      <!-- Preset buttons -->
+      <div class="grid grid-cols-3 gap-1.5 w-full my-3">
+        <button data-seconds="60" class="timer-preset-btn py-1 rounded-xl text-xs bg-harvest-900 hover:bg-harvest-800 text-harvest-200 border border-harvest-700/60">1分</button>
+        <button data-seconds="90" class="timer-preset-btn py-1 rounded-xl text-xs bg-harvest-900 hover:bg-harvest-800 text-harvest-200 border border-harvest-700/60 font-bold">1.5分</button>
+        <button data-seconds="120" class="timer-preset-btn py-1 rounded-xl text-xs bg-harvest-900 hover:bg-harvest-800 text-harvest-200 border border-harvest-700/60">2分</button>
+      </div>
+      <!-- Actions -->
+      <div class="flex space-x-2 w-full mt-1">
+        <button id="timerStartBtn" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow">開始</button>
+        <button id="timerResetBtn" class="px-4 py-2 rounded-xl bg-harvest-800 hover:bg-harvest-700 text-harvest-200 font-bold text-xs">重設</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Drawn Questions History Modal / Drawer -->
+  <div id="historyDrawer" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex justify-end transition-opacity">
+    <div class="w-full max-w-md bg-harvest-950 h-full p-6 border-l border-harvest-700/80 flex flex-col justify-between shadow-2xl transform transition-transform overflow-hidden">
+      <div>
+        <div class="flex items-center justify-between pb-4 border-b border-harvest-800">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">📜</span>
+            <h3 class="font-serif font-bold text-lg text-harvest-200">今日已分享題目</h3>
+          </div>
+          <button id="closeHistoryBtn" class="text-harvest-400 hover:text-harvest-100 p-2 text-xl font-bold rounded-lg">&times;</button>
+        </div>
+        <p class="text-xs text-harvest-400 mt-2">以下是今天小組中抽過並分享的題目（當天自動不再被抽中）：</p>
+        
+        <!-- List container -->
+        <div id="historyListContainer" class="mt-4 space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-harvest-800/80 flex space-x-2">
+        <button id="copyAllHistoryBtn" class="flex-1 py-2 rounded-xl bg-harvest-800 hover:bg-harvest-700 text-xs font-bold text-harvest-200 transition">
+          📋 複製今日分享清單
+        </button>
+        <button id="closeDrawerBottomBtn" class="px-4 py-2 rounded-xl bg-harvest-900 hover:bg-harvest-800 text-xs text-harvest-300">
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Filter Modal -->
+  <div id="categoryModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-harvest-950 border border-harvest-600 rounded-3xl p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-harvest-800">
+        <h3 class="font-serif font-bold text-lg text-harvest-200 flex items-center space-x-2">
+          <span>🏷️</span>
+          <span>選擇題目分類</span>
+        </h3>
+        <button id="closeCategoryBtn" class="text-harvest-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-harvest-300/80 my-3">
+        您可以勾選適合今天聚會氛圍的主題分類（全選或挑選特定領域）：
+      </p>
+
+      <!-- Category Badges / Checkboxes -->
+      <div id="categoryCheckboxes" class="grid grid-cols-2 gap-2.5 my-4">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="mt-6 flex justify-end space-x-3">
+        <button id="selectAllCategoryBtn" class="px-3 py-1.5 rounded-lg bg-harvest-900 text-xs text-harvest-200 hover:bg-harvest-800">全選</button>
+        <button id="saveCategoryBtn" class="px-5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow">確定並套用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-harvest-800 text-harvest-100 text-xs font-serif shadow-2xl border border-harvest-500/50 opacity-0 pointer-events-none transition-all duration-300">
+    訊息通知
+  </div>
+
+  <!-- Game Logic & 200 Church Gratitude Questions Script -->
+  <script>
+    /* ========================================================
+       1. 200 題完整感恩節題庫 (靜態 100 題 + 動態 100 題)
+          - 標註 audience: "seeker" 為慕道友可玩（無宗教術語門檻、以純粹生活感恩為核心，各超過35題）
+          - 標註 audience: "christian" 則為基督徒深刻靈命題
+       ======================================================== */
+    const STATIC_QUESTIONS = [
+      // 類別 1: 神的恩典與信心生活 (18題 - 基督徒深度題)
+      { id: 1, type: "static", audience: "christian", cat: "神的恩典", q: "回顧過去這一年，上帝為你成就最意想不到的一件恩典是什麼？", verse: "神能照著運行在我們心裡的大力充充足足地成就一切。（弗 3:20）" },
+      { id: 2, type: "static", audience: "christian", cat: "神的恩典", q: "這一年中，有沒有哪一次禱告看似沒有照你的心意成就，事後回想卻滿是化裝的祝福？", verse: "萬事都互相效力，叫愛神的人得益處。（羅 8:28）" },
+      { id: 3, type: "static", audience: "christian", cat: "神的恩典", q: "過去這段時間，哪一句聖經的話語曾像黑暗中的明燈，及時安慰了你？", verse: "你的話是我腳前的燈，是我路上的光。（詩 119:105）" },
+      { id: 4, type: "static", audience: "christian", cat: "神的恩典", q: "當你感到軟弱無力時，上帝是如何透過環境或話語重新堅固你的信心？", verse: "我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全。（林後 12:9）" },
+      { id: 5, type: "static", audience: "christian", cat: "神的恩典", q: "細數上帝今年在經濟、物質或日用飲食上供應你的一個真實經歷。", verse: "我的神必照他極豐富的榮耀，在基督耶穌裡使你們一切所需用的都充足。（腓 4:19）" },
+      { id: 6, type: "static", audience: "christian", cat: "神的恩典", q: "在今年的安息日或敬拜中，哪一次特別讓你感受到天父深邃的擁抱與平靜？", verse: "你們得救在乎歸回安息；你們得力在乎平靜安穩。（賽 30:15）" },
+      { id: 7, type: "static", audience: "christian", cat: "神的恩典", q: "分享一個上帝向你顯明祂是「信實守約之神」的時刻。", verse: "我們縱然失信，他仍是可信的，因為他不能背乎自己。（提後 2:13）" },
+      { id: 8, type: "static", audience: "christian", cat: "神的恩典", q: "今年你在哪件事情上深刻經歷了「饒恕」帶來的自由與釋放？", verse: "主怎樣饒恕了你們，你們也要怎樣饒恕人。（西 3:13）" },
+      { id: 9, type: "static", audience: "christian", cat: "神的恩典", q: "回想一次受試煉的過程，神如何在那過程中陶塑你的耐心或品格？", verse: "不但如此，就是在患難中也是歡歡喜喜的。（羅 5:3）" },
+      { id: 10, type: "static", audience: "christian", cat: "神的恩典", q: "過去一年中，有哪一首詩歌常常觸摸你的心弦，讓你充滿感謝？", verse: "當用詩章、頌詞、靈歌彼此對說，口唱心和地讚美主。（弗 5:19）" },
+      { id: 11, type: "static", audience: "christian", cat: "神的恩典", q: "經歷突如其來的平安（超越理智理解的平靜）是什麼時候？", verse: "神所賜出人意外的平安必在基督耶穌裡保守你們的心懷意念。（腓 4:7）" },
+      { id: 12, type: "static", audience: "christian", cat: "神的恩典", q: "感謝神賜予大自然的美好，今年哪一次仰望星空或欣賞自然讓你由衷讚美創造主？", verse: "諸天述說神的榮耀，穹蒼傳揚他的手段。（詩 19:1）" },
+      { id: 13, type: "static", audience: "christian", cat: "神的恩典", q: "如果用一種顏色或大自然的景觀來形容神今年給你的恩典，那會是什麼？為什麼？", verse: "你的慈愛比生命更好，我的嘴唇要頌讚你。（詩 63:3）" },
+      { id: 14, type: "static", audience: "christian", cat: "神的恩典", q: "回想你在受洗時或是最初信主的喜樂，今天你想對耶穌說一句什麼感謝的話？", verse: "若有人在基督裡，他就是新造的人。（林後 5:17）" },
+      { id: 15, type: "static", audience: "christian", cat: "神的恩典", q: "今年哪一次你在看似走投無路時，看見神為你開闢了一條新路？", verse: "看哪，我要做一件新事；如今要發現，你們豈不知道嗎？（賽 43:19）" },
+      { id: 16, type: "static", audience: "christian", cat: "神的恩典", q: "在聖靈的提醒與管教中，有哪些事情是你感謝神及時挽回你的？", verse: "因為主所愛的，他必管教。（來 12:6）" },
+      { id: 17, type: "static", audience: "christian", cat: "神的恩典", q: "上帝賜給你的恩賜中，今年在哪一次服事或應用中帶給你由衷的甘甜與意義？", verse: "各人要照所得的恩賜彼此服事，作神百般恩賜的好管家。（彼前 4:10）" },
+      { id: 18, type: "static", audience: "christian", cat: "神的恩典", q: "如果要為上帝在你生命中的一個屬性（如：憐憫、公義、信實、忍耐）獻上感恩，你選哪一個？", verse: "耶和華有憐憫，有恩典，不輕易發怒，且有豐盛的慈愛。（詩 103:8）" },
+
+      // 類別 2: 家庭與親情 (17題 - 包含慕道友友善題)
+      { id: 19, type: "static", audience: "seeker", cat: "家庭親情", q: "在你的家人身上，你最感謝並欣賞他/她今年展現的哪個溫暖特質？", verse: "「凡事包容，凡事相信，愛是永不止息。」" },
+      { id: 20, type: "static", audience: "seeker", cat: "家庭親情", q: "今年家裡發生過哪一件全家人一起歡笑或慶祝的溫馨感恩回憶？", verse: "「家是心靈停泊的港灣，每一個微笑都是最珍貴的禮物。」" },
+      { id: 21, type: "static", audience: "seeker", cat: "家庭親情", q: "感謝父母或長輩過去為你所立下的哪一個好榜樣或智慧教導？", verse: "「飲水思源，孝敬父母是世間最美的品行。」" },
+      { id: 22, type: "static", audience: "seeker", cat: "家庭親情", q: "家人曾為你做過哪一頓暖心的飯、或一件貼心小事，讓你感到被深切愛著？", verse: "「愛往往藏在一碗熱湯與無微不至的守候裡。」" },
+      { id: 23, type: "static", audience: "seeker", cat: "家庭親情", q: "若有機會當面對一位家人說聲「謝謝你」，你現在最想對誰說？說些什麼？", verse: "「愛要及時表達，感恩使彼此的心更加靠近。」" },
+      { id: 24, type: "static", audience: "seeker", cat: "家庭親情", q: "今年家庭在經歷某些意見分歧或挑戰時，你們是如何透過包容與溝通化解的？", verse: "「多一分理解，就少一分摩擦；和睦是家庭最大的福氣。」" },
+      { id: 25, type: "static", audience: "seeker", cat: "家庭親情", q: "感謝家人的健康或陪伴，哪一個看似平凡無奇的日常生活片刻讓你感到格外幸福踏實？", verse: "「平安健康與日常作伴，就是人生最大的富足。」" },
+      { id: 26, type: "static", audience: "seeker", cat: "家庭親情", q: "身為子女、父母或伴侶，今年你在家庭互動中學到了哪一堂重要的「愛的功課」？", verse: "「懂得傾聽與退讓，才能讓愛在家中流暢。」" },
+      { id: 27, type: "static", audience: "christian", cat: "家庭親情", q: "家中有沒有哪位長輩或家人的代禱，是你生命中最堅強的後盾？", verse: "義人祈禱所發的力量是大有功效的。（雅 5:16）" },
+      { id: 28, type: "static", audience: "seeker", cat: "家庭親情", q: "分享一個孩子、晚輩或寵物天真善良的舉動，曾深深溫暖治癒了你的心。", verse: "「純真的眼神與童稚的笑容，總能洗去成人世界的疲憊。」" },
+      { id: 29, type: "static", audience: "christian", cat: "家庭親情", q: "今年家庭共同克服的困難中，最想歸榮耀給神的是什麼？", verse: "至於我和我家，我們必定事奉耶和華。（書 24:15）" },
+      { id: 30, type: "static", audience: "seeker", cat: "家庭親情", q: "你有沒有一件從長輩傳承下來的好習慣、處世哲理或溫暖家訓？", verse: "「好的家風與美德，是代代相傳的最美遺產。」" },
+      { id: 31, type: "static", audience: "seeker", cat: "家庭親情", q: "如果最感謝的家人現在就在身邊，你想給他一個什麼樣的擁抱或驚喜小禮物？", verse: "「表達感恩最好的方式，就是一個深切真誠的擁抱。」" },
+      { id: 32, type: "static", audience: "seeker", cat: "家庭親情", q: "感謝家中默默付出最不起眼家務（倒垃圾、洗碗、洗衣）的那一位，你想如何慰勞他？", verse: "「看見隱藏的付出，是家庭幸福的第一步。」" },
+      { id: 33, type: "static", audience: "seeker", cat: "家庭親情", q: "今年有沒有與身邊某位親人破冰、和解或重新聊開的欣慰經歷？", verse: "「原諒與擁抱，能縫合時間帶來的一切裂痕。」" },
+      { id: 34, type: "static", audience: "seeker", cat: "家庭親情", q: "這一年裡，家人的支持或一句鼓励，如何給了你勇氣去面對外面的風浪？", verse: "「無論世界多麼喧囂，家人的信任永遠是最堅固的防線。」" },
+      { id: 35, type: "static", audience: "seeker", cat: "家庭親情", q: "為著你目前溫暖的住處、遮風避雨的家與舒服的床鋪獻上感恩。", verse: "「一簞食，一瓢飲，知足常樂，歲月靜好。」" },
+
+      // 類別 3: 教會與肢體生活 (17題 - 基督徒題)
+      { id: 36, type: "static", audience: "christian", cat: "教會肢體", q: "在教會小組或團契中，今年有哪位弟兄姊妹的關心或禱告深深支持著你？", verse: "各人的重擔要互相擔當，如此，就成全了基督的律法。（加 6:2）" },
+      { id: 37, type: "static", audience: "christian", cat: "教會肢體", q: "回想今年主日講台的信息或查經，哪一篇講道深深扎中你的心並帶來改變？", verse: "你們要按著道而行，不要單單聽道，自己欺哄自己。（雅 1:22）" },
+      { id: 38, type: "static", audience: "christian", cat: "教會肢體", q: "感謝教會中默默服事的無名英雄（如音控、招待、司琴、愛宴、清潔），你想向哪一個團隊致謝？", verse: "因為神並非不公義，竟忘記你們所做的工和你們為他名所顯的愛心。（來 6:10）" },
+      { id: 39, type: "static", audience: "christian", cat: "教會肢體", q: "在教會的小組分享時，有沒有誰敞開自己的見證，給了你莫大的鼓舞？", verse: "弟兄勝過他，是因羔羊的血和自己所見證的道。（啟 12:11）" },
+      { id: 40, type: "static", audience: "christian", cat: "教會肢體", q: "今年你在教會所參與的哪一次服事，讓你深刻體會「施比受更為有福」？", verse: "施比受更為有福。（徒 20:35）" },
+      { id: 41, type: "static", audience: "christian", cat: "教會肢體", q: "感謝牧者傳道與領袖的牧養，你想為牧者祝福與代禱些什麼？", verse: "請你們敬重那在你們中間勞苦的人，就是在主裡面治理你們、勸戒你們的。（帖前 5:12）" },
+      { id: 42, type: "static", audience: "christian", cat: "教會肢體", q: "今年教會有沒有新朋友加入，因著他的到來為團契帶來了新的活力？", verse: "不可忘記用愛心接待客旅；因為曾有接待客旅的，不知不覺就接待了天使。（來 13:2）" },
+      { id: 43, type: "static", audience: "christian", cat: "教會肢體", q: "在彼此代禱的群組中，哪一次禱告蒙應允的喜訊讓全教會同心歡喜？", verse: "若是你們中間有兩個人在地上同心合意地求什麼事，我在天上的父必為他們成全。（太 18:19）" },
+      { id: 44, type: "static", audience: "christian", cat: "教會肢體", q: "在團契中，曾有哪位屬靈同伴對你說出愛心的誠實話，幫助你走正路？", verse: "惟用愛心說誠實話，凡事長進，連於元首基督。（弗 4:15）" },
+      { id: 45, type: "static", audience: "christian", cat: "教會肢體", q: "感謝神賜給我們聚會的敬拜堂所，回想走進教會感到無比安歇的一刻。", verse: "寧可在你的院宇住一日，勝似在別處住千日。（詩 84:10）" },
+      { id: 46, type: "static", audience: "christian", cat: "教會肢體", q: "為著教會的主日學老師或青年輔導獻上感恩，他們哪一點付出感動了你？", verse: "教導的，就當專一教導。（羅 12:7）" },
+      { id: 47, type: "static", audience: "christian", cat: "教會肢體", q: "今年教會舉辦的營會、外展或節慶活動中，你最難忘的一幕是什麼？", verse: "你們是世上的光。城造在山上是不能隱藏的。（太 5:14）" },
+      { id: 48, type: "static", audience: "christian", cat: "教會肢體", q: "你曾在教會生病或傷心時，收到過哪位肢體帶來的雞湯、卡片或溫暖短訊？", verse: "若一個肢體受苦，所有的肢體就一同受苦；若一個肢體得榮耀，所有的肢體就一同快樂。（林前 12:26）" },
+      { id: 49, type: "static", audience: "christian", cat: "教會肢體", q: "分享一個你在團契敬拜時，被身旁弟兄姊妹同心揚聲禱告所感染的震撼經歷。", verse: "他們天天同心合意恆切地在殿裡，且在家中擘餅，存著歡喜、誠實的心用飯。（徒 2:46）" },
+      { id: 50, type: "static", audience: "christian", cat: "教會肢體", q: "當你在信仰路上感到疲憊時，誰曾像「亞倫和戶珥」一樣扶著你的手？", verse: "摩西的手發沉……亞倫與戶珥扶著他的手，一個在這邊，一個在那邊。（出 17:12）" },
+      { id: 51, type: "static", audience: "christian", cat: "教會肢體", q: "感謝神把不同背景、性格的人放在同一個教會大家庭，你從誰身上看見了不一樣的美麗特質？", verse: "身子原不是一個肢體，乃是許多肢體。（林前 12:14）" },
+      { id: 52, type: "static", audience: "christian", cat: "教會肢體", q: "今年你為宣教士或福音機構奉獻/代禱時，神如何擴張了你的國度眼界？", verse: "所以，你們要去，使萬民作我的門徒。（太 28:19）" },
+
+      // 類別 4: 職場、校園與挑戰 (17題 - 包含慕道友題)
+      { id: 53, type: "static", audience: "seeker", cat: "職場校園", q: "在工作或求學環境中，今年哪一位同事、同學或長官曾及時伸出援手拉你一把？", verse: "「同行有良伴，行路不覺遠；感恩生命中並肩作戰的夥伴。」" },
+      { id: 54, type: "static", audience: "seeker", cat: "職場校園", q: "回想今年在職場或學習上克服的最大難關，你最感謝自己身上發揮了什麼特質？", verse: "「每一個逆境都是淬鍊韌性的熔爐，走過便成力量。」" },
+      { id: 55, type: "static", audience: "seeker", cat: "職場校園", q: "感謝一份穩定的收入、學習機會或平台，這份工作如何讓你感受到自我的價值？", verse: "「敬業樂群，手中的每一份勞碌都有其非凡的意義。」" },
+      { id: 56, type: "static", audience: "seeker", cat: "職場校園", q: "今年在高壓、忙碌的緊繃節奏中，你找到了什麼有效讓心靈慢下來、喘口氣的好方法？", verse: "「忙碌中保持從容，是給心靈最溫柔的禮物。」" },
+      { id: 57, type: "static", audience: "seeker", cat: "職場校園", q: "在人際或工作團隊中，你有沒有做過一件誠實、善良且問心無愧的選擇，為此感到欣慰？", verse: "「善良比聰明更難，誠信是人生最珍貴的資產。」" },
+      { id: 58, type: "static", audience: "seeker", cat: "職場校園", q: "今年有沒有哪次嚴厲的批評或挫折，事後證明反而促成了你的進步與蛻變？", verse: "「逆耳良言是成長的肥料，使生命更加成熟堅韌。」" },
+      { id: 59, type: "static", audience: "seeker", cat: "職場校園", q: "感謝每天平平安安出門、平平安安回家，回想一次逢凶化吉或避開危機的幸運感恩經歷。", verse: "「出入平安，無病無災，就是生命最深厚的恩典。」" },
+      { id: 60, type: "static", audience: "seeker", cat: "職場校園", q: "今年學到的一項新技能、新知識或工作心得，你最感謝誰的指點與傳授？", verse: "「三人行必有我師，感謝每位樂於傾囊相授的前輩。」" },
+      { id: 61, type: "static", audience: "seeker", cat: "職場校園", q: "分享一位在工作場所或學校總是充滿朝氣笑容、為大家帶來正能量的好夥伴。", verse: "「樂觀的心情如同一盞明燈，能照亮周圍的每個人。」" },
+      { id: 62, type: "static", audience: "christian", cat: "職場校園", q: "今年當你面對工作上的重大抉擇時，上帝如何引導你的心歸向平安？", verse: "你要專心仰賴耶和華，不可倚靠自己的聰明。（箴 3:5）" },
+      { id: 63, type: "static", audience: "seeker", cat: "職場校園", q: "感謝你在低潮、倦怠期依然沒有放棄，支持你一路撐過來的信念是什麼？", verse: "「堅持不是因為看見希望，而是堅持了才能看見希望。」" },
+      { id: 64, type: "static", audience: "christian", cat: "職場校園", q: "在面臨不公義或誤解時，上帝如何教導你把審判與主權交在祂手中？", verse: "不要自己伸冤，寧可讓步，聽憑主怒。（羅 12:19）" },
+      { id: 65, type: "static", audience: "seeker", cat: "職場校園", q: "感謝今年完成的一項專案、考試或結案，當下那種如釋重負的成就感是什麼滋味？", verse: "「一分耕耘，一分收穫，流過汗水後的果實格外甘美。」" },
+      { id: 66, type: "static", audience: "seeker", cat: "職場校園", q: "在日常工作中，你最享受哪一個微小的環節（如泡一杯茶整理桌面、完成清單）？", verse: "「把平凡的小事做好，生活便充滿了詩意與秩序。」" },
+      { id: 67, type: "static", audience: "christian", cat: "職場校園", q: "今年有沒有哪位未信主的朋友或同事，主動向你詢問關於信仰或人生盼望？", verse: "只要心裡尊主基督為聖。有人問你們心中盼望的緣由，就要常作準備。（彼前 3:15）" },
+      { id: 68, type: "static", audience: "seeker", cat: "職場校園", q: "在一次休假、旅行或週末中，大自然或放鬆時光給了你怎樣的能量充電？", verse: "「給靈魂放個假，回歸純粹，世界依然寬廣美好。」" },
+      { id: 69, type: "static", audience: "seeker", cat: "職場校園", q: "面對未來的生涯規劃，你為目前所擁有的經驗與機會獻上什麼感謝？", verse: "「走過的每一步路都算數，過去的積累造就今天的自己。」" },
+
+      // 類別 5: 個人成長與心靈蛻變 (16題 - 包含慕道友題)
+      { id: 70, type: "static", audience: "seeker", cat: "個人成長", q: "對比一年前的自己，你發現自己在心態（例如更不容易生氣、更放得開）上有何成長？", verse: "「成熟不是年齡的增長，而是心靈多了一份從容與豁達。」" },
+      { id: 71, type: "static", audience: "seeker", cat: "個人成長", q: "今年你學會對哪一件原本執著的人事物「學會釋懷」，心裡感到一身輕鬆？", verse: "「學會放下，不是認輸，而是選擇放過自己的內心。」" },
+      { id: 72, type: "static", audience: "seeker", cat: "個人成長", q: "過去這一年，你如何學會不再盲目跟別人比較，懂得珍惜自己所擁有的？", verse: "「不羨慕別人的花園，專心灌溉自己腳下的土壤。」" },
+      { id: 73, type: "static", audience: "seeker", cat: "個人成長", q: "感謝你的身體，這一年它辛勤運轉、陪伴你走過無數日子，你想對身體說句什麼？", verse: "「善待自己的身體，它是靈魂在世上唯一的居所。」" },
+      { id: 74, type: "static", audience: "seeker", cat: "個人成長", q: "過去這一年，你養成了哪一個讓你更健康或更舒心的小習慣（如早起、喝水、閱讀）？", verse: "「細微的改變，持之以恆，終將匯聚成巨大的力量。」" },
+      { id: 75, type: "static", audience: "seeker", cat: "個人成長", q: "面對自己的小缺點或不完美，你如何學會溫柔接納自己？", verse: "「接納真實的自己，不完美也是生命獨特的紋理。」" },
+      { id: 76, type: "static", audience: "seeker", cat: "個人成長", q: "今年有沒有讀過一本好書、看過一部好電影或聽過一席話，深深觸動了你的心靈？", verse: "「好書如摯友，字裡行間皆是照亮心靈的微光。」" },
+      { id: 77, type: "static", audience: "christian", cat: "個人成長", q: "當你感到孤單時，你如何發現「原來主一直與我同在」？", verse: "我總不撇下你，也不丟棄你。（來 13:5）" },
+      { id: 78, type: "static", audience: "seeker", cat: "個人成長", q: "今年你在哪一件事情上，勇敢說出了真話、展現了真實的自己？", verse: "「真誠是最高貴的力量，做一個真實的人最踏實。」" },
+      { id: 79, type: "static", audience: "seeker", cat: "個人成長", q: "感謝今年度過的那些心酸與淚水，回頭看，它讓你變得更體貼或更有同理心了嗎？", verse: "「傷口是光進入你內心的地方，讓人更能體察他人的痛。」" },
+      { id: 80, type: "static", audience: "seeker", cat: "個人成長", q: "從過去一次失敗的經驗中，你提煉出了哪一條受用無窮的人生智慧？", verse: "「失敗不是終點，而是通往成熟的必經彎道。」" },
+      { id: 81, type: "static", audience: "seeker", cat: "個人成長", q: "今年你在時間安排與生活節奏上，做出了什麼樣讓你更舒展的調整？", verse: "「找到自己的生活時鐘，不必隨世界的節奏盲目起舞。」" },
+      { id: 82, type: "static", audience: "seeker", cat: "個人成長", q: "有沒有一段糾結很久的執念或心結，今年你終於悄悄想通、與自己和解了？", verse: "「心若寬了，路就寬了；放下了，天地無限開闊。」" },
+      { id: 83, type: "static", audience: "seeker", cat: "個人成長", q: "感謝生活中那些微小的感動，最近一次因為感動而心頭一暖是什麼時候？", verse: "「心懷感恩的人，眼中隨處都是溫暖的風景。」" },
+      { id: 84, type: "static", audience: "seeker", cat: "個人成長", q: "如果為今年的自己頒發一個「最棒勇氣獎」，你會因為自己堅持了什麼而肯定自己？", verse: "「致敬每一次在風雨中依然選擇勇敢向前的自己。」" },
+      { id: 85, type: "static", audience: "christian", cat: "個人成長", q: "面對未來的歲月，你對神有怎樣嶄新的期待與渴慕？", verse: "深信那在你們心裡動了善工的，必成全這工，直到耶穌基督的日子。（腓 1:6）" },
+
+      // 類別 6: 日常小確幸與微小恩惠 (15題 - 慕道友極佳)
+      { id: 86, type: "static", audience: "seeker", cat: "日常微恩", q: "分享最近讓你感到特別幸福的一道美食、一杯熱咖啡或一頓暖呼呼的聚餐。", verse: "「人間煙火氣，最撫凡人心。享受每一口用心烹調的美味。」" },
+      { id: 87, type: "static", audience: "seeker", cat: "日常微恩", q: "回想一個萍水相逢的陌生人曾對你展現的善意微笑、主動讓座或幫忙按電梯。", verse: "「善意是一束光，即使在陌生的人海裡也能相互照亮。」" },
+      { id: 88, type: "static", audience: "seeker", cat: "日常微恩", q: "感謝陽光、空氣與微風，最近哪一種舒適的天氣曾帶給你一整天的好心情？", verse: "「微風拂面，暖陽照耀，大自然慷慨賜予我們最好的撫慰。」" },
+      { id: 89, type: "static", audience: "seeker", cat: "日常微恩", q: "分享一件你最近買到、收到或用得很順手的貼心日用品，為這份便利道謝。", verse: "「小物件裡有大智慧，便利的科技讓日常更加溫暖。」" },
+      { id: 90, type: "static", audience: "seeker", cat: "日常微恩", q: "今天能看見繽紛的色彩、聽見美妙的音樂、能行走奔跑，你想感謝身體的哪個感官？", verse: "「健全的感官是無價的寶藏，讓我們盡情體會世界的美。」" },
+      { id: 91, type: "static", audience: "seeker", cat: "日常微恩", q: "最近一次讓你忍不住開懷大笑、捧腹不已的幽默趣事是什麼？", verse: "「笑聲是心靈的解藥，把煩惱通通融化在歡聲笑語裡。」" },
+      { id: 92, type: "static", audience: "seeker", cat: "日常微恩", q: "路邊偶然看到的一朵小花、可愛的貓狗或翠綠的大樹，曾如何療癒了你的疲憊？", verse: "「一花一世界，大自然的微小生命總在悄悄傳遞生命力。」" },
+      { id: 93, type: "static", audience: "seeker", cat: "日常微恩", q: "感謝現代科技（視訊通話、通訊軟體），它如何幫你拉近了與遠方所愛之人的距離？", verse: "「天涯若比鄰，愛讓千山萬水不再成為阻隔。」" },
+      { id: 94, type: "static", audience: "seeker", cat: "日常微恩", q: "這一年中有哪一個安靜的清晨或深夜，一段屬於自己的獨處時光讓你倍感放鬆？", verse: "「在安靜中尋回自己，獨處是心靈沉澱與蓄力的時刻。」" },
+      { id: 95, type: "static", audience: "seeker", cat: "日常微恩", q: "有沒有哪一次不小心掉東西卻幸運找回，或是時間趕得恰恰好的驚喜幸運體驗？", verse: "「生活偶爾會給我們小驚喜，讓心中升起滿滿的感謝。」" },
+      { id: 96, type: "static", audience: "seeker", cat: "日常微恩", q: "感謝為城市默默維持秩序與整潔的清潔工、公車司機、警察或醫護人員，你想對他們說什麼？", verse: "「向每一位默默堅守崗位、守護社會日常的無名英雄致敬。」" },
+      { id: 97, type: "static", audience: "seeker", cat: "日常微恩", q: "回想一個你曾收到的溫馨祝福、一張手寫卡片或意外小禮，那份心意如何溫暖了你？", verse: "「禮物有價，心意無價；字句間的溫度久久不散。」" },
+      { id: 98, type: "static", audience: "seeker", cat: "日常微恩", q: "分享一件生活看似不起眼、但如果沒有它會極度不方便的事物（如熱水器、冰箱、眼鏡），並感謝它！", verse: "「凡事習以為常的背後，都藏著值得感恩的便利。」" },
+      { id: 99, type: "static", audience: "seeker", cat: "日常微恩", q: "感謝今天大家能圍坐在一起，彼此傾聽、分享心情的這份緣分與友誼。", verse: "「相遇是美好的緣分，分享讓心靈的溫度持續蔓延。」" },
+      { id: 100, type: "static", audience: "seeker", cat: "日常微恩", q: "【感恩總結】在即將展開的嶄新一年，你最盼望帶上一種怎樣「心懷感謝」的心態迎向每一天？", verse: "「常懷感恩之心，生命之樹常青，每一天都充滿奇蹟。」" }
+    ];
+
+    /* ========================================================
+       動態題庫：100 題現場感恩行動挑戰
+       (其中超過 35 題特別設計給慕道友：親切、溫馨、完全不彆扭、不需宗教術語)
+       ======================================================== */
+    const DYNAMIC_QUESTIONS = [
+      // 1-20: 現場稱讚與溫暖互動
+      { id: 101, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請轉頭看向右手邊的第一位朋友，真誠地說出他/她身上你看見的 3 個優點或美好性格！", verse: "「一句誠懇的讚美，能溫暖他人一整天。」" },
+      { id: 102, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請走到今天到場的一位長輩或朋友身邊，向他深深鞠躬或溫暖握手致謝：「謝謝你的到來，有你真好！」", verse: "「敬老尊賢，謙和待人，處處充滿溫馨。」" },
+      { id: 103, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請現場挑選一位聚會主持人或服務同伴，當面大聲對他說一聲：「謝謝你熱心張羅，辛苦了！」", verse: "「為大家的付出點讚，感謝有心人的無私奉獻。」" },
+      { id: 104, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】邀請你左手邊的朋友，和他熱情擊掌 3 次，每次擊掌說一句正能量祝福（例如：健康！順心！快樂！）", verse: "「用最簡單的擊掌，傳遞最直接的快樂！」" },
+      { id: 105, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請找現場一位平時比較少互動的朋友，過去給他一個握手或碰拳，送上一個燦爛的笑容。", verse: "「真誠的笑容是打破陌生隔閡的最佳名片。」" },
+      { id: 106, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請全組起立，由你帶領全場一起為今天第一次來的新朋友熱烈鼓掌歡呼 10 秒鐘！", verse: "「熱情歡迎每位新朋友，這裡就是溫暖的大家庭。」" },
+      { id: 107, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請看著坐在你正對面的朋友，用一句話誇讚他今天的穿搭、髮型或笑容最棒的地方。", verse: "「發現他人的美，自己眼中的世界也會變得更美。」" },
+      { id: 108, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請模仿「新聞主播播報好消息」的逗趣語氣，現場大聲表揚身旁一位朋友今年做過的一件暖心善事！", verse: "「揚善於公堂，把身邊的好人好事大聲說出來！」" },
+      { id: 109, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請現場邀請兩位朋友站起來，你們三人手搭著肩膀，一起同聲大喊：「認識大家真高興！」", verse: "「千里有緣來相聚，真摯的友情無可替代。」" },
+      { id: 110, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請向全場公開感謝一位曾經在私底下照顧過你的人，當場向他致敬說聲謝謝！", verse: "「受人滴水之恩，當常懷感恩之心。」" },
+      { id: 111, type: "dynamic", audience: "christian", cat: "肢體尊榮", q: "【現場行動】請對現場最辛苦的愛宴、場地或多媒體同工，帶領全組同聲齊說：「感謝無名英雄，願主大大賜福！」", verse: "你在暗中察看，必然報答你。（太 6:6）" },
+      { id: 112, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請為你身邊的朋友做一個貼心的「捶捶背」或「捏捏肩膀」的感謝服務（約 15 秒）。", verse: "「動動雙手，用貼心的舉動舒緩彼此的疲倦。」" },
+      { id: 113, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請站起來走到房間前方，向全體在場的朋友做一個優雅的感謝鞠躬禮！", verse: "「謙遜有禮，讓相聚的氣氛更加溫暖和睦。」" },
+      { id: 114, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請挑選一位你覺得很有親和力的榜樣，當面向他討教一個保持好心情的秘訣。", verse: "「向美好的人看齊，學習讓生命更發光的方法。」" },
+      { id: 115, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請為你右手邊的朋友遞上一杯溫水或茶點，並親切地說：「謝謝你今天來參加！」", verse: "「端上一杯熱水，溫暖的是彼此的心扉。」" },
+      { id: 116, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請挑選一位朋友，現場跟他一起比一個超大愛心手勢，並合照一張感恩微笑照！", verse: "「留下美好的定格，紀念今天相聚的歡樂。」" },
+      { id: 117, type: "dynamic", audience: "christian", cat: "肢體尊榮", q: "【現場行動】請現場向一位牧者、師母或小組長，給予一個溫暖的問安並說出你從他身上學到的榜樣。", verse: "那善於管理教會的長老，當以為配受加倍的敬奉。（提前 5:17）" },
+      { id: 118, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請對著身邊朋友，現場展示你最燦爛、最療癒的微笑 5 秒鐘！", verse: "「微笑是全世界通用的最美語言。」" },
+      { id: 119, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請邀請身邊的人握住你的手，並以感恩的眼神注視對方 5 秒鐘，彼此說「認識你真好」。", verse: "「眼神裡的真誠，勝過千言萬語。」" },
+      { id: 120, type: "dynamic", audience: "seeker", cat: "肢體尊榮", q: "【現場行動】請現場尋找一位你覺得「笑容最親切」的人，大聲稱讚他是「今天的陽光微笑大使」！", verse: "「把讚美送給帶來光明笑容的人。」" },
+
+      // 21-40: 祝福與心意行動
+      { id: 121, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請現場走到一位肢體身邊，把手輕按在他肩上，開口為他作一個 30 秒的感恩與祝福禱告！", verse: "互相代求，使你們可以得醫治。（雅 5:16）" },
+      { id: 122, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請詢問你左手邊朋友：「這週有沒有一件需要代禱的事？」並現場立刻為他開口呼求神！", verse: "只要凡事藉著禱告、祈求，和感謝，將你們所要的告訴神。（腓 4:6）" },
+      { id: 123, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請帶領現場所有人，同聲開口為我們的國家、城市與教會的復興做一段同聲宣告！", verse: "為萬人懇求、禱告、代求、祝謝；為君王和一切在位的也該如此。（提前 2:1-2）" },
+      { id: 124, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請現場邀請身旁兩位朋友牽起雙手，互相說一句發自內心的祝福：「祝你在新的一年平安順心、心想事成！」", verse: "「誠摯的祝福如春風，願好運常伴左右。」" },
+      { id: 125, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請為教會的主日學孩子或下一代青年，作一個充滿盼望的祝福禱告！", verse: "教養孩童，使他走當行的道，就是到老他也不偏離。（箴 22:6）" },
+      { id: 126, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請抽出手機，立刻傳一封溫馨的祝福簡訊/LINE給一位今天沒能到場的親友：「感恩節想到你，祝你一切安好！」", verse: "「雖然相隔兩地，但牽掛與問候永不缺席。」" },
+      { id: 127, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請現場帶領大家用大衛的詩篇第 23 篇第 1 節：「耶和華是我的牧者，我必不致缺乏」齊聲宣告 3 遍！", verse: "耶和華是我的牧者，我必不致缺乏。（詩 23:1）" },
+      { id: 128, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請關心現場一位近期工作忙碌或課業繁忙的朋友，拍拍他的肩膀對他說：「加油！你真的很棒！」", verse: "「一句適時的鼓勵，能點燃重新前行的鬥志。」" },
+      { id: 129, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請邀請身旁朋友一起站起來，舉起雙手為教會的宣教事工與福音外展發出讚美禱告！", verse: "你們要往普天下去，傳福音給萬民聽。（可 16:15）" },
+      { id: 130, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請現場為一個身體微恙或疲累的弟兄姊妹，奉耶穌基督的名宣告醫治與重新得力！", verse: "因他受的鞭傷，我們得醫治。（賽 53:5）" },
+      { id: 131, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請現場開口用《民數記 6:24-26》的亞倫祭司祝福，親口祝福全場所有肢體！", verse: "願耶和華賜福給你，保護你。願耶和華使他的臉光照你，賜恩給你。（民 6:24-26）" },
+      { id: 132, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請為今天聚會的司琴、敬拜主領或講員獻上一個感恩的祝福禱告！", verse: "神是個靈，所以拜他的必須用心靈和誠實拜他。（約 4:24）" },
+      { id: 133, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請帶領全場閉目靜默 20 秒，全場在心中為剛過去的一年所平安度過的每一天由衷道謝。", verse: "「在安靜默想中，數算那些逢凶化吉的平安。」" },
+      { id: 134, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請找一位今天剛認識或不熟的朋友，問他的名字並真誠對他說：「很高興認識你，歡迎常來！」", verse: "「打開心扉接納新朋友，世界便多了一位夥伴。」" },
+      { id: 135, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請為在場所有人的家庭大聲送上祝福：「祝大家的家庭和樂融融、平安健康、笑聲滿滿！」", verse: "「家和萬事興，最溫暖的祝福獻給每個家庭。」" },
+      { id: 136, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請現場帶領大家同心齊唱一句「哈利路亞，讚美主！」", verse: "凡有氣息的都要讚美耶和華！你們要讚美耶和華！（詩 150:6）" },
+      { id: 137, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請在現場找一位朋友，送給他一句你最喜歡的人生座右銘或勵志金句！", verse: "「好言一句三冬暖，將智慧的美詞送給珍貴的朋友。」" },
+      { id: 138, type: "dynamic", audience: "christian", cat: "代禱祝福", q: "【現場行動】請現場為那些正在孤單或憂傷中的肢體，開口求聖靈如同保惠師般緊緊擁抱他們。", verse: "天天背負我們重擔的主，就是拯救我們的神，是應當稱頌的！（詩 68:19）" },
+      { id: 139, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請現場找一位朋友，與他碰拳，彼此約定：「無論遇到什麼困難，我們都要勇往直前！」", verse: "「並肩作戰的約定，是面對風雨最大的底氣。」" },
+      { id: 140, type: "dynamic", audience: "seeker", cat: "代禱祝福", q: "【現場行動】請帶領大家一起做一次深呼吸，並在吐氣時同聲歡呼：「拋開煩惱，感恩擁抱每一天！」", verse: "「深吸一口清新的空氣，吐出疲憊，迎來活力。」" },
+
+      // 41-60: 活力破冰與歡樂互動
+      { id: 141, type: "dynamic", audience: "christian", cat: "讚美互動", q: "【現場行動】請現場清唱一首你最感恩的詩歌副歌（至少兩句），並邀請大家一起拍手合音！", verse: "當用詩章、頌詞、靈歌彼此對說，口唱心和地讚美主。（弗 5:19）" },
+      { id: 142, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請現場示範一段簡單好玩的「感恩歡呼動作」（例如開懷大笑或伸展拍手），並帶領大家一起做！", verse: "「讓身體動起來，快樂會在笑聲中加倍傳染。」" },
+      { id: 143, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請在 10 秒鐘之內，用快問快答的方式，現場一口氣講出 5 樣你最愛、最感謝的大自然美好事物！", verse: "「山川、大海、陽光、微風，處處都是造化的恩賜。」" },
+      { id: 144, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請和現場左邊與右邊的朋友，三人一起合力比出一個象徵「感恩大愛心」的肢體手勢！", verse: "「齊心協力，比出最有默契的心連心。」" },
+      { id: 145, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請用你最宏亮、開朗的聲音，帶領全場齊聲歡呼「耶！感恩節快樂！」三次！", verse: "「用滿滿的元氣聲量，點燃全場的歡慶氣氛。」" },
+      { id: 146, type: "dynamic", audience: "christian", cat: "讚美互動", q: "【現場行動】請現場清唱《奇異恩典》或《野地的花》第一句，展現感恩歌喉！", verse: "我一生要讚美耶和華！我還活的時候要歌頌我的神！（詩 146:2）" },
+      { id: 147, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請帶領全場做一個「喜樂微笑傳遞」遊戲：對身旁人微笑眨眼，一個接一個傳遞一整圈！", verse: "「把善意的微笑如同接力棒一樣傳遞開來。」" },
+      { id: 148, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請邀請身邊的人一起用手輕敲桌面，敲擊出一段歡快熱鬧的感恩節鼓點節奏！", verse: "「用最原始的節奏，敲出心中的歡欣與雀躍。」" },
+      { id: 149, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請用比手畫腳（完全不講話）演出一個你最感謝的生活日常（例如喝熱湯、看海），讓大家猜！", verse: "「無聲勝有聲，用生動的動作帶來滿場笑聲。」" },
+      { id: 150, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請現場對著天空做一個「擁抱天地」的大字型開展手勢，感謝生命賜予的美好一切！", verse: "「打開心胸，擁抱藍天，感受生命的豐饒。」" },
+      { id: 151, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請在現場模仿敲響歡樂鐘聲，高喊「噹噹噹！好運與平安來敲門囉！」", verse: "「清脆的鐘聲敲響平安，好心情撲面而來。」" },
+      { id: 152, type: "dynamic", audience: "christian", cat: "讚美互動", q: "【現場行動】請現場背誦或大聲朗讀主禱文的第一句：「我們在天上的父，願人都尊你的名為聖！」", verse: "所以，你們禱告要這樣說：我們在天上的父……（太 6:9）" },
+      { id: 153, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請邀請現場一位朋友和你玩一次「默契剪刀石頭布」（同時出一樣的手勢才算過關）！", verse: "「在歡笑遊戲中拉近距離，培養同頻好默契。」" },
+      { id: 154, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請向身旁三位朋友分別說一句：「你的存在很獨特，世界因你更美好！」", verse: "「每個人都是世上獨一無二的風景。」" },
+      { id: 155, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請邀請大家一起起立做舒展伸展：雙手向上拉伸，感謝健康靈活的身體！", verse: "「活動筋骨，讓正能量充滿身體的每個細胞。」" },
+      { id: 156, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請用俏皮押韻的順口溜，講出兩句感謝今天聚會與朋友相聚的話！", verse: "「巧妙好詞出口成章，幽默詼諧逗樂全場。」" },
+      { id: 157, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請現場找到一位朋友，與他來一個帥氣的「碰拳手勢」（Fist Bump）致敬！", verse: "「碰個拳，一切盡在不言中的熱血與支持。」" },
+      { id: 158, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請帶領大家一同大力鼓掌歡呼：「感謝生活！感謝相遇！常樂常安！」", verse: "「熱烈的掌聲送給生活，也送給同行的彼此。」" },
+      { id: 159, type: "dynamic", audience: "seeker", cat: "讚美互動", q: "【現場行動】請在現場擺出一個你覺得最放鬆、最舒適的「度假享受」姿勢給大家看！", verse: "「學會全然放鬆，給疲憊的身心一個深呼吸。」" },
+      { id: 160, type: "dynamic", audience: "christian", cat: "讚美互動", q: "【現場行動】請選一首詩歌名稱，現場帶領大家喊出該首詩歌最觸動你的一句歌詞！", verse: "我要向耶和華歌唱，因他大大得勝。（出 15:1）" },
+
+      // 61-80: 現場即時傳愛與暖心行動
+      { id: 161, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】拿出手機，立刻傳訊給爸爸、媽媽或伴侶：「謝謝你們一直以來的照顧，感恩節快樂！」", verse: "「愛要常說出口，給至親一句最溫暖的告白。」" },
+      { id: 162, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】給通訊錄中一位好久沒聊天的老朋友傳個問候：「今天聚會聊到感恩突然想到你，祝你一切順心！」", verse: "「老朋友如老酒，偶爾的一聲問候醇香依舊。」" },
+      { id: 163, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】在手機社群動態（IG/FB/LINE）發一則限時動態：「今天參加感恩分享，心裡好溫暖！」", verse: "「將心中的正能量與感恩分享給世界。」" },
+      { id: 164, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】拿出一張小紙條（或便利貼），寫下一句暖心鼓勵話，悄悄塞給身旁的某位朋友！", verse: "「手寫的溫度最真摯，紙短情長溫暖心窩。」" },
+      { id: 165, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】現場將隨身的一顆糖果、餅乾或小點心，主動分享給身旁的一位新朋友！", verse: "「分享的滋味格外甜美，一顆糖拉近彼此。」" },
+      { id: 166, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】傳訊息給今天未能到場的朋友，告訴他：「今天現場好熱鬧，我們大家都在想你喔！」", verse: "「被朋友惦記著，是世間極溫暖的幸福。」" },
+      { id: 167, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】向今天辛苦準備茶點、整理場地的朋友道謝，並主動表示聚會後願意幫忙一次！", verse: "「主動伸手幫忙，讓付出的辛勞被體貼善待。」" },
+      { id: 168, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】拿出手機找出一張今年最開心的旅遊照或聚餐照，亮給身旁的三位朋友看並介紹！", verse: "「分享美好的回憶，快樂會瞬間傳染開來。」" },
+      { id: 169, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】傳訊息給工作或課業上的搭檔，感謝他過去在某個專案上的神助攻！", verse: "「肯定夥伴的付出，好團隊需要互相支持。」" },
+      { id: 170, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】給現場一位朋友比一個大大的「讚」，並說出他今天最認真投入的一刻！", verse: "「專注的人最迷人，毫不吝嗇給予掌聲。」" },
+      { id: 171, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】當場對身邊的一位朋友發出「找時間一起喝杯咖啡、吃頓飯」的暖心邀約！", verse: "「在忙碌生活中，為彼此留下一段小聚時光。」" },
+      { id: 172, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】現場起立幫身旁朋友倒一杯水，體貼照顧身邊的人。", verse: "「體貼往往體現在最細膩的舉手投足之間。」" },
+      { id: 173, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】在手機備忘錄寫下今天聽到的第一個感恩小故事，作為今天最好的生活收穫！", verse: "「把感動記錄下來，便成了心靈永恆的養分。」" },
+      { id: 174, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】向一位平時話不多、默默在角落幫忙的朋友，當面說一聲：「你的細心我們都有看見，謝謝你！」", verse: "「照亮默默耕耘的人，讓每份付出都被看重。」" },
+      { id: 175, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】請用一句幽默的笑話或逗趣的話，把坐在你旁邊原本神情嚴肅的朋友逗笑！", verse: "「幽默是智慧的光芒，能融化所有緊繃的防線。」" },
+      { id: 176, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】現場拿一顆小糖果或點心，雙手遞給主持人或辛苦籌辦者表達謝意！", verse: "「小小的甜點，化作滿滿的感恩心意。」" },
+      { id: 177, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】傳送一則感謝以前恩師、長輩或引路人的訊息，表達長久以來的培育教導之恩！", verse: "「一日為師，終生感念，難忘提攜啟蒙之恩。」" },
+      { id: 178, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】對坐在你斜對面的朋友大聲喊出：「祝你心想事成，好事連連！」", verse: "「隔空送上好彩頭，祝福的力量無遠弗屆。」" },
+      { id: 179, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】拿手機為現場所有人拍一張溫馨的全體大合照，並負責分享到群組！", verse: "「將今夜的笑容凝聚在同一張合影裡。」" },
+      { id: 180, type: "dynamic", audience: "seeker", cat: "即時傳愛", q: "【現場行動】現場許下一個承諾：聚會結束後主動留下來幫忙收拾 3 張椅子或帶走垃圾！", verse: "「愛護環境從舉手之勞做起，讓美好善始善終。」" },
+
+      // 81-100: 心靈立志與見證
+      { id: 181, type: "dynamic", audience: "christian", cat: "立志見證", q: "【現場行動】請現場雙手合十向天，大聲宣告你明年要讀完聖經、穩定靈修的一個新決心！", verse: "求你賜我悟性，我便遵守你的律法，且要一心遵守。（詩 119:34）" },
+      { id: 182, type: "dynamic", audience: "christian", cat: "立志見證", q: "【現場行動】請現場向身邊一位朋友公開宣認耶穌基督是你生命的主，並說出信靠祂的福氣！", verse: "你若口裡認耶穌為主，心裡信神叫他從死裡復活，就必得救。（羅 10:9）" },
+      { id: 183, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】請在心中原諒一件過去曾讓你耿耿於懷的小事，深呼吸一口氣，宣告讓它隨風而去！", verse: "「饒恕他人，實質上是給自己的心靈鬆綁。」" },
+      { id: 184, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】邀請一位現場朋友，相約在新的一年互相督促一個好習慣（如多運動、少熬夜、多看書）！", verse: "「結伴同行，相互砥礪，才能走得更長更穩。」" },
+      { id: 185, type: "dynamic", audience: "christian", cat: "立志見證", q: "【現場行動】請現場大聲背誦出約翰福音 3:16：「神愛世人，甚至將他的獨生子賜給他們……」", verse: "叫一切信他的，不致滅亡，反得永生。（約 3:16）" },
+      { id: 186, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】現場分享一個你過去一年成功改掉的壞毛病（如愛拖延、脾氣急），為自己的進步鼓掌！", verse: "「戰勝自己心中的怠惰，就是最偉大的勝利。」" },
+      { id: 187, type: "dynamic", audience: "christian", cat: "立志見證", q: "【現場行動】請向神做一個承諾：在即將到來的聖誕節，至少邀請一位慕道友來教會！", verse: "領人歸義的，必發光如星，直到永永遠遠。（但 12:3）" },
+      { id: 188, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】起立向全場昂首宣告：「我很珍惜我的生活，我會以積極樂觀的心態過好每一天！」", verse: "「信心與自信，是走好人生路最亮的火把。」" },
+      { id: 189, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】分享一件你曾經以為過不去的難關，如今回想起來已經雲淡風輕、感謝那些歷練！", verse: "「回首向來蕭瑟處，也無風雨也無晴。」" },
+      { id: 190, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】請轉頭問問身旁朋友：「你最欣賞一個人具備哪種品格？」並互相分享看法！", verse: "「高尚的品格如金子般閃耀，值得共同追求。」" },
+      { id: 191, type: "dynamic", audience: "christian", cat: "立志見證", q: "【現場行動】請現場向一位服事同工說出「願耶和華照你所行的賞賜你」，並祝福他的後裔！", verse: "願耶和華照你所行的賞賜你。你來投靠耶和華—以色列神的翅膀下。（得 2:12）" },
+      { id: 192, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】示範一次當你遇到煩心壓力時，你平時如何讓自己平靜下來的小妙招！", verse: "「掌握平復心情的節奏，做情緒智慧的主人。」" },
+      { id: 193, type: "dynamic", audience: "christian", cat: "立志見證", q: "【現場行動】請現場朗讀詩篇 100 篇第 4 節：「當稱謝進入他的門；當讚美進入他的院！」", verse: "當稱謝進入他的門；當讚美進入他的院。當感謝他，稱頌他的名！（詩 100:4）" },
+      { id: 194, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】邀請大家站起來手牽手圍成一個大圓圈，大家一起同聲喊出：「感恩同行，溫暖常在！」", verse: "「手心相連，將暖流匯聚成最堅韌的力量。」" },
+      { id: 195, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】找一位朋友彼此拉勾立誓：在接下來的這一個月裡，「多讚美感謝，不隨便抱怨」！", verse: "「舌頭常說讚美之詞，生活自會充滿馨香。」" },
+      { id: 196, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】現場分享一位在歷史、傳記或現實中你最敬佩的感恩楷模，並說明原因！", verse: "「榜樣是前行的燈塔，激勵我們不斷向上。」" },
+      { id: 197, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】望向窗外或天空，心中默默許下一個新年的感恩心願！", verse: "「仰望星空，心中裝著光明與美好願景。」" },
+      { id: 198, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】問現場一位年長朋友一個人生問題：「請問您覺得人生中最值得感恩與珍惜的是什麼？」", verse: "「聆聽歲月的沉澱，智慧的話語如金蘋果落在銀網裡。」" },
+      { id: 199, type: "dynamic", audience: "seeker", cat: "立志見證", q: "【現場行動】熱烈向在座所有人揮手，並大聲祝賀「感恩節快樂，大家都要幸福平安喔！」", verse: "「把最熱忱的善意灑向在場的每一個人。」" },
+      { id: 200, type: "dynamic", audience: "christian", cat: "立志見證", q: "【壓軸動態行動】請現場帶領全場所有弟兄姊妹，一同起立合唱三一頌或主禱文，將最高讚美歸於三一真神！", verse: "但願尊貴、榮耀歸與萬世的君王，就是那不能朽壞、不能看見、永全的神，直到永永遠遠。阿們！（提前 1:17）" }
+    ];
+
+    /* ========================================================
+       2. LocalStorage 每日去重系統 (區分 靜態/動態 與 基督徒/慕道友)
+       ======================================================== */
+    const STORAGE_KEY_PREFIX = "thanksgiving_church_drawn_v3_";
+    const SETTINGS_CATEGORIES_KEY = "thanksgiving_active_cats_v3";
+    const CURRENT_MODE_KEY = "thanksgiving_current_mode_v3";
+    const CURRENT_ROLE_KEY = "thanksgiving_current_role_v3";
+
+    let currentMode = "static";   // "static" or "dynamic"
+    let currentRole = "christian"; // "christian" or "seeker"
+
+    try {
+      const savedMode = localStorage.getItem(CURRENT_MODE_KEY);
+      if (savedMode === "static" || savedMode === "dynamic") currentMode = savedMode;
+      const savedRole = localStorage.getItem(CURRENT_ROLE_KEY);
+      if (savedRole === "christian" || savedRole === "seeker") currentRole = savedRole;
+    } catch(e) {}
+
+    function getTodayKey(mode = currentMode, role = currentRole) {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${STORAGE_KEY_PREFIX}${role}_${mode}_${y}-${m}-${d}`;
+    }
+
+    function getTodayDrawnIds(mode = currentMode, role = currentRole) {
+      const key = getTodayKey(mode, role);
+      try {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveTodayDrawnId(id, mode = currentMode, role = currentRole) {
+      const key = getTodayKey(mode, role);
+      const ids = getTodayDrawnIds(mode, role);
+      if (!ids.includes(id)) {
+        ids.push(id);
+        localStorage.setItem(key, JSON.stringify(ids));
+      }
+    }
+
+    function clearTodayHistory(mode = currentMode, role = currentRole) {
+      const key = getTodayKey(mode, role);
+      localStorage.removeItem(key);
+    }
+
+    function getCurrentDataset() {
+      const base = currentMode === "static" ? STATIC_QUESTIONS : DYNAMIC_QUESTIONS;
+      if (currentRole === "seeker") {
+        return base.filter(item => item.audience === "seeker");
+      }
+      return base; // 基督徒模式包含全部 100 題
+    }
+
+    /* ========================================================
+       3. 音效合成系統 (Tone.js Web Audio Synthesizer)
+       ======================================================== */
+    let isSoundEnabled = true;
+    let synth = null;
+    let chimeSynth = null;
+
+    function initAudio() {
+      if (!synth && window.Tone) {
+        try {
+          synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.8 }
+          }).toDestination();
+          synth.volume.value = -8;
+
+          chimeSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.05, decay: 0.5, sustain: 0.3, release: 1.5 }
+          }).toDestination();
+          chimeSynth.volume.value = -6;
+        } catch (e) {
+          console.warn("Audio Context init pending user interaction");
+        }
+      }
+    }
+
+    function playTickSound() {
+      if (!isSoundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') Tone.start();
+        synth.triggerAttackRelease(currentMode === "dynamic" ? "E5" : "C5", "32n");
+      } catch (e) {}
+    }
+
+    function playSuccessFanfare() {
+      if (!isSoundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') Tone.start();
+        const now = Tone.now();
+        if (currentMode === "dynamic") {
+          chimeSynth.triggerAttackRelease("D5", "8n", now);
+          chimeSynth.triggerAttackRelease("F#5", "8n", now + 0.1);
+          chimeSynth.triggerAttackRelease("A5", "8n", now + 0.2);
+          chimeSynth.triggerAttackRelease("D6", "4n", now + 0.32);
+        } else {
+          chimeSynth.triggerAttackRelease("C5", "8n", now);
+          chimeSynth.triggerAttackRelease("E5", "8n", now + 0.12);
+          chimeSynth.triggerAttackRelease("G5", "8n", now + 0.24);
+          chimeSynth.triggerAttackRelease("C6", "4n", now + 0.38);
+        }
+      } catch (e) {}
+    }
+
+    function playTimerBell() {
+      if (!isSoundEnabled) return;
+      initAudio();
+      try {
+        if (Tone.context.state !== 'running') Tone.start();
+        const now = Tone.now();
+        chimeSynth.triggerAttackRelease(["E5", "G#5", "B5"], "2n", now);
+      } catch (e) {}
+    }
+
+    /* ========================================================
+       4. 頁面狀態與分類過濾
+       ======================================================== */
+    let isDrawing = false;
+    let currentQuestion = null;
+
+    let timerDuration = 90;
+    let timerRemaining = 90;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    /* ========================================================
+       5. DOM 節點引用
+       ======================================================== */
+    // Screen Elements
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const startGameBtn = document.getElementById('startGameBtn');
+    const backToSetupBtn = document.getElementById('backToSetupBtn');
+
+    // Welcome Screen Selector Buttons
+    const initRoleSeeker = document.getElementById('initRoleSeeker');
+    const initRoleChristian = document.getElementById('initRoleChristian');
+    const initModeStatic = document.getElementById('initModeStatic');
+    const initModeDynamic = document.getElementById('initModeDynamic');
+
+    // Game Main Elements
+    const drawBtn = document.getElementById('drawBtn');
+    const drawBtnText = document.getElementById('drawBtnText');
+    const resetTodayPoolBtn = document.getElementById('resetTodayPoolBtn');
+    const cardInner = document.getElementById('cardInner');
+    const cardCategory = document.getElementById('cardCategory');
+    const cardIndexBadge = document.getElementById('cardIndexBadge');
+    const cardQuestionText = document.getElementById('cardQuestionText');
+    const cardVerseText = document.getElementById('cardVerseText');
+    const poolStatsText = document.getElementById('poolStatsText');
+    const todayDateLabel = document.getElementById('todayDateLabel');
+    const roleStatusTag = document.getElementById('roleStatusTag');
+    const modeStatusTag = document.getElementById('modeStatusTag');
+    const copyPromptBtn = document.getElementById('copyPromptBtn');
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundIcon = document.getElementById('soundIcon');
+    const toast = document.getElementById('toast');
+
+    // Drawer & Modals
+    const historyToggleBtn = document.getElementById('historyToggleBtn');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    const closeDrawerBottomBtn = document.getElementById('closeDrawerBottomBtn');
+    const historyListContainer = document.getElementById('historyListContainer');
+    const historyCountBadge = document.getElementById('historyCountBadge');
+    const copyAllHistoryBtn = document.getElementById('copyAllHistoryBtn');
+
+    // Category Modal
+    const categoryBtn = document.getElementById('categoryBtn');
+    const categoryModal = document.getElementById('categoryModal');
+    const closeCategoryBtn = document.getElementById('closeCategoryBtn');
+    const categoryCheckboxes = document.getElementById('categoryCheckboxes');
+    const selectAllCategoryBtn = document.getElementById('selectAllCategoryBtn');
+    const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+
+    // Timer Elements
+    const toggleTimerBtn = document.getElementById('toggleTimerBtn');
+    const timerModal = document.getElementById('timerModal');
+    const closeTimerModalBtn = document.getElementById('closeTimerModalBtn');
+    const miniTimerDisplay = document.getElementById('miniTimerDisplay');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerStartBtn = document.getElementById('timerStartBtn');
+    const timerResetBtn = document.getElementById('timerResetBtn');
+    const timerPresetBtns = document.querySelectorAll('.timer-preset-btn');
+
+    function getCategoriesForCurrentContext() {
+      const dataset = getCurrentDataset();
+      return Array.from(new Set(dataset.map(item => item.cat)));
+    }
+
+    let activeCategories = [];
+
+    function loadSavedCategories() {
+      const defaultCats = getCategoriesForCurrentContext();
+      try {
+        const saved = localStorage.getItem(`${SETTINGS_CATEGORIES_KEY}_${currentRole}_${currentMode}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const valid = parsed.filter(c => defaultCats.includes(c));
+            if (valid.length > 0) {
+              activeCategories = valid;
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+      activeCategories = defaultCats;
+    }
+
+    /* ========================================================
+       6. 畫面切換與初始配置
+       ======================================================== */
+    function updateSetupUI() {
+      // Role Buttons Styling
+      if (currentRole === "seeker") {
+        initRoleSeeker.className = "role-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-emerald-950/70 border-emerald-500 text-white shadow-md";
+        initRoleSeeker.querySelector('.role-radio').className = "role-radio w-3.5 h-3.5 rounded-full bg-emerald-400";
+        initRoleChristian.className = "role-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-harvest-900/50 border-harvest-700 text-harvest-200 hover:border-emerald-500/80";
+        initRoleChristian.querySelector('.role-radio').className = "role-radio w-3.5 h-3.5 rounded-full border border-harvest-500 flex items-center justify-center";
+      } else {
+        initRoleChristian.className = "role-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-emerald-950/70 border-emerald-500 text-white shadow-md";
+        initRoleChristian.querySelector('.role-radio').className = "role-radio w-3.5 h-3.5 rounded-full bg-emerald-400";
+        initRoleSeeker.className = "role-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-harvest-900/50 border-harvest-700 text-harvest-200 hover:border-emerald-500/80";
+        initRoleSeeker.querySelector('.role-radio').className = "role-radio w-3.5 h-3.5 rounded-full border border-harvest-500 flex items-center justify-center";
+      }
+
+      // Mode Buttons Styling
+      if (currentMode === "static") {
+        initModeStatic.className = "mode-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-amber-950/70 border-amber-500 text-white shadow-md";
+        initModeStatic.querySelector('.mode-radio').className = "mode-radio w-3.5 h-3.5 rounded-full bg-amber-400";
+        initModeDynamic.className = "mode-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-harvest-900/50 border-harvest-700 text-harvest-200 hover:border-rose-500/80";
+        initModeDynamic.querySelector('.mode-radio').className = "mode-radio w-3.5 h-3.5 rounded-full border border-harvest-500 flex items-center justify-center";
+      } else {
+        initModeDynamic.className = "mode-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-rose-950/70 border-rose-500 text-white shadow-md";
+        initModeDynamic.querySelector('.mode-radio').className = "mode-radio w-3.5 h-3.5 rounded-full bg-rose-400";
+        initModeStatic.className = "mode-card relative p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between bg-harvest-900/50 border-harvest-700 text-harvest-200 hover:border-amber-500/80";
+        initModeStatic.querySelector('.mode-radio').className = "mode-radio w-3.5 h-3.5 rounded-full border border-harvest-500 flex items-center justify-center";
+      }
+    }
+
+    function applyGameScreenContext() {
+      if (currentRole === "seeker") {
+        roleStatusTag.textContent = "🌱 慕道友";
+        roleStatusTag.className = "px-2 py-0.5 rounded-lg bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-[10px] font-bold";
+      } else {
+        roleStatusTag.textContent = "✝️ 基督徒";
+        roleStatusTag.className = "px-2 py-0.5 rounded-lg bg-amber-950/80 border border-amber-600/50 text-amber-200 text-[10px] font-bold";
+      }
+
+      if (currentMode === "static") {
+        modeStatusTag.textContent = "🕊️ 靜態模式";
+        modeStatusTag.className = "px-2 py-0.5 rounded-lg bg-amber-900/60 border border-amber-600/50 text-amber-200 text-[10px] font-bold";
+        cardInner.style.borderColor = "rgba(245, 158, 11, 0.4)";
+      } else {
+        modeStatusTag.textContent = "⚡ 動態模式";
+        modeStatusTag.className = "px-2 py-0.5 rounded-lg bg-rose-900/60 border border-rose-500/50 text-rose-200 text-[10px] font-bold";
+        cardInner.style.borderColor = "rgba(225, 29, 72, 0.5)";
+      }
+
+      loadSavedCategories();
+      updateStatsUI();
+      checkLastDrawnCard();
+    }
+
+    // Event handlers for setup screen
+    initRoleSeeker.addEventListener('click', () => {
+      currentRole = "seeker";
+      localStorage.setItem(CURRENT_ROLE_KEY, currentRole);
+      updateSetupUI();
+    });
+    initRoleChristian.addEventListener('click', () => {
+      currentRole = "christian";
+      localStorage.setItem(CURRENT_ROLE_KEY, currentRole);
+      updateSetupUI();
+    });
+    initModeStatic.addEventListener('click', () => {
+      currentMode = "static";
+      localStorage.setItem(CURRENT_MODE_KEY, currentMode);
+      updateSetupUI();
+    });
+    initModeDynamic.addEventListener('click', () => {
+      currentMode = "dynamic";
+      localStorage.setItem(CURRENT_MODE_KEY, currentMode);
+      updateSetupUI();
+    });
+
+    startGameBtn.addEventListener('click', () => {
+      applyGameScreenContext();
+      welcomeScreen.classList.add('hidden');
+      gameScreen.classList.remove('hidden');
+    });
+
+    backToSetupBtn.addEventListener('click', () => {
+      updateSetupUI();
+      gameScreen.classList.add('hidden');
+      welcomeScreen.classList.remove('hidden');
+    });
+
+    /* ========================================================
+       7. 核心抽題邏輯
+       ======================================================== */
+    function getAvailableQuestions() {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      return dataset.filter(item => {
+        const matchesCategory = activeCategories.includes(item.cat);
+        const notDrawnToday = !drawnIds.includes(item.id);
+        return matchesCategory && notDrawnToday;
+      });
+    }
+
+    function updateStatsUI() {
+      const dataset = getCurrentDataset();
+      const totalFiltered = dataset.filter(q => activeCategories.includes(q.cat)).length;
+      const available = getAvailableQuestions();
+      const drawnToday = getTodayDrawnIds();
+      
+      poolStatsText.textContent = `剩餘 ${available.length} / 符合條件 ${totalFiltered} 題`;
+      historyCountBadge.textContent = drawnToday.length;
+
+      if (available.length === 0) {
+        drawBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        drawBtnText.textContent = `今日題目已全部分享完！`;
+      } else {
+        drawBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        const roleLabel = currentRole === 'seeker' ? "新朋友" : "";
+        const modeLabel = currentMode === 'static' ? "靜態題" : "動態行動";
+        drawBtnText.textContent = `抽一個${roleLabel}${modeLabel}`;
+      }
+    }
+
+    function performDraw() {
+      if (isDrawing) return;
+      const available = getAvailableQuestions();
+
+      if (available.length === 0) {
+        showToast(`當前條件下的題庫今日已抽完！可點擊『重設』重新開始。`);
+        return;
+      }
+
+      isDrawing = true;
+      drawBtn.disabled = true;
+      cardInner.classList.add('scale-[0.98]', 'brightness-90');
+
+      let steps = 0;
+      const totalSteps = 14;
+      const intervalTime = 65;
+
+      const rollTimer = setInterval(() => {
+        steps++;
+        const randomTemp = available[Math.floor(Math.random() * available.length)];
+        cardQuestionText.textContent = randomTemp.q;
+        cardCategory.textContent = `🎲 隨機中... ${randomTemp.cat}`;
+        playTickSound();
+
+        if (steps >= totalSteps) {
+          clearInterval(rollTimer);
+          
+          const finalIndex = Math.floor(Math.random() * available.length);
+          const chosen = available[finalIndex];
+          
+          currentQuestion = chosen;
+          saveTodayDrawnId(chosen.id);
+
+          setTimeout(() => {
+            cardInner.classList.remove('scale-[0.98]', 'brightness-90');
+            renderChosenCard(chosen);
+            playSuccessFanfare();
+            triggerConfetti();
+            updateStatsUI();
+            isDrawing = false;
+            drawBtn.disabled = false;
+          }, 150);
+        }
+      }, intervalTime);
+    }
+
+    function renderChosenCard(item) {
+      cardCategory.textContent = `🍁 ${item.cat}`;
+      cardIndexBadge.textContent = `#題號 ${item.id}`;
+      cardQuestionText.textContent = item.q;
+      cardVerseText.textContent = item.verse;
+
+      const ringColor = item.type === "dynamic" ? 'ring-rose-500/80' : 'ring-amber-400/80';
+      cardInner.classList.add('ring-2', ringColor);
+      setTimeout(() => {
+        cardInner.classList.remove('ring-2', ringColor);
+      }, 1000);
+    }
+
+    function checkLastDrawnCard() {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      if (drawnIds.length > 0) {
+        const lastId = drawnIds[drawnIds.length - 1];
+        const lastItem = dataset.find(q => q.id === lastId);
+        if (lastItem) {
+          currentQuestion = lastItem;
+          renderChosenCard(lastItem);
+          cardCategory.textContent = `🍂 上次抽取 ‧ ${lastItem.cat}`;
+          return;
+        }
+      }
+      
+      // Default placeholder according to role & mode
+      if (currentRole === "seeker") {
+        cardQuestionText.textContent = currentMode === 'static'
+          ? "點擊下方按鈕，聊聊生活中的溫暖與感恩！"
+          : "點擊下方按鈕，現場體驗溫馨互動行動！";
+        cardVerseText.textContent = "「常懷感恩之心，生命之樹常青，每一天都充滿奇蹟。」";
+        cardCategory.textContent = "🌱 生活感恩 ‧ 溫馨對話";
+      } else {
+        cardQuestionText.textContent = currentMode === 'static' 
+          ? "圍繞在主愛中，點擊下方按鈕分享見證！"
+          : "現場肢體連結！點擊下方按鈕實踐基督之愛！";
+        cardVerseText.textContent = currentMode === 'static'
+          ? "「凡事要奉我們主耶穌基督的名常常感謝父神。」— 以弗所書 5:20"
+          : "「我們相愛，不要只在言語和舌頭上，總要在行為和誠實上。」— 約翰一書 3:18";
+        cardCategory.textContent = currentMode === 'static' ? "✨ 團契破冰 ‧ 感恩分享" : "🔥 肢體破冰 ‧ 行動之愛";
+      }
+      cardIndexBadge.textContent = "#點擊開始";
+    }
+
+    /* ========================================================
+       8. 彩帶與落葉背景特效 (Confetti & Leaves)
+       ======================================================== */
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        const colors = currentMode === "dynamic" 
+          ? ['#f43f5e', '#fb7185', '#fbbf24', '#f59e0b', '#ffffff']
+          : ['#f59e0b', '#d97706', '#fbbf24', '#fef3c7', '#dc2626'];
+
+        confetti({
+          particleCount: 60,
+          spread: 75,
+          origin: { y: 0.65 },
+          colors: colors
+        });
+      }
+    }
+
+    const canvas = document.getElementById('autumnCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let leaves = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Leaf {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = -20 - Math.random() * 50;
+        this.size = 12 + Math.random() * 16;
+        this.speedY = 0.8 + Math.random() * 1.5;
+        this.speedX = Math.sin(Math.random() * 5) * 1.2;
+        this.angle = Math.random() * Math.PI * 2;
+        this.angleSpeed = (Math.random() - 0.5) * 0.03;
+        this.color = ['#d97706', '#b45309', '#f59e0b', '#92400e', '#78350f'][Math.floor(Math.random() * 5)];
+        this.alpha = 0.2 + Math.random() * 0.4;
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += Math.sin(this.y * 0.02) + this.speedX * 0.5;
+        this.angle += this.angleSpeed;
+        if (this.y > height + 30) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 35; i++) {
+      const leaf = new Leaf();
+      leaf.y = Math.random() * height;
+      leaves.push(leaf);
+    }
+
+    function animateLeaves() {
+      ctx.clearRect(0, 0, width, height);
+      for (let leaf of leaves) {
+        leaf.update();
+        leaf.draw();
+      }
+      requestAnimationFrame(animateLeaves);
+    }
+    animateLeaves();
+
+    /* ========================================================
+       10. 計時器邏輯
+       ======================================================== */
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+      const timeStr = formatTime(timerRemaining);
+      timerDisplay.textContent = timeStr;
+      miniTimerDisplay.textContent = timeStr;
+
+      if (timerRemaining <= 10 && timerRemaining > 0) {
+        timerDisplay.classList.add('text-rose-400');
+        miniTimerDisplay.classList.add('text-rose-400');
+      } else {
+        timerDisplay.classList.remove('text-rose-400');
+        miniTimerDisplay.classList.remove('text-rose-400');
+      }
+    }
+
+    function startTimer() {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timerStartBtn.textContent = "繼續";
+        timerStartBtn.classList.replace('bg-amber-600', 'bg-emerald-600');
+        return;
+      }
+
+      isTimerRunning = true;
+      timerStartBtn.textContent = "暫停";
+      timerStartBtn.classList.replace('bg-emerald-600', 'bg-amber-600');
+
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          updateTimerDisplay();
+          if (timerRemaining <= 3 && timerRemaining > 0) {
+            playTickSound();
+          }
+        } else {
+          clearInterval(timerInterval);
+          isTimerRunning = false;
+          timerStartBtn.textContent = "開始";
+          timerStartBtn.classList.replace('bg-amber-600', 'bg-emerald-600');
+          playTimerBell();
+          showToast("⏰ 分享時間到囉！謝謝美好分享。");
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerRemaining = timerDuration;
+      timerStartBtn.textContent = "開始";
+      timerStartBtn.classList.replace('bg-amber-600', 'bg-emerald-600');
+      updateTimerDisplay();
+    }
+
+    toggleTimerBtn.addEventListener('click', () => {
+      timerModal.classList.remove('hidden');
+    });
+    closeTimerModalBtn.addEventListener('click', () => {
+      timerModal.classList.add('hidden');
+    });
+
+    /* ========================================================
+       11. 題目歷史清單渲染與互動
+       ======================================================== */
+    function renderHistoryList() {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      historyListContainer.innerHTML = '';
+
+      if (drawnIds.length === 0) {
+        historyListContainer.innerHTML = `
+          <div class="text-center py-8 text-harvest-400/60 text-xs">
+            今天在【${currentRole === 'seeker' ? '慕道友' : '基督徒'} - ${currentMode === 'static' ? '靜態分享' : '動態行動'}】模式下尚未抽過題目喔！<br>點選主頁按鈕開始。
+          </div>
+        `;
+        return;
+      }
+
+      const reversedIds = [...drawnIds].reverse();
+      reversedIds.forEach((id, index) => {
+        const item = dataset.find(q => q.id === id);
+        if (!item) return;
+
+        const isDynamic = item.type === "dynamic";
+        const row = document.createElement('div');
+        row.className = "bg-harvest-900/60 hover:bg-harvest-900/90 border border-harvest-700/40 rounded-xl p-3 text-xs transition";
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-[11px] text-harvest-400 mb-1">
+            <span class="font-bold ${isDynamic ? 'text-rose-400' : 'text-amber-300'}">
+              ${isDynamic ? '⚡ [動態行動]' : '🕊️ [靜態分享]'} #${item.id} [${item.cat}]
+            </span>
+            <span class="text-harvest-400/80">第 ${drawnIds.length - index} 順位</span>
+          </div>
+          <p class="font-serif text-harvest-100 text-sm mb-1">${item.q}</p>
+          <p class="text-[11px] text-harvest-300/70 italic">${item.verse}</p>
+        `;
+        historyListContainer.appendChild(row);
+      });
+    }
+
+    /* ========================================================
+       12. 分類選擇器渲染
+       ======================================================== */
+    function renderCategorySelector() {
+      categoryCheckboxes.innerHTML = '';
+      const modeCats = getCategoriesForCurrentContext();
+      const dataset = getCurrentDataset();
+
+      modeCats.forEach(cat => {
+        const isChecked = activeCategories.includes(cat);
+        const count = dataset.filter(q => q.cat === cat).length;
+        const label = document.createElement('label');
+        label.className = `flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition ${
+          isChecked ? 'bg-harvest-800/80 border-amber-500 text-harvest-100' : 'bg-harvest-950/60 border-harvest-800 text-harvest-400'
+        }`;
+        label.innerHTML = `
+          <input type="checkbox" value="${cat}" class="cat-checkbox rounded text-amber-600 focus:ring-0" ${isChecked ? 'checked' : ''}>
+          <span>${cat} (${count}題)</span>
+        `;
+        label.querySelector('input').addEventListener('change', (e) => {
+          if (e.target.checked) {
+            label.className = 'flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition bg-harvest-800/80 border-amber-500 text-harvest-100';
+          } else {
+            label.className = 'flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition bg-harvest-950/60 border-harvest-800 text-harvest-400';
+          }
+        });
+        categoryCheckboxes.appendChild(label);
+      });
+    }
+
+    /* ========================================================
+       13. 輔助功能：Toast 與剪貼簿複製
+       ======================================================== */
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast("已成功複製到剪貼簿！");
+      } catch (err) {
+        showToast("複製失敗，請手動複製");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    /* ========================================================
+       14. 事件監聽器綁定
+       ======================================================== */
+    drawBtn.addEventListener('click', performDraw);
+
+    resetTodayPoolBtn.addEventListener('click', () => {
+      const drawnCount = getTodayDrawnIds().length;
+      if (drawnCount === 0) {
+        showToast(`當前分類今日尚無任何已抽出的題目。`);
+        return;
+      }
+      clearTodayHistory();
+      updateStatsUI();
+      renderHistoryList();
+      showToast(`已重設此模式今日紀錄！可重新隨機抽取。`);
+    });
+
+    copyPromptBtn.addEventListener('click', () => {
+      if (!currentQuestion) {
+        showToast("尚未抽取題目喔！");
+        return;
+      }
+      const roleLabel = currentQuestion.audience === "seeker" ? "🌱 慕道友生活感恩" : "✝️ 基督徒見證";
+      const modeLabel = currentQuestion.type === "dynamic" ? "⚡ 動態行動" : "🕊️ 靜態分享";
+      const textToCopy = `【${roleLabel} ‧ ${modeLabel}】\n類別：${currentQuestion.cat}\n題目：${currentQuestion.q}\n默想金句：${currentQuestion.verse}`;
+      fallbackCopy(textToCopy);
+    });
+
+    soundToggleBtn.addEventListener('click', () => {
+      isSoundEnabled = !isSoundEnabled;
+      if (isSoundEnabled) {
+        soundIcon.textContent = "🔔";
+        initAudio();
+        showToast("音效已開啟");
+      } else {
+        soundIcon.textContent = "🔕";
+        showToast("音效已靜音");
+      }
+    });
+
+    historyToggleBtn.addEventListener('click', () => {
+      renderHistoryList();
+      historyDrawer.classList.remove('hidden');
+    });
+    closeHistoryBtn.addEventListener('click', () => historyDrawer.classList.add('hidden'));
+    closeDrawerBottomBtn.addEventListener('click', () => historyDrawer.classList.add('hidden'));
+
+    copyAllHistoryBtn.addEventListener('click', () => {
+      const drawnIds = getTodayDrawnIds();
+      const dataset = getCurrentDataset();
+      if (drawnIds.length === 0) {
+        showToast("今日尚無分享記錄！");
+        return;
+      }
+      const listText = drawnIds.map((id, idx) => {
+        const item = dataset.find(q => q.id === id);
+        return `${idx + 1}. [${item.cat}] ${item.q}`;
+      }).join('\n\n');
+
+      const fullSummary = `【今日教會感恩節分享題目彙集 (${currentRole === 'seeker' ? '慕道友模式' : '基督徒模式'} - ${currentMode === 'static' ? '靜態分享' : '動態行動'})】\n日期：${todayDateLabel.textContent}\n\n${listText}`;
+      fallbackCopy(fullSummary);
+    });
+
+    categoryBtn.addEventListener('click', () => {
+      renderCategorySelector();
+      categoryModal.classList.remove('hidden');
+    });
+    closeCategoryBtn.addEventListener('click', () => categoryModal.classList.add('hidden'));
+    
+    selectAllCategoryBtn.addEventListener('click', () => {
+      const inputs = categoryCheckboxes.querySelectorAll('input[type="checkbox"]');
+      inputs.forEach(input => {
+        input.checked = true;
+        input.closest('label').className = 'flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer text-xs font-semibold transition bg-harvest-800/80 border-amber-500 text-harvest-100';
+      });
+    });
+
+    saveCategoryBtn.addEventListener('click', () => {
+      const checkedInputs = categoryCheckboxes.querySelectorAll('input[type="checkbox"]:checked');
+      const selected = Array.from(checkedInputs).map(inp => inp.value);
+      if (selected.length === 0) {
+        showToast("請至少選擇一個題目分類！");
+        return;
+      }
+      activeCategories = selected;
+      localStorage.setItem(`${SETTINGS_CATEGORIES_KEY}_${currentRole}_${currentMode}`, JSON.stringify(activeCategories));
+      updateStatsUI();
+      categoryModal.classList.add('hidden');
+      showToast("分類設定已套用！");
+    });
+
+    timerStartBtn.addEventListener('click', startTimer);
+    timerResetBtn.addEventListener('click', resetTimer);
+
+    timerPresetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        timerDuration = parseInt(btn.dataset.seconds, 10);
+        resetTimer();
+      });
+    });
+
+    /* ========================================================
+       15. 頁面初始化
+       ======================================================== */
+    window.onload = function() {
+      const now = new Date();
+      const options = { year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' };
+      todayDateLabel.textContent = now.toLocaleDateString('zh-TW', options);
+
+      updateSetupUI();
+      resetTimer();
+    };
+  </script>
+</body>
+</html>
