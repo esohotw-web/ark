@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>浪子回頭 —— 路加福音 15:11-32 互動心得報告</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Serif TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Serif+TC:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            cinzel: ['"Cinzel"', 'serif'],
+            sans: ['"Inter"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F8F5F0;
+      color: #2D251F;
+      font-family: 'Noto Serif TC', serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* 隱藏滾動條但保持橫向滑動 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .active-pill {
+      background-color: #78350F;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 6px -1px rgba(120, 53, 15, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-200">
+
+  <!-- ===============================
+       手機直式優化頂部：極簡吸頂 Header + 橫向滑動標籤
+  ================================ -->
+  <header class="sticky top-0 z-50 bg-[#F8F5F0]/95 backdrop-blur-md border-b border-amber-900/10 shadow-sm">
+    <!-- 主標列 -->
+    <div class="px-4 py-2.5 flex items-center justify-between">
+      <button onclick="navigateTo('home')" class="flex items-center gap-2.5 text-left focus:outline-none">
+        <div class="w-8 h-8 rounded-lg bg-amber-800 text-white flex items-center justify-center shrink-0 shadow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m-4-12h8m-9 12h10a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="block text-[10px] font-cinzel font-bold tracking-widest text-amber-800 uppercase leading-none">Luke 15:11-32</span>
+          <span class="block font-bold text-base text-stone-900 leading-tight">浪子回頭 研讀報告</span>
+        </div>
+      </button>
+
+      <button onclick="navigateTo('home')" id="home-quick-btn" class="text-xs px-2.5 py-1 rounded-full bg-stone-200/70 text-stone-700 font-sans font-medium">
+        首頁
+      </button>
+    </div>
+
+    <!-- 緊湊型橫向滾動標籤 (直式單手容易切換) -->
+    <div class="px-3 pb-2 flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-xs font-sans whitespace-nowrap">
+      <button onclick="navigateTo('home')" id="tab-home" class="tab-btn px-3 py-1.5 rounded-full transition-all text-stone-600 bg-stone-200/50">
+        總覽
+      </button>
+      <button onclick="navigateTo('section', 'author')" id="tab-author" class="tab-btn px-3 py-1.5 rounded-full transition-all text-stone-600 bg-stone-200/50">
+        作者介紹
+      </button>
+      <button onclick="navigateTo('section', 'summary')" id="tab-summary" class="tab-btn px-3 py-1.5 rounded-full transition-all text-stone-600 bg-stone-200/50">
+        內容摘要
+      </button>
+      <button onclick="navigateTo('section', 'perspective')" id="tab-perspective" class="tab-btn px-3 py-1.5 rounded-full transition-all text-stone-600 bg-stone-200/50">
+        個人觀點
+      </button>
+      <button onclick="navigateTo('section', 'application')" id="tab-application" class="tab-btn px-3 py-1.5 rounded-full transition-all text-stone-600 bg-stone-200/50">
+        生活應用
+      </button>
+    </div>
+  </header>
+
+  <!-- ===============================
+       主視圖容器 (直式專用緊湊內距)
+  ================================ -->
+  <main id="app-root" class="flex-grow w-full max-w-lg mx-auto px-4 py-4">
+    <!-- 內容將由 JavaScript 動態渲染 -->
+  </main>
+
+  <!-- ===============================
+       極簡 Footer (高度壓縮)
+  ================================ -->
+  <footer class="border-t border-amber-900/10 bg-[#EFE9E0] py-4 text-center text-stone-500 text-xs font-serif">
+    <p>「死而復活、失而又得」 · 路加福音 15:32</p>
+  </footer>
+
+  <!-- ===============================
+       資料與直式交互邏輯
+  ================================ -->
+  <script>
+    const appData = {
+      author: {
+        id: 'author',
+        title: '作者介紹',
+        subtitle: 'CONTEXT & PURPOSE',
+        shortDesc: '希臘醫者筆觸，為尋求真理者撰寫的確鑿信史。',
+        icon: '✍️',
+        items: [
+          {
+            id: 'background',
+            tag: '身分背景',
+            title: '希臘醫者與嚴謹史家',
+            brief: '非猶太裔醫生，具備深厚史學素養，為使徒保羅的同工。',
+            detail: '路加是新約聖經唯一的非猶太裔作者。身為醫生（歌羅西書 4:14），他對病患、邊緣群體及社會底層有敏銳同理心；同時具備優良古典文學與史學訓練，按次序詳實考證耶穌生平。',
+            scriptureRef: '「親愛的醫生路加和底馬問你們安。」（歌羅西書 4:14）',
+            insight: '醫者的細膩使路加福音格外著重弱勢與失喪者，充滿深刻人道關懷。'
+          },
+          {
+            id: 'audience',
+            tag: '寫作對象',
+            title: '提阿非羅與外邦尋求者',
+            brief: '羅馬尊貴人士提阿非羅，以及廣大希臘羅馬文化圈慕道友。',
+            detail: '本卷獻給「提阿非羅大人」（意為「愛神者」），亦面向廣大羅馬帝國多元文化下的外邦人。路加闡明：基督的救恩不受限於猶太律法或民族，是賜給全人類的普遍救贖。',
+            scriptureRef: '「提阿非羅大人哪，有好些人提筆作書...我也按著次序寫給你。」（路加福音 1:1-3）',
+            insight: '故事中的小兒子，也常被教父解讀為重回天父懷抱的外邦民族預表。'
+          },
+          {
+            id: 'purpose',
+            tag: '寫作目的',
+            title: '證實真道與尋回失喪',
+            brief: '使信徒確知福音是確實的；宣示人子來是為尋找拯救失喪的人。',
+            detail: '路加旨在確立信仰的真實歷史根基，同時彰顯上帝對罪人的主動拯救。第15章連環三則比喻（失羊、失錢、浪子），皆在宣告天國最大之喜樂乃是迷失者之回轉。',
+            scriptureRef: '「人子來，為要尋找、拯救失喪的人。」（路加福音 19:10）',
+            insight: '救恩不是等人達到標準才給予，而是神主動跨越距離的無私尋找。'
+          }
+        ]
+      },
+      summary: {
+        id: 'summary',
+        title: '內容摘要',
+        subtitle: 'PAIN, GRACE & WEIGHT',
+        shortDesc: '從小兒子的幻滅、父親的主動奔迎，到自義長子的深層呼喚。',
+        icon: '📖',
+        items: [
+          {
+            id: 'sum-pain',
+            tag: '痛點',
+            title: '自我放逐與虛妄幻滅',
+            brief: '「既耗盡了一切所有的，又遇著那地方大遭饑荒，就窮苦起來。」',
+            detail: '小兒子提前索要產業形同詛咒父親，遠走追求自主，結果在一無所有時淪落放豬、甚至與豬爭食豆莢。這揭示人離開父神管束追求絕對自我掌控時，換來的卻是靈魂赤貧與尊嚴幻滅。',
+            scriptureRef: '路加福音 15:14：「既耗盡了一切所有的，又遇著那地方大遭饑荒，就窮苦起來。」',
+            insight: '痛點戳破了「以自我為中心」的浪漫妄想，逼使人認清內在的飢餓。'
+          },
+          {
+            id: 'sum-grace',
+            tag: '亮點',
+            title: '無條件接納與主動迎上',
+            brief: '「相離還遠，他父親看見，就動了慈心，跑去抱著他的頸項，連連與他親嘴。」',
+            detail: '父親不顧長者尊嚴主動奔向浪子。在小兒子開口唸出「願做僱工」的台詞前，父親已吩咐穿袍、戴戒、穿鞋，直接復原其兒子名分。恩典並非先通過考核才能換得的酬勞，而是無條件的赦免。',
+            scriptureRef: '路加福音 15:20：「相離還遠，他父親看見，就動了慈心...」',
+            insight: '真愛是放下被冒犯的怒氣，以主動的擁抱化解罪咎。'
+          },
+          {
+            id: 'sum-weight',
+            tag: '重量',
+            title: '自以為義的盲點與呼喚',
+            brief: '「兒啊！你常和我同在，我一切所有的都是你的；只是你這個兄弟是死而復活的...」',
+            detail: '故事的高潮在於父親步出家門勸慰長子。大兒子恪守規矩，心態卻是計較功勞與羔羊的「僱工」。他視同胞為外人，將父子同在當作服役。父親溫柔提醒：愛的本質是共享，而非功過記帳。',
+            scriptureRef: '路加福音 15:31-32：「兒啊！你常和我同在，我一切所有的都是你的...」',
+            insight: '最遠的距離不是小兒子所在的異邦，而是身在父家、心卻冰冷的自義。'
+          }
+        ]
+      },
+      perspective: {
+        id: 'perspective',
+        title: '個人觀點',
+        subtitle: 'MY REFLECTIONS',
+        shortDesc: '跳脫刻板道德審判，重新審視恩典的本質與家的真諦。',
+        icon: '💡',
+        items: [
+          {
+            id: 'per-grace',
+            tag: '信仰基石',
+            title: '恩典先於律法與代價',
+            brief: '真正的接納毋須先行考核；愛是關係的起點，非賺取的酬勞。',
+            detail: '浪子原想降為僱工補償過犯，但父親直接打斷。信仰的核心在於：在我們仍滿身泥濘時便被接納。若認為非得「修整得夠好」才配親近神或回歸群體，便抹煞了恩典的本質。',
+            scriptureRef: '羅馬書 5:8：「惟有基督在我們還作罪人的時候為我們死，神的愛就在此向我們顯明了。」',
+            insight: '無條件的恩典才能真正打碎罪咎，釋放靈魂重新做人。'
+          },
+          {
+            id: 'per-cynic',
+            tag: '人性省思',
+            title: '長子心態的道德冷漠',
+            brief: '守規者常陷入心無慈悲的盲區；道德優越感更容易築起高牆。',
+            detail: '長子代表了自命清高的道德菁英。當迷途者悔改時，他不為生命重獲歡喜，反而因自己的功勞沒獲額外賞賜而憤懣。這類以正義之名行的冷酷苛責，往往在社群中最具破壞力。',
+            scriptureRef: '路加福音 15:28：「大兒子卻生氣，不肯進去；他父親就出來勸他。」',
+            insight: '若無慈愛為根基，道德便會蛻變為審判他人、禁錮自我的刑具。'
+          },
+          {
+            id: 'per-home',
+            tag: '核心總結',
+            title: '家的本質是共享的接納',
+            brief: '無論遠離者或抱怨者，父親始終等待；成熟在於擁有為父的心腸。',
+            detail: '這則比喻的中心是那位寬厚包容的父親。生命的成長是從任性揮霍的小兒子，脫離斤斤計較的大兒子，最後昇華為具備「為父心腸」——願意跨出門外，與每一個回歸者共樂。',
+            scriptureRef: '哥林多後書 5:19：「神在基督裡叫世人與自己和好，不將過犯歸到他們身上。」',
+            insight: '成熟並非自封正義，而是能用寬廣胸懷擁抱跌倒後站起的人。'
+          }
+        ]
+      },
+      application: {
+        id: 'application',
+        title: '生活應用',
+        subtitle: 'DAILY PRACTICES',
+        shortDesc: '從家庭、職場到社群，將古老寓言化為現代人際修復指南。',
+        icon: '🌱',
+        items: [
+          {
+            id: 'app-reconcile',
+            tag: '關係重建',
+            title: '放下計較，修復親密關係',
+            brief: '停止功過算計與冷暴力，主動以理解代替指責，為彼此留台階。',
+            detail: '在親密或職場關係中，我們常如長子般緊抓「我付出多少、你欠我多少」。實踐之道是：在衝突時學父親跨步出門，將「人在乎」置於「對錯爭執」之上，主動給予修復空間。',
+            scriptureRef: '以弗所書 4:32：「要以恩慈相待，存憐憫的心，彼此饒恕。」',
+            insight: '主動走向對方並非認輸，而是把關係看得比自己的虛榮更重。'
+          },
+          {
+            id: 'app-honesty',
+            tag: '自我面對',
+            title: '自我坦誠，勇敢面對失敗',
+            brief: '在低谷或走錯路時，放下無謂自尊，坦承軟弱並及時回轉。',
+            detail: '現代人常因面子問題，即使生活深陷泥潭也不肯尋求協助。應用之道是學習小兒子的「醒悟過來」，誠實面對脆弱。唯有放下防衛承認無能為力，接納與改變的契機才會出現。',
+            scriptureRef: '路加福音 15:17：「他醒悟過來，就說：我父親有多少的雇工，口糧有餘...」',
+            insight: '回頭的第一步不是自我鞭笞，而是堅信總有一扇門為真實坦承而開。'
+          },
+          {
+            id: 'app-empathy',
+            tag: '社會同理',
+            title: '跨越偏見，同理邊緣群體',
+            brief: '拒絕道德審判，以溫暖目光看待並扶持社會中的失意跌倒者。',
+            detail: '社群中容易形成冷漠鄙視鏈。我們應刻意破除偏見同溫層，不拿道德成就自誇，而是主動為處於生活低谷、犯過錯或弱勢的群體伸出雙手，給予尊嚴與重回常軌的支持。',
+            scriptureRef: '彌迦書 6:8：「行公義，好憐憫，存謙卑的心，與你的神同行。」',
+            insight: '文明的高度，不在於規則多嚴苛，而在於為跌倒者留有多寬厚的復原空間。'
+          }
+        ]
+      }
+    };
+
+    let appState = {
+      view: 'home', // 'home' | 'section'
+      currentSectionId: null,
+      expandedItemId: null // 次頁面內手風琴展開的項目 ID
+    };
+
+    function navigateTo(view, sectionId = null, defaultExpandId = null) {
+      appState.view = view;
+      appState.currentSectionId = sectionId;
+      appState.expandedItemId = defaultExpandId;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderApp();
+      updateTabs();
+    }
+
+    function toggleAccordion(itemId) {
+      if (appState.expandedItemId === itemId) {
+        appState.expandedItemId = null; // 收合
+      } else {
+        appState.expandedItemId = itemId; // 展開
+      }
+      renderApp();
+    }
+
+    function updateTabs() {
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(t => t.classList.remove('active-pill'));
+
+      const activeId = appState.view === 'home' ? 'tab-home' : `tab-${appState.currentSectionId}`;
+      const activeEl = document.getElementById(activeId);
+      if (activeEl) {
+        activeEl.classList.add('active-pill');
+        activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+
+    function renderApp() {
+      const root = document.getElementById('app-root');
+      if (!root) return;
+
+      if (appState.view === 'home') {
+        root.innerHTML = renderHomeView();
+      } else {
+        root.innerHTML = renderSectionView(appState.currentSectionId);
+      }
+    }
+
+    // ==========================================
+    // 1. 直式專屬「2x2 四宮格」首頁 (免滑動單屏盡覽)
+    // ==========================================
+    function renderHomeView() {
+      const sections = ['author', 'summary', 'perspective', 'application'];
+      
+      const gridCards = sections.map((secKey, index) => {
+        const sec = appData[secKey];
+        return `
+          <div onclick="navigateTo('section', '${sec.id}')"
+               class="active:scale-95 transition-transform bg-white border border-amber-900/10 rounded-2xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md cursor-pointer relative overflow-hidden">
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xl">${sec.icon}</span>
+                <span class="text-[10px] font-bold font-cinzel text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded-full">
+                  0${index + 1}
+                </span>
+              </div>
+              <h2 class="text-base font-bold text-stone-900 pt-1">
+                ${sec.title}
+              </h2>
+              <p class="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
+                ${sec.shortDesc}
+              </p>
+            </div>
+            
+            <div class="pt-3 flex items-center justify-between text-[11px] font-semibold text-amber-800">
+              <span>3 項細節</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="space-y-3.5">
+          <!-- 緊湊型標題 -->
+          <div class="bg-gradient-to-r from-amber-900 to-stone-900 text-white rounded-2xl p-4 shadow-sm relative overflow-hidden">
+            <div class="relative z-10 space-y-1">
+              <span class="text-[10px] uppercase tracking-wider text-amber-300 font-cinzel font-semibold">Study & Reflection</span>
+              <h1 class="text-lg font-black tracking-tight">浪子回頭：恩典與自義之鏡</h1>
+              <p class="text-xs text-stone-300 leading-snug">路加福音 15:11-32 · 點選下方選單展開互動鑽研</p>
+            </div>
+            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+          </div>
+
+          <!-- 2x2 精緻選單網格 -->
+          <div class="grid grid-cols-2 gap-2.5">
+            ${gridCards}
+          </div>
+
+          <!-- 經文精句 (微型字卡) -->
+          <div class="bg-amber-50/80 border border-amber-800/15 rounded-xl p-3 flex items-start gap-2.5">
+            <span class="text-amber-800 text-sm mt-0.5">✦</span>
+            <div>
+              <p class="text-xs text-stone-800 font-serif italic leading-relaxed">
+                「相離還遠，他父親看見，就動了慈心，跑去抱著他的頸項，連連與他親嘴。」
+              </p>
+              <span class="text-[10px] text-stone-500 mt-0.5 block">— 路加福音 15:20</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 2. 次頁面：在同一畫面直接點擊手風琴展開完整內容
+    // ==========================================
+    function renderSectionView(sectionId) {
+      const sec = appData[sectionId];
+      if (!sec) return '<div class="text-center py-6 text-sm">無內容</div>';
+
+      const itemsHtml = sec.items.map((item, index) => {
+        const isExpanded = appState.expandedItemId === item.id;
+
+        return `
+          <div class="bg-white border ${isExpanded ? 'border-amber-700 shadow-md ring-1 ring-amber-700/20' : 'border-stone-200 shadow-sm'} rounded-xl overflow-hidden transition-all duration-200">
+            
+            <!-- 標題點擊按鈕 -->
+            <button onclick="toggleAccordion('${item.id}')"
+                    class="w-full text-left p-3.5 flex items-center justify-between gap-3 focus:outline-none">
+              <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                <span class="w-6 h-6 rounded-full ${isExpanded ? 'bg-amber-800 text-white' : 'bg-stone-100 text-stone-600'} text-xs font-bold flex items-center justify-center shrink-0">
+                  0${index + 1}
+                </span>
+                <div class="truncate">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 shrink-0">${item.tag}</span>
+                    <h3 class="text-sm font-bold text-stone-900 truncate">${item.title}</h3>
+                  </div>
+                  <p class="text-xs text-stone-500 truncate mt-0.5">${item.brief}</p>
+                </div>
+              </div>
+
+              <!-- 箭頭圖示 -->
+              <div class="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-stone-600 transition-transform duration-200 ${isExpanded ? 'rotate-180 bg-amber-100 text-amber-900' : ''}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </button>
+
+            <!-- 展開之完整內容容器 (直式專用緊湊排版) -->
+            ${isExpanded ? `
+              <div class="border-t border-amber-900/10 bg-[#FCFAF7] p-3.5 space-y-3 animate-fadeIn text-xs">
+                
+                <!-- 經文卡片 -->
+                ${item.scriptureRef ? `
+                  <div class="bg-amber-50 border-l-2 border-amber-700 p-2.5 rounded text-stone-800 font-serif italic text-xs leading-relaxed">
+                    ${item.scriptureRef}
+                  </div>
+                ` : ''}
+
+                <!-- 詳細文字 -->
+                <div class="text-stone-800 text-xs font-serif leading-relaxed space-y-2">
+                  <p>${item.detail}</p>
+                </div>
+
+                <!-- 核心啟發 -->
+                ${item.insight ? `
+                  <div class="bg-white border border-stone-200 rounded-lg p-2.5 flex items-start gap-2">
+                    <span class="text-amber-800 text-xs shrink-0 mt-0.5">💡</span>
+                    <p class="text-stone-600 text-[11px] leading-relaxed">
+                      <strong class="text-stone-900">核心提煉：</strong>${item.insight}
+                    </p>
+                  </div>
+                ` : ''}
+
+                <!-- 快速收合按鈕 -->
+                <div class="text-right pt-1">
+                  <button onclick="toggleAccordion('${item.id}')" class="text-[11px] text-amber-800 font-semibold hover:underline">
+                    收合本項 ▲
+                  </button>
+                </div>
+
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="space-y-3">
+          <!-- 頂部資訊條 -->
+          <div class="flex items-center justify-between pb-1">
+            <div class="flex items-center gap-1.5">
+              <span class="text-lg">${sec.icon}</span>
+              <h2 class="text-base font-black text-stone-900">${sec.title}</h2>
+              <span class="text-xs text-stone-500">（共 3 項）</span>
+            </div>
+            <button onclick="navigateTo('home')" class="text-xs text-amber-800 font-semibold bg-stone-100 px-2 py-1 rounded-md">
+              回首頁
+            </button>
+          </div>
+
+          <p class="text-xs text-stone-600 leading-snug">
+            ${sec.shortDesc} 點擊任一項目即可直接在此展開閱讀完整解析。
+          </p>
+
+          <!-- 項目手風琴清單 -->
+          <div class="space-y-2.5 pt-1">
+            ${itemsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    // 初始化
+    window.onload = function() {
+      renderApp();
+      updateTabs();
+    };
+  </script>
+</body>
+</html>
