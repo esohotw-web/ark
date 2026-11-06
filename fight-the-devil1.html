@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打擊魔鬼街機 - Demon Strike Arcade</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for retro arcade sound effects without external audio assets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .arcade-font {
+            font-family: 'Chakra Petch', 'Noto Sans TC', monospace;
+        }
+        /* Custom Hammer Cursor */
+        .hammer-cursor {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="%23ff3344" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0-.83-.83-.83-2.17 0-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 3.26-6.36 6.36"/><path d="m14.54 9.63 1.83 1.83"/><path d="m11.71 6.8 1.83 1.83"/><path d="m13.13 2.55 8.49 8.49"/></svg>') 18 18, auto;
+        }
+        /* Demon Portal Hole 3D Perspective */
+        .portal-hole {
+            box-shadow: inset 0 16px 25px rgba(0,0,0,0.9), 0 5px 15px rgba(239, 68, 68, 0.2);
+        }
+        /* Warning Glow Effects */
+        @keyframes pulse-beacon {
+            0%, 100% { opacity: 0.3; transform: scale(0.95); filter: drop-shadow(0 0 4px #ff0055); }
+            50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 16px #ff0055) drop-shadow(0 0 25px #ff5500); }
+        }
+        .beacon-active {
+            animation: pulse-beacon 0.45s infinite ease-in-out;
+        }
+        @keyframes pulse-angel-beacon {
+            0%, 100% { opacity: 0.3; transform: scale(0.95); filter: drop-shadow(0 0 4px #38bdf8); }
+            50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 16px #38bdf8) drop-shadow(0 0 25px #fbbf24); }
+        }
+        .beacon-angel {
+            animation: pulse-angel-beacon 0.45s infinite ease-in-out;
+        }
+        /* Floating animations */
+        @keyframes float-up {
+            0% { transform: translateY(110%); opacity: 0; }
+            30% { transform: translateY(0); opacity: 1; }
+            80% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(110%); opacity: 0; }
+        }
+        .sprout-anim {
+            animation: float-up var(--target-duration, 1.3s) cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+        /* Floating Damage Text */
+        @keyframes fly-score {
+            0% { transform: translateY(0) scale(0.8); opacity: 1; }
+            100% { transform: translateY(-45px) scale(1.3); opacity: 0; }
+        }
+        .floating-score {
+            animation: fly-score 0.75s ease-out forwards;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-2 md:p-6 hammer-cursor">
+
+    <!-- Top Status Bar & Title -->
+    <header class="w-full max-w-4xl flex flex-col md:flex-row items-center justify-between gap-3 mb-2 px-3 py-2 bg-slate-900/80 backdrop-blur border border-red-900/50 rounded-2xl shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 text-white font-black text-xl shadow-md shadow-red-500/20">
+                😈
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-amber-300">
+                    打擊魔鬼 <span class="text-xs uppercase tracking-widest text-red-400 border border-red-800/80 px-2 py-0.5 rounded-full ml-1">Arcade Edition</span>
+                </h1>
+                <p class="text-xs text-slate-400 font-medium">注意亮燈提示！擊打魔鬼，切勿誤擊小天使</p>
+            </div>
+        </div>
+
+        <!-- Mute / Sound Toggle -->
+        <button id="soundToggleBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 shadow-sm">
+            <span id="soundIcon">🔊</span>
+            <span id="soundText">音效: 開啟</span>
+        </button>
+    </header>
+
+    <!-- Main Cabinet Surface -->
+    <main class="w-full max-w-4xl flex flex-col items-center bg-gradient-to-b from-slate-900 via-neutral-900 to-slate-950 p-4 md:p-8 rounded-3xl border-2 border-red-800/40 shadow-2xl shadow-red-950/60 relative overflow-hidden">
+        
+        <!-- Ambient Decorative Lighting Elements -->
+        <div class="absolute top-0 left-1/4 w-48 h-32 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-0 right-1/4 w-48 h-32 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Machine Dashboard / HUD -->
+        <div class="w-full grid grid-cols-3 gap-2 md:gap-4 mb-6 arcade-font">
+            <!-- Score Panel -->
+            <div class="bg-black/60 border border-red-500/30 rounded-2xl p-2 md:p-3 text-center flex flex-col items-center justify-center shadow-inner">
+                <span class="text-[11px] md:text-xs text-red-400 uppercase tracking-widest font-bold">當前得分 SCORE</span>
+                <span id="scoreDisplay" class="text-3xl md:text-5xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]">000</span>
+                <div class="text-[10px] text-amber-300/80 mt-0.5">連擊 COMBO: <span id="comboDisplay" class="font-bold text-red-400">0</span>x</div>
+            </div>
+
+            <!-- Time Panel -->
+            <div class="bg-black/60 border border-amber-500/30 rounded-2xl p-2 md:p-3 text-center flex flex-col items-center justify-center shadow-inner">
+                <span class="text-[11px] md:text-xs text-amber-400 uppercase tracking-widest font-bold">剩餘秒數 TIME</span>
+                <span id="timeDisplay" class="text-3xl md:text-5xl font-black text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]">30</span>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div id="timeProgressBar" class="h-full bg-gradient-to-r from-red-500 to-amber-400 w-full transition-all duration-200"></div>
+                </div>
+            </div>
+
+            <!-- Record High Score -->
+            <div class="bg-black/60 border border-slate-700 rounded-2xl p-2 md:p-3 text-center flex flex-col items-center justify-center shadow-inner">
+                <span class="text-[11px] md:text-xs text-slate-400 uppercase tracking-widest font-bold">最高記錄 BEST</span>
+                <span id="highScoreDisplay" class="text-3xl md:text-5xl font-black text-slate-200">000</span>
+                <div id="difficultyBadge" class="text-[10px] text-emerald-400 font-bold uppercase mt-0.5">模式: 一般</div>
+            </div>
+        </div>
+
+        <!-- 3x3 Game Board Holes Grid -->
+        <div id="gridContainer" class="w-full max-w-xl grid grid-cols-3 gap-3 md:gap-6 my-2 relative z-10">
+            <!-- 9 Whack Holes Generated in HTML for instant hydration -->
+            <!-- Hole 0 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="0">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 1 / Q ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 1 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="1">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 2 / W ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 2 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="2">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 3 / E ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 3 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="3">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 4 / A ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 4 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="4">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 5 / S ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 5 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="5">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 6 / D ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 6 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="6">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 7 / Z ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 7 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="7">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 8 / X ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+            <!-- Hole 8 -->
+            <div class="hole-wrapper flex flex-col items-center" data-index="8">
+                <div class="beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-3xl bg-neutral-900 border-4 border-neutral-800 portal-hole flex items-center justify-center overflow-hidden active:scale-95 transition-transform">
+                    <span class="absolute bottom-2 text-xs font-mono text-slate-600 font-bold select-none">[ 9 / C ]</span>
+                    <div class="target-entity w-full h-full absolute inset-0 flex items-center justify-center select-none pointer-events-auto"></div>
+                    <div class="pop-feedback absolute inset-0 flex items-center justify-center pointer-events-none"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Arcade Main Start Button Console -->
+        <div class="mt-6 flex flex-col sm:flex-row items-center gap-4">
+            <button id="startBtn" class="group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white font-black text-xl tracking-wider uppercase shadow-[0_10px_25px_rgba(225,29,72,0.5)] active:translate-y-1 active:shadow-none hover:brightness-110 transition-all border-b-4 border-red-900 flex items-center gap-3">
+                <span class="inline-block w-4 h-4 rounded-full bg-yellow-300 animate-ping group-hover:block"></span>
+                <span>投幣啟動 / START</span>
+                <span class="text-xs bg-black/40 px-2 py-1 rounded">SPACE 鍵</span>
+            </button>
+        </div>
+
+        <!-- Gameplay Guide Legend -->
+        <div class="mt-6 w-full max-w-xl bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-around gap-2 text-xs text-slate-300">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                <span>紅燈預警 ➜ 擊中魔鬼 <b class="text-green-400 font-bold">+100分</b></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-sky-400"></span>
+                <span>藍光守護 ➜ 誤擊天使 <b class="text-rose-400 font-bold">-150分</b></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-amber-400 font-bold">⚡ 連擊加成</span>
+                <span>連續命中獲得額外加分</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Keys Instructions -->
+    <footer class="mt-4 text-center text-xs text-slate-500">
+        <p>鍵盤對應快速鍵：頂層 [1, 2, 3 或 Q, W, E] ｜ 中層 [4, 5, 6 或 A, S, D] ｜ 底層 [7, 8, 9 或 Z, X, C]</p>
+        <p class="mt-1">手機平板可直接點擊魔鬼洞口敲打</p>
+    </footer>
+
+    <!-- Game Over / Settlement Modal (Dialog replacement, no alerts!) -->
+    <div id="settlementModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-gradient-to-b from-slate-900 to-neutral-950 border-2 border-red-600 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl relative overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-red-600/20 rounded-full blur-2xl"></div>
+            
+            <div class="text-5xl mb-2" id="modalEmoji">🏆</div>
+            <h2 class="text-2xl font-black text-amber-400 tracking-wide mb-1" id="modalTitle">挑戰結算！</h2>
+            <p class="text-xs text-slate-400 mb-6">TIME OVER - 機台結算總得分</p>
+
+            <!-- Detailed Stats Table -->
+            <div class="space-y-3 bg-black/50 p-4 rounded-2xl border border-slate-800 text-sm mb-6">
+                <div class="flex justify-between items-center text-slate-300">
+                    <span>最終得分 Final Score:</span>
+                    <span id="finalScoreText" class="text-2xl font-black text-amber-300 arcade-font">0</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-xs">
+                    <span>擊退魔鬼數量 (Devils Hit):</span>
+                    <span id="devilsHitText" class="text-emerald-400 font-bold">0 隻</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-xs">
+                    <span>誤傷天使數量 (Angels Hurt):</span>
+                    <span id="angelsHitText" class="text-rose-400 font-bold">0 隻</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-xs">
+                    <span>最高連續命中 (Max Combo):</span>
+                    <span id="maxComboText" class="text-amber-400 font-bold">0 次</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-xs pt-2 border-t border-slate-800">
+                    <span>歷史紀錄 High Record:</span>
+                    <span id="modalHighScoreText" class="text-slate-200 font-mono">0</span>
+                </div>
+            </div>
+
+            <!-- Custom Message Rating -->
+            <div id="rankEvaluation" class="text-sm font-semibold text-amber-200 mb-6 bg-red-950/40 py-2 px-3 rounded-xl border border-red-900/40">
+                評語：手速驚人！真正的驅魔大師！
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <button id="modalRestartBtn" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:brightness-110 font-bold text-white shadow-lg active:scale-95 transition">
+                    再次挑戰 (Play Again)
+                </button>
+                <button id="modalCloseBtn" class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-slate-300 border border-slate-700 active:scale-95 transition">
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        /**
+         * 打擊魔鬼 (Demon Strike Arcade)
+         * Feature Highlights:
+         * 1. 頂部頭部信號燈提示：先亮警示燈，魔鬼/天使隨即竄出，考驗直覺與反應
+         * 2. 角色設定：紅角魔鬼(+100分)、金色暴走魔王(+200分)、干擾天使(-150分)
+         * 3. Tone.js 街機音效合成器：不用外鏈音頻，零延遲打擊音效與背景歡呼
+         * 4. 完整的連擊系統、鍵盤9鍵雙佈局支持、觸控防連點、最高分本地紀錄
+         */
+
+        // Game Configuration & State
+        const GAME_DURATION = 30; // 30 seconds per round
+        let score = 0;
+        let timeLeft = GAME_DURATION;
+        let combo = 0;
+        let maxCombo = 0;
+        let devilsHit = 0;
+        let angelsHit = 0;
+        let highScore = 0;
+        let isPlaying = false;
+        let gameTimer = null;
+        let spawnLoopTimer = null;
+        let soundEnabled = true;
+
+        // Hole States: array of 9 objects tracking status: { isWarning, activeTarget: 'demon'|'boss'|'angel'|null, despawnTimeout, warningTimeout }
+        const holesState = Array.from({ length: 9 }, () => ({
+            warning: false,
+            target: null,
+            targetTimeout: null,
+            warningTimeout: null,
+            active: false
+        }));
+
+        // Key Mappings for 3x3 layout
+        const keyMap = {
+            '1': 0, 'q': 0, 'Q': 0,
+            '2': 1, 'w': 1, 'W': 1,
+            '3': 2, 'e': 2, 'E': 2,
+            '4': 3, 'a': 3, 'A': 3,
+            '5': 4, 's': 4, 'S': 4,
+            '6': 5, 'd': 5, 'D': 5,
+            '7': 6, 'z': 6, 'Z': 6,
+            '8': 7, 'x': 7, 'X': 7,
+            '9': 8, 'c': 8, 'C': 8,
+        };
+
+        // DOM Elements
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const comboDisplay = document.getElementById('comboDisplay');
+        const highScoreDisplay = document.getElementById('highScoreDisplay');
+        const timeProgressBar = document.getElementById('timeProgressBar');
+        const startBtn = document.getElementById('startBtn');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const soundIcon = document.getElementById('soundIcon');
+        const soundText = document.getElementById('soundText');
+        const holeWrappers = document.querySelectorAll('.hole-wrapper');
+        const settlementModal = document.getElementById('settlementModal');
+        const modalRestartBtn = document.getElementById('modalRestartBtn');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+        // Tone.js Arcade Sound Synthesizers
+        let audioContextStarted = false;
+        let hitSynth, angelPenaltySynth, warningSynth, startChime, gameOverSynth;
+
+        function initAudio() {
+            if (audioContextStarted) return;
+            try {
+                Tone.start();
+                audioContextStarted = true;
+
+                // Sound 1: Normal Demon Hit (Punchy FM Bass Impact)
+                hitSynth = new Tone.MembraneSynth({
+                    pitchDecay: 0.05,
+                    octaves: 4,
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.2 }
+                }).toDestination();
+
+                // Sound 2: Angel Penalty Hit (Sad Dissimilar Buzzer)
+                angelPenaltySynth = new Tone.PluckSynth({
+                    attackNoise: 2,
+                    dampening: 2000,
+                    resonance: 0.7
+                }).toDestination();
+
+                // Sound 3: Warning Light Beep (High pitched short chirp)
+                warningSynth = new Tone.Synth({
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.05 }
+                }).toDestination();
+                warningSynth.volume.value = -12; // soft alert
+
+                // Sound 4: Round Start & Round End fanfare
+                startChime = new Tone.PolySynth(Tone.Synth).toDestination();
+                startChime.volume.value = -6;
+
+                gameOverSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+                gameOverSynth.volume.value = -4;
+
+            } catch (err) {
+                console.warn("Web Audio initialization error:", err);
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled || !audioContextStarted) return;
+            try {
+                const now = Tone.now();
+                if (type === 'hit') {
+                    hitSynth.triggerAttackRelease("C3", "8n", now);
+                } else if (type === 'boss_hit') {
+                    hitSynth.triggerAttackRelease("G3", "8n", now);
+                    warningSynth.triggerAttackRelease("E6", "16n", now + 0.05);
+                } else if (type === 'angel_hit') {
+                    angelPenaltySynth.triggerAttack("F#2", now);
+                } else if (type === 'warning') {
+                    warningSynth.triggerAttackRelease("A5", "32n", now);
+                } else if (type === 'start') {
+                    startChime.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n", now);
+                } else if (type === 'gameover') {
+                    gameOverSynth.triggerAttackRelease(["G4", "Eb4", "C4"], "4n", now);
+                }
+            } catch (e) {
+                // Ignore transient audio context interruptions
+            }
+        }
+
+        // SVG Templates for Target Characters
+        const SVG_DEVIL = `
+            <svg class="w-20 h-20 md:w-28 md:h-28 drop-shadow-[0_8px_16px_rgba(220,38,38,0.7)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Horns -->
+                <path d="M22 34C16 22 10 20 6 22C4 28 12 40 20 44" fill="#991B1B" stroke="#F87171" stroke-width="2"/>
+                <path d="M78 34C84 22 90 20 94 22C96 28 88 40 80 44" fill="#991B1B" stroke="#F87171" stroke-width="2"/>
+                <!-- Head -->
+                <circle cx="50" cy="55" r="32" fill="#DC2626"/>
+                <!-- Brow -->
+                <path d="M30 46L44 51" stroke="#450A0A" stroke-width="4" stroke-linecap="round"/>
+                <path d="M70 46L56 51" stroke="#450A0A" stroke-width="4" stroke-linecap="round"/>
+                <!-- Evil Eyes -->
+                <polygon points="34,51 44,55 36,60" fill="#FEF08A"/>
+                <circle cx="38" cy="55" r="2.5" fill="#450A0A"/>
+                <polygon points="66,51 56,55 64,60" fill="#FEF08A"/>
+                <circle cx="62" cy="55" r="2.5" fill="#450A0A"/>
+                <!-- Demon Mouth & Fangs -->
+                <path d="M36 68C42 76 58 76 64 68" fill="#450A0A" stroke="#450A0A" stroke-width="2"/>
+                <polygon points="40,68 44,74 46,68" fill="#FFF"/>
+                <polygon points="60,68 56,74 54,68" fill="#FFF"/>
+                <!-- Forehead mark -->
+                <circle cx="50" cy="38" r="3" fill="#EF4444"/>
+            </svg>
+        `;
+
+        const SVG_BOSS_DEVIL = `
+            <svg class="w-20 h-20 md:w-28 md:h-28 drop-shadow-[0_8px_20px_rgba(245,158,11,0.9)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Flaming Horns -->
+                <path d="M20 30C10 14 6 12 3 16C0 24 10 38 18 42" fill="#B45309" stroke="#FBBF24" stroke-width="2.5"/>
+                <path d="M80 30C90 14 94 12 97 16C100 24 90 38 82 42" fill="#B45309" stroke="#FBBF24" stroke-width="2.5"/>
+                <!-- Fiery Head -->
+                <circle cx="50" cy="55" r="34" fill="#EA580C"/>
+                <!-- Flame crown on head -->
+                <path d="M42 24L50 14L58 24L50 21Z" fill="#FDE047"/>
+                <!-- Eyes Glow -->
+                <circle cx="36" cy="52" r="7" fill="#FEF08A"/>
+                <circle cx="36" cy="52" r="3" fill="#7C2D12"/>
+                <circle cx="64" cy="52" r="7" fill="#FEF08A"/>
+                <circle cx="64" cy="52" r="3" fill="#7C2D12"/>
+                <!-- Sharp grin -->
+                <path d="M32 68C40 82 60 82 68 68Z" fill="#431407"/>
+                <polygon points="38,68 42,75 45,68" fill="#FFF"/>
+                <polygon points="50,68 52,76 54,68" fill="#FFF"/>
+                <polygon points="62,68 58,75 55,68" fill="#FFF"/>
+            </svg>
+        `;
+
+        const SVG_ANGEL = `
+            <svg class="w-20 h-20 md:w-28 md:h-28 drop-shadow-[0_8px_16px_rgba(56,189,248,0.7)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Golden Halo -->
+                <ellipse cx="50" cy="20" rx="22" ry="7" stroke="#FACC15" stroke-width="4.5" fill="none"/>
+                <!-- Wings -->
+                <path d="M22 55C10 40 4 55 12 68C20 72 26 62 28 58" fill="#E0F2FE" stroke="#38BDF8" stroke-width="2"/>
+                <path d="M78 55C90 40 96 55 88 68C80 72 74 62 72 58" fill="#E0F2FE" stroke="#38BDF8" stroke-width="2"/>
+                <!-- Innocent Face -->
+                <circle cx="50" cy="56" r="30" fill="#F8FAFC"/>
+                <!-- Cute Blush -->
+                <ellipse cx="34" cy="62" rx="4" ry="2" fill="#FDA4AF"/>
+                <ellipse cx="66" cy="62" rx="4" ry="2" fill="#FDA4AF"/>
+                <!-- Round Happy Eyes -->
+                <path d="M33 50C35 46 41 46 43 50" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+                <path d="M57 50C59 46 65 46 67 50" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+                <!-- Sweet Smile -->
+                <path d="M44 64C48 68 52 68 56 64" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+        `;
+
+        // Load Stored High Score from Local Variable
+        function loadRecord() {
+            highScoreDisplay.textContent = String(highScore).padStart(3, '0');
+        }
+
+        // Start Game Handler
+        function startGame() {
+            initAudio();
+            if (isPlaying) return;
+
+            // Reset scores & status
+            score = 0;
+            timeLeft = GAME_DURATION;
+            combo = 0;
+            maxCombo = 0;
+            devilsHit = 0;
+            angelsHit = 0;
+            isPlaying = true;
+
+            // Update UI
+            updateHUD();
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50', 'pointer-events-none');
+            settlementModal.classList.add('hidden');
+            settlementModal.classList.remove('opacity-100');
+
+            // Play start tune
+            playSound('start');
+
+            // Run countdown clock
+            clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateHUD();
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Start Main Whack-a-Demon Spawning Engine
+            runSpawningEngine();
+        }
+
+        // Main Spawning Loop with Progressive Difficulty
+        function runSpawningEngine() {
+            if (!isPlaying) return;
+
+            // Find currently available (idle) holes
+            const idleIndices = [];
+            holesState.forEach((h, i) => {
+                if (!h.active) idleIndices.push(i);
+            });
+
+            if (idleIndices.length > 0) {
+                // Dynamically scale how many holes spawn at once
+                const maxConcurrent = timeLeft > 15 ? 2 : 3;
+                const activeCount = holesState.filter(h => h.active).length;
+
+                if (activeCount < maxConcurrent) {
+                    // Pick a random idle hole
+                    const pickIndex = idleIndices[Math.floor(Math.random() * idleIndices.length)];
+                    scheduleTargetAppearance(pickIndex);
+                }
+            }
+
+            // Next evaluation cycle adapts to remaining time
+            const nextDelay = Math.max(450, 850 - ((GAME_DURATION - timeLeft) * 15));
+            spawnLoopTimer = setTimeout(runSpawningEngine, nextDelay);
+        }
+
+        /**
+         * Rule 2 & 3: Target Spawning with Lighting Cue!
+         * 魔鬼並非無預警亂跳，而是由頂部信號燈先發亮警告，隨後冒出
+         */
+        function scheduleTargetAppearance(index) {
+            const hole = holesState[index];
+            const holeEl = holeWrappers[index];
+            const beacon = holeEl.querySelector('.beacon-light');
+            const targetContainer = holeEl.querySelector('.target-entity');
+
+            hole.active = true;
+
+            // 1. Determine Target Type:
+            // 65% Normal Devil, 15% Boss Devil (+200 pts), 20% Distractor Angel (-150 pts)
+            const rand = Math.random();
+            let targetType = 'demon';
+            if (rand < 0.20) {
+                targetType = 'angel';
+            } else if (rand > 0.85) {
+                targetType = 'boss';
+            }
+            hole.target = targetType;
+
+            // 2. Trigger Beacon Light Effect (Lighting Cue)
+            if (targetType === 'angel') {
+                beacon.className = 'beacon-light w-5 h-5 rounded-full mb-1 border border-sky-400 bg-sky-400 beacon-angel transition-all';
+            } else {
+                beacon.className = 'beacon-light w-5 h-5 rounded-full mb-1 border border-red-500 bg-red-500 beacon-active transition-all';
+            }
+            playSound('warning');
+
+            // 3. Warning Phase Delay (e.g. 260ms warning anticipation before emerging)
+            const warningLeadTime = Math.max(180, 320 - ((GAME_DURATION - timeLeft) * 5));
+
+            hole.warningTimeout = setTimeout(() => {
+                if (!isPlaying || !hole.active) return;
+
+                // Render character SVG inside container
+                targetContainer.innerHTML = '';
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'sprout-anim w-full h-full flex items-center justify-center cursor-pointer';
+
+                // Target duration on screen before escaping
+                const stayDurationSec = Math.max(0.75, 1.35 - ((GAME_DURATION - timeLeft) * 0.02));
+                wrapperDiv.style.setProperty('--target-duration', `${stayDurationSec}s`);
+
+                if (targetType === 'demon') {
+                    wrapperDiv.innerHTML = SVG_DEVIL;
+                } else if (targetType === 'boss') {
+                    wrapperDiv.innerHTML = SVG_BOSS_DEVIL;
+                } else {
+                    wrapperDiv.innerHTML = SVG_ANGEL;
+                }
+
+                targetContainer.appendChild(wrapperDiv);
+
+                // Auto despawn if player misses
+                hole.targetTimeout = setTimeout(() => {
+                    clearHole(index, false); // Missed or escaped safely
+                }, stayDurationSec * 1000);
+
+            }, warningLeadTime);
+        }
+
+        // Whack Action Handler
+        function whack(index) {
+            if (!isPlaying) return;
+            const hole = holesState[index];
+            const holeEl = holeWrappers[index];
+            const targetContainer = holeEl.querySelector('.target-entity');
+
+            // Check if there is an active target currently emerged
+            if (hole.active && hole.target && targetContainer.firstChild) {
+                const targetType = hole.target;
+
+                // Flash feedback visual
+                createHitFeedback(holeEl, targetType);
+
+                if (targetType === 'demon' || targetType === 'boss') {
+                    // Successful Hit!
+                    combo++;
+                    if (combo > maxCombo) maxCombo = combo;
+                    devilsHit++;
+
+                    const basePoints = targetType === 'boss' ? 200 : 100;
+                    const comboBonus = Math.min((combo - 1) * 20, 100);
+                    const totalGained = basePoints + comboBonus;
+                    score += totalGained;
+
+                    playSound(targetType === 'boss' ? 'boss_hit' : 'hit');
+                    showFloatingScore(holeEl, `+${totalGained}`, 'text-amber-400 font-black');
+
+                } else if (targetType === 'angel') {
+                    // Penalty! Hurt an angel
+                    combo = 0;
+                    angelsHit++;
+                    score = Math.max(0, score - 150);
+
+                    playSound('angel_hit');
+                    showFloatingScore(holeEl, `-150`, 'text-rose-500 font-bold');
+
+                    // Machine Shake feedback for penalty
+                    document.querySelector('main').classList.add('animate-bounce');
+                    setTimeout(() => document.querySelector('main').classList.remove('animate-bounce'), 250);
+                }
+
+                // Instantly clear hole after hit
+                clearHole(index, true);
+                updateHUD();
+            } else {
+                // Empty swing / miss
+                combo = 0;
+                updateHUD();
+            }
+        }
+
+        // Visual Hit Ripple & Flash Effect
+        function createHitFeedback(holeEl, targetType) {
+            const feedbackContainer = holeEl.querySelector('.pop-feedback');
+            const flash = document.createElement('div');
+            flash.className = `absolute inset-2 rounded-2xl pointer-events-none opacity-80 ${
+                targetType === 'angel' ? 'bg-sky-500/50' : 'bg-red-500/50'
+            } animate-ping`;
+            feedbackContainer.appendChild(flash);
+            setTimeout(() => flash.remove(), 300);
+        }
+
+        // Floating Number Text (+100 / -150)
+        function showFloatingScore(holeEl, text, colorClass) {
+            const feedbackContainer = holeEl.querySelector('.pop-feedback');
+            const floater = document.createElement('div');
+            floater.className = `floating-score text-xl md:text-2xl font-black ${colorClass} arcade-font drop-shadow-md select-none`;
+            floater.textContent = text;
+            feedbackContainer.appendChild(floater);
+            setTimeout(() => floater.remove(), 750);
+        }
+
+        // Reset individual hole state
+        function clearHole(index, wasHit) {
+            const hole = holesState[index];
+            const holeEl = holeWrappers[index];
+            const beacon = holeEl.querySelector('.beacon-light');
+            const targetContainer = holeEl.querySelector('.target-entity');
+
+            clearTimeout(hole.warningTimeout);
+            clearTimeout(hole.targetTimeout);
+
+            targetContainer.innerHTML = '';
+            beacon.className = 'beacon-light w-5 h-5 rounded-full mb-1 border border-slate-700 bg-slate-800 transition-all duration-150';
+
+            hole.warning = false;
+            hole.target = null;
+            hole.active = false;
+        }
+
+        // Update Dashboard Display Elements
+        function updateHUD() {
+            scoreDisplay.textContent = String(score).padStart(3, '0');
+            timeDisplay.textContent = String(Math.max(0, timeLeft)).padStart(2, '0');
+            comboDisplay.textContent = combo;
+
+            const progressPercent = (timeLeft / GAME_DURATION) * 100;
+            timeProgressBar.style.width = `${progressPercent}%`;
+
+            if (timeLeft <= 5) {
+                timeDisplay.classList.add('animate-pulse');
+            } else {
+                timeDisplay.classList.remove('animate-pulse');
+            }
+        }
+
+        // End Game & Settlement Modal Display
+        function endGame() {
+            isPlaying = false;
+            clearInterval(gameTimer);
+            clearTimeout(spawnLoopTimer);
+
+            // Clean up all holes
+            holesState.forEach((_, idx) => clearHole(idx, false));
+
+            // High Score Check
+            if (score > highScore) {
+                highScore = score;
+                loadRecord();
+            }
+
+            // Play GameOver Sound
+            playSound('gameover');
+
+            // Enable Start Button
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+            // Show Settlement Screen
+            setTimeout(() => {
+                displaySettlementModal();
+            }, 400);
+        }
+
+        // Show Arcade Settlement Report
+        function displaySettlementModal() {
+            document.getElementById('finalScoreText').textContent = score;
+            document.getElementById('devilsHitText').textContent = `${devilsHit} 隻`;
+            document.getElementById('angelsHitText').textContent = `${angelsHit} 隻`;
+            document.getElementById('maxComboText').textContent = `${maxCombo} 次`;
+            document.getElementById('modalHighScoreText').textContent = highScore;
+
+            // Generate Fun Retro Evaluation
+            const rankEl = document.getElementById('rankEvaluation');
+            const emojiEl = document.getElementById('modalEmoji');
+            const titleEl = document.getElementById('modalTitle');
+
+            if (score >= 2500) {
+                emojiEl.textContent = '👑';
+                titleEl.textContent = '殿堂級驅魔神槌！';
+                rankEl.textContent = '評語：Ｓ級神速！魔王都被你敲到懷疑魔生！';
+            } else if (score >= 1500) {
+                emojiEl.textContent = '⚡';
+                titleEl.textContent = '高級獵魔士！';
+                rankEl.textContent = '評語：Ａ級反應！準確度極高，反應敏捷！';
+            } else if (score >= 800) {
+                emojiEl.textContent = '🔨';
+                titleEl.textContent = '合格的聖鎚手！';
+                rankEl.textContent = '評語：Ｂ級水準！手感很棒，再多加練習連擊！';
+            } else {
+                emojiEl.textContent = '😅';
+                titleEl.textContent = '驅魔學徒！';
+                rankEl.textContent = '評語：Ｃ級評價。注意別把可愛的天使敲暈囉！';
+            }
+
+            settlementModal.classList.remove('hidden');
+            setTimeout(() => {
+                settlementModal.classList.add('opacity-100');
+                settlementModal.querySelector('.transform').classList.remove('scale-95');
+                settlementModal.querySelector('.transform').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            settlementModal.classList.remove('opacity-100');
+            settlementModal.querySelector('.transform').classList.remove('scale-100');
+            settlementModal.querySelector('.transform').classList.add('scale-95');
+            setTimeout(() => {
+                settlementModal.classList.add('hidden');
+            }, 250);
+        }
+
+        // Event Listeners: Click & Touch on holes
+        holeWrappers.forEach(hole => {
+            const index = parseInt(hole.getAttribute('data-index'), 10);
+            
+            // Mouse Click
+            hole.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                whack(index);
+            });
+
+            // Touch device tap
+            hole.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                whack(index);
+            }, { passive: false });
+        });
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            // Space starts game
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isPlaying) {
+                    startGame();
+                }
+                return;
+            }
+
+            // Number/Letter key mapping
+            if (keyMap.hasOwnProperty(e.key)) {
+                e.preventDefault();
+                const targetIdx = keyMap[e.key];
+                
+                // Add simulated press animation
+                const holeBox = holeWrappers[targetIdx].querySelector('.portal-hole');
+                holeBox.classList.add('scale-90', 'border-red-500');
+                setTimeout(() => holeBox.classList.remove('scale-90', 'border-red-500'), 120);
+
+                whack(targetIdx);
+            }
+        });
+
+        // Start & Restart Buttons
+        startBtn.addEventListener('click', startGame);
+        modalRestartBtn.addEventListener('click', () => {
+            closeModal();
+            setTimeout(startGame, 300);
+        });
+        modalCloseBtn.addEventListener('click', closeModal);
+
+        // Sound Mute Toggle
+        soundToggleBtn.addEventListener('click', () => {
+            initAudio();
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                soundIcon.textContent = '🔊';
+                soundText.textContent = '音效: 開啟';
+                soundToggleBtn.classList.remove('text-slate-500');
+                soundToggleBtn.classList.add('text-slate-300');
+            } else {
+                soundIcon.textContent = '🔇';
+                soundText.textContent = '音效: 靜音';
+                soundToggleBtn.classList.remove('text-slate-300');
+                soundToggleBtn.classList.add('text-slate-500');
+            }
+        });
+
+        // Initial Load
+        loadRecord();
+    </script>
+</body>
+</html>
