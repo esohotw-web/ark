@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台宣方舟行動教會 | 傳義道・救靈魂 - 末世啟示行動方舟</title>
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons for Futuristic UI -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            arkNavy: {
+              950: '#050811',
+              900: '#080E1E',
+              800: '#0F1B36',
+              700: '#17274D',
+              600: '#233866'
+            },
+            arkCyan: {
+              300: '#67F5FF',
+              400: '#00E5FF',
+              500: '#00B8D4',
+              glow: 'rgba(0, 229, 255, 0.4)'
+            },
+            arkGold: {
+              300: '#FDE084',
+              400: '#F5A623',
+              500: '#D98207',
+              glow: 'rgba(245, 166, 35, 0.35)'
+            }
+          },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+            display: ['"Orbitron"', '"Cinzel"', '"Noto Sans TC"', 'sans-serif'],
+            cinzel: ['"Cinzel"', 'serif']
+          },
+          boxShadow: {
+            'cyan-glow': '0 0 25px rgba(0, 229, 255, 0.35)',
+            'gold-glow': '0 0 25px rgba(245, 166, 35, 0.35)',
+            'neon-box': 'inset 0 0 15px rgba(0, 229, 255, 0.2), 0 0 20px rgba(0, 229, 255, 0.3)'
+          },
+          animation: {
+            'float': 'floating 4s ease-in-out infinite',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'shimmer': 'shimmer 2.5s infinite'
+          },
+          keyframes: {
+            floating: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            shimmer: {
+              '100%': { transform: 'translateX(100%)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    /* Custom Futuristic Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080E1E;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #17274D;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 229, 255, 0.2);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00E5FF;
+    }
+
+    /* Glassmorphism Classes */
+    .glass-panel {
+      background: rgba(15, 27, 54, 0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(0, 229, 255, 0.16);
+    }
+    .glass-gold {
+      background: rgba(26, 21, 14, 0.75);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(245, 166, 35, 0.3);
+    }
+    .hud-border {
+      position: relative;
+    }
+    .hud-border::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px;
+      width: 14px; height: 14px;
+      border-top: 2px solid #00E5FF;
+      border-left: 2px solid #00E5FF;
+      pointer-events: none;
+    }
+    .hud-border::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; right: -1px;
+      width: 14px; height: 14px;
+      border-bottom: 2px solid #00E5FF;
+      border-right: 2px solid #00E5FF;
+      pointer-events: none;
+    }
+
+    /* Subtle Grid Background Pattern */
+    .cyber-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+    }
+  </style>
+</head>
+
+<body class="bg-arkNavy-950 text-slate-100 font-sans selection:bg-arkCyan-400 selection:text-arkNavy-950 overflow-x-hidden cyber-grid relative min-h-screen">
+
+  <!-- Interactive Starfield & Ark Waves Canvas -->
+  <canvas id="bg-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed top-6 right-6 z-50 transform translate-y-[-120%] opacity-0 transition-all duration-300 ease-out flex items-center gap-3 bg-arkNavy-800 border border-arkCyan-400 text-white px-5 py-3 rounded-xl shadow-cyan-glow">
+    <i class="ph ph-check-circle text-2xl text-arkCyan-400"></i>
+    <span id="toast-message" class="text-sm font-medium">複製成功！</span>
+  </div>
+
+  <!-- NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 w-full glass-panel border-b border-arkCyan-400/20 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand & Ark Logo -->
+      <a href="#hero" class="flex items-center gap-3.5 group">
+        <div class="relative w-12 h-12 flex-shrink-0 rounded-full p-0.5 bg-gradient-to-tr from-arkCyan-400 via-sky-500 to-arkGold-400 group-hover:scale-105 transition-transform duration-300 shadow-cyan-glow overflow-hidden bg-white flex items-center justify-center" id="navbar-logo-container">
+          <!-- Vector Embedded Ark Logo (High Fidelity Replica of Image 1) -->
+          <svg id="svg-logo" viewBox="0 0 500 500" class="w-full h-full">
+            <defs>
+              <clipPath id="circle-clip">
+                <circle cx="250" cy="250" r="235" />
+              </clipPath>
+              <linearGradient id="globe-ocean" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="100%" stop-color="#ffffff"/>
+              </linearGradient>
+            </defs>
+            <circle cx="250" cy="250" r="235" fill="#ffffff" stroke="#2B5B9E" stroke-width="14" />
+            <g clip-path="url(#circle-clip)">
+              <!-- Continents (Dark Blue) -->
+              <path d="M 60,180 Q 150,110 280,120 Q 380,80 460,200 Q 420,320 310,300 Q 230,340 180,260 Q 80,310 60,180 Z" fill="#3B69B2" opacity="0.95" />
+              <path d="M 120,300 Q 180,340 160,420 Q 100,430 80,360 Z" fill="#3B69B2" />
+              <circle cx="150" cy="180" r="45" fill="#4B77C2" />
+              <circle cx="360" cy="220" r="60" fill="#31599C" />
+              <!-- Red Cross -->
+              <rect x="180" y="200" width="16" height="150" fill="#E51924" />
+              <rect x="150" y="240" width="76" height="16" fill="#E51924" />
+              <!-- Ark Body (Brown) -->
+              <path d="M 230,250 L 320,260 L 305,290 L 220,290 Z" fill="#693B18" />
+              <path d="M 110,380 L 440,260 Q 450,340 370,410 L 110,430 Z" fill="#753F19" />
+              <!-- Ark Portholes -->
+              <circle cx="280" cy="345" r="14" fill="#FFFFFF" />
+              <circle cx="320" cy="330" r="14" fill="#FFFFFF" />
+              <circle cx="360" cy="315" r="14" fill="#FFFFFF" />
+              <!-- Blue Waves -->
+              <path d="M 100,430 Q 210,380 320,430 Q 380,450 440,390 C 370,470 240,420 110,470 Z" fill="#00A2E8" />
+              <path d="M 120,455 Q 230,415 330,460 Q 370,465 420,425 C 340,490 230,445 120,485 Z" fill="#0083CA" />
+            </g>
+          </svg>
+          <img id="custom-nav-logo" src="" alt="自訂LOGO" class="hidden w-full h-full object-contain" />
+        </div>
+        <div>
+          <div class="text-lg sm:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-arkCyan-300 font-display">
+            台宣方舟行動教會
+          </div>
+          <p class="text-xs text-arkGold-400 tracking-widest font-mono flex items-center gap-1.5 font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-arkCyan-400 animate-ping"></span>
+            傳義道．救靈魂
+          </p>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium">
+        <a href="#vision" class="text-slate-300 hover:text-arkCyan-400 transition-colors flex items-center gap-1">
+          <i class="ph ph-compass text-base text-arkCyan-400"></i> 方舟異象
+        </a>
+        <a href="#gatherings" class="text-slate-300 hover:text-arkCyan-400 transition-colors flex items-center gap-1">
+          <i class="ph ph-calendar-check text-base text-arkCyan-400"></i> 聚會時間
+        </a>
+        <a href="#groups" class="text-slate-300 hover:text-arkCyan-400 transition-colors flex items-center gap-1">
+          <i class="ph ph-users-four text-base text-arkCyan-400"></i> 小組生活
+        </a>
+        <a href="#pastor" class="text-slate-300 hover:text-arkCyan-400 transition-colors flex items-center gap-1">
+          <i class="ph ph-user-circle text-base text-arkCyan-400"></i> 牧者心靈
+        </a>
+        <a href="#location" class="text-slate-300 hover:text-arkCyan-400 transition-colors flex items-center gap-1">
+          <i class="ph ph-map-pin text-base text-arkCyan-400"></i> 抵達方舟
+        </a>
+        <a href="#offering" class="px-4 py-2 rounded-lg bg-gradient-to-r from-arkGold-500 to-amber-600 hover:from-arkGold-400 hover:to-amber-500 text-slate-950 font-bold transition-all shadow-gold-glow flex items-center gap-1.5">
+          <i class="ph ph-hand-heart text-lg"></i> 奉獻支持
+        </a>
+      </nav>
+
+      <!-- Mobile Menu Toggle Button -->
+      <button id="mobile-menu-btn" class="md:hidden text-2xl text-slate-200 hover:text-arkCyan-400 p-2 rounded-lg glass-panel focus:outline-none" aria-label="切換選單">
+        <i class="ph ph-list" id="menu-icon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown Navigation -->
+    <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-arkCyan-400/20 px-6 py-5 space-y-4">
+      <a href="#vision" class="mobile-link block text-slate-200 hover:text-arkCyan-400 py-1 font-medium">方舟異象與目標</a>
+      <a href="#gatherings" class="mobile-link block text-slate-200 hover:text-arkCyan-400 py-1 font-medium">聚會時間與倒數</a>
+      <a href="#groups" class="mobile-link block text-slate-200 hover:text-arkCyan-400 py-1 font-medium">小組生活 (四組)</a>
+      <a href="#pastor" class="mobile-link block text-slate-200 hover:text-arkCyan-400 py-1 font-medium">曾聖輝主任牧師</a>
+      <a href="#location" class="mobile-link block text-slate-200 hover:text-arkCyan-400 py-1 font-medium">教會地址與交通</a>
+      <a href="#offering" class="mobile-link block w-full text-center py-2.5 rounded-lg bg-arkGold-400 text-slate-950 font-bold shadow-gold-glow">
+        線上奉獻資訊
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO SECTION: THE CYBER ARK -->
+  <section id="hero" class="relative min-h-[92vh] flex items-center justify-center pt-8 pb-16 overflow-hidden">
+    
+    <!-- Neon Lighting Glows -->
+    <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-b from-arkCyan-400/20 via-blue-600/10 to-transparent blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-10 right-10 w-96 h-96 bg-arkGold-400/10 blur-3xl rounded-full pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+      
+      <!-- Vision Badge -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-arkCyan-400/40 text-xs sm:text-sm text-arkCyan-300 mb-6 shadow-cyan-glow">
+        <span class="w-2 h-2 rounded-full bg-arkCyan-400 animate-ping"></span>
+        <span class="font-mono tracking-wider">APOCALYPTIC & PROPHETIC RAPID ACTION</span>
+      </div>
+
+      <!-- Main Heading -->
+      <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+        航向啟示時代的<br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-arkCyan-300 via-sky-300 to-arkGold-400">
+          屬靈快速行動方舟
+        </span>
+      </h1>
+
+      <!-- Vision Statement -->
+      <div class="max-w-3xl mx-auto mb-10 space-y-3">
+        <p class="text-2xl sm:text-3xl font-black text-arkGold-300 tracking-widest font-display">
+          「 傳義道 ． 救靈魂 」
+        </p>
+        <p class="text-base sm:text-lg text-slate-300 font-light leading-relaxed">
+          建立具<span class="text-arkCyan-300 font-medium">末世性</span>、<span class="text-arkCyan-300 font-medium">啟示性</span>的快速行動教會。<br class="hidden sm:inline"/>
+          在動盪時代中，以真理裝備聖徒，以行動承接天國使命。
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-14">
+        <a href="#gatherings" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-arkCyan-400 to-blue-500 hover:from-arkCyan-300 hover:to-blue-400 text-slate-950 font-extrabold transition-all shadow-cyan-glow flex items-center justify-center gap-2 group">
+          <i class="ph-bold ph-lightning text-xl group-hover:scale-110 transition-transform"></i>
+          參與主日聚會
+        </a>
+        <a href="tel:033166171" class="w-full sm:w-auto px-8 py-3.5 rounded-xl glass-panel hover:bg-arkNavy-800 text-white font-bold transition-all border border-slate-700 hover:border-arkGold-400 flex items-center justify-center gap-2">
+          <i class="ph-bold ph-phone-call text-xl text-arkGold-400"></i>
+          聯絡我們：03-3166171
+        </a>
+      </div>
+
+      <!-- LIVE SUNDAY COUNTDOWN HUD -->
+      <div class="max-w-3xl mx-auto glass-panel rounded-2xl p-6 sm:p-7 hud-border shadow-2xl relative">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-700/60 pb-4 mb-4">
+          <div class="flex items-center gap-3">
+            <span class="p-2 rounded-lg bg-arkCyan-400/10 text-arkCyan-400">
+              <i class="ph-bold ph-hourglass-high text-2xl animate-spin-slow"></i>
+            </span>
+            <div class="text-left">
+              <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wider font-mono">下一場主日啟航倒數</h4>
+              <p class="text-xs text-slate-400">每週日 10:00 - 11:30 | 南平路478號5F</p>
+            </div>
+          </div>
+          <div id="service-status-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            ● 預備登舟中
+          </div>
+        </div>
+
+        <!-- Timer Digits Grid -->
+        <div class="grid grid-cols-4 gap-2 sm:gap-4 text-center" id="countdown-timer">
+          <div class="bg-arkNavy-900/90 rounded-xl p-3 border border-slate-700/50">
+            <div id="cd-days" class="text-2xl sm:text-4xl font-extrabold text-arkCyan-300 font-mono">--</div>
+            <div class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest mt-1">天 (DAYS)</div>
+          </div>
+          <div class="bg-arkNavy-900/90 rounded-xl p-3 border border-slate-700/50">
+            <div id="cd-hours" class="text-2xl sm:text-4xl font-extrabold text-arkCyan-300 font-mono">--</div>
+            <div class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest mt-1">時 (HRS)</div>
+          </div>
+          <div class="bg-arkNavy-900/90 rounded-xl p-3 border border-slate-700/50">
+            <div id="cd-minutes" class="text-2xl sm:text-4xl font-extrabold text-arkCyan-300 font-mono">--</div>
+            <div class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest mt-1">分 (MINS)</div>
+          </div>
+          <div class="bg-arkNavy-900/90 rounded-xl p-3 border border-slate-700/50">
+            <div id="cd-seconds" class="text-2xl sm:text-4xl font-extrabold text-arkGold-400 font-mono">--</div>
+            <div class="text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest mt-1">秒 (SECS)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- VISION & MATRIX DASHBOARD SECTION -->
+  <section id="vision" class="py-20 relative z-10 border-t border-slate-800/80 bg-arkNavy-900/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-mono tracking-widest text-arkCyan-400 uppercase">Strategic Ark Blueprint</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-display">方舟異象與目標架構</h2>
+        <div class="h-1 w-24 bg-gradient-to-r from-transparent via-arkCyan-400 to-transparent mx-auto mb-4"></div>
+        <p class="text-slate-300 text-sm sm:text-base">
+          以神國核心啟示為根基，落實「四職份．四部門．四進程」的全人建造與國度擴張。
+        </p>
+      </div>
+
+      <!-- Strategy Bento Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Strategy 1: 四職份 -->
+        <div class="glass-panel p-7 rounded-2xl hover:border-arkCyan-400 transition-all duration-300 group">
+          <div class="w-12 h-12 rounded-xl bg-arkCyan-400/10 border border-arkCyan-400/30 flex items-center justify-center text-2xl text-arkCyan-400 mb-5 group-hover:scale-110 transition-transform">
+            <i class="ph-bold ph-shield-check"></i>
+          </div>
+          <div class="text-xs font-mono text-arkCyan-300 tracking-wider">PILLAR 01</div>
+          <h3 class="text-xl font-bold text-white mt-1 mb-3">四職份 (Offices)</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            成全聖徒各盡其職，建立具備使徒性開拓與牧養守望的國度團隊，釋放每位信徒獨一無二的屬天呼召。
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">使徒性</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">先知性</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">傳福音</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">牧養教導</span>
+          </div>
+        </div>
+
+        <!-- Strategy 2: 四部門 -->
+        <div class="glass-panel p-7 rounded-2xl hover:border-arkGold-400 transition-all duration-300 group">
+          <div class="w-12 h-12 rounded-xl bg-arkGold-400/10 border border-arkGold-400/30 flex items-center justify-center text-2xl text-arkGold-400 mb-5 group-hover:scale-110 transition-transform">
+            <i class="ph-bold ph-git-merge"></i>
+          </div>
+          <div class="text-xs font-mono text-arkGold-400 tracking-wider">PILLAR 02</div>
+          <h3 class="text-xl font-bold text-white mt-1 mb-3">四部門 (Operations)</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            高效分工的四維運作中樞，兼顧靈命裝備、行政後勤、關懷牧養與外展宣教，達成敏捷行動力。
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">敬拜靈修</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">事工策劃</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">宣教外展</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">行政支援</span>
+          </div>
+        </div>
+
+        <!-- Strategy 3: 四進程 -->
+        <div class="glass-panel p-7 rounded-2xl hover:border-emerald-400 transition-all duration-300 group">
+          <div class="w-12 h-12 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-2xl text-emerald-400 mb-5 group-hover:scale-110 transition-transform">
+            <i class="ph-bold ph-trend-up"></i>
+          </div>
+          <div class="text-xs font-mono text-emerald-300 tracking-wider">PILLAR 03</div>
+          <h3 class="text-xl font-bold text-white mt-1 mb-3">四進程 (Progression)</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            明確的生命成長階梯：從慕道遇見神、受洗扎根、領受門訓到主動派遣，快速轉化為屬靈精兵。
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">歸信</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">扎根</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">裝備</span>
+            <span class="text-xs px-2.5 py-1 rounded-md bg-arkNavy-800 text-slate-300 border border-slate-700">差派</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Apocalyptic Mission Statement Quote Banner -->
+      <div class="mt-10 glass-panel rounded-2xl p-6 sm:p-8 border border-arkCyan-400/30 text-center relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-arkCyan-300 pointer-events-none">
+          <i class="ph-fill ph-quotes"></i>
+        </div>
+        <p class="text-lg sm:text-2xl font-bold text-white tracking-wide leading-relaxed">
+          「在末世的風暴中，方舟不僅是避難之所，更是得人如魚、快速行動的戰略旗艦。」
+        </p>
+        <span class="inline-block mt-3 text-xs sm:text-sm font-mono text-arkGold-400 font-semibold tracking-wider">
+          — 台宣方舟行動教會 目標宣言
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- GATHERINGS & TIMETABLE SECTION -->
+  <section id="gatherings" class="py-20 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-mono tracking-widest text-arkGold-400 uppercase">Synchronized Orbit</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-display">聚會時間表</h2>
+        <div class="h-1 w-24 bg-gradient-to-r from-transparent via-arkGold-400 to-transparent mx-auto mb-4"></div>
+        <p class="text-slate-300 text-sm sm:text-base">
+          歡迎新朋友、弟兄姊妹同心參與敬拜、浸泡於聖靈同在中。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Gathering 1: 主日禱告 -->
+        <div class="glass-panel p-6 rounded-2xl border-slate-700/70 hover:border-arkCyan-400 hover:shadow-cyan-glow transition-all duration-300">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-3 py-1 rounded-md text-xs font-mono bg-arkNavy-800 text-slate-300 border border-slate-700">週日 SUNDAY</span>
+            <i class="ph-bold ph-flame text-2xl text-arkCyan-400"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">主日晨禱會</h3>
+          <div class="text-2xl font-mono font-black text-arkCyan-300 mb-3">09:30 - 10:00</div>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            以同心呼求破除屬靈阻礙，為當日講道、信徒心靈與全地復興築起屬天祭壇。
+          </p>
+        </div>
+
+        <!-- Gathering 2: 主日禮拜 (Featured) -->
+        <div class="glass-panel p-6 rounded-2xl border-arkGold-400/60 shadow-gold-glow relative overflow-hidden group">
+          <div class="absolute top-0 right-0 bg-arkGold-400 text-slate-950 text-[10px] font-black uppercase px-3 py-1 rounded-bl-lg font-mono">
+            CORE GATHERING
+          </div>
+          <div class="flex items-center justify-between mb-4 mt-2">
+            <span class="px-3 py-1 rounded-md text-xs font-mono bg-arkGold-400/20 text-arkGold-300 border border-arkGold-400/40 font-bold">週日 SUNDAY</span>
+            <i class="ph-bold ph-sun text-2xl text-arkGold-400 group-hover:rotate-45 transition-transform"></i>
+          </div>
+          <h3 class="text-xl font-black text-white mb-2">主日崇拜慶典</h3>
+          <div class="text-2xl font-mono font-black text-arkGold-400 mb-3">10:00 - 11:30</div>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            現代敬拜讚美、啟示性講道真理釋放、代禱醫治，領受一週前行的屬天能源。
+          </p>
+        </div>
+
+        <!-- Gathering 3: 小組聚會 -->
+        <div class="glass-panel p-6 rounded-2xl border-slate-700/70 hover:border-arkCyan-400 hover:shadow-cyan-glow transition-all duration-300">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-3 py-1 rounded-md text-xs font-mono bg-arkNavy-800 text-slate-300 border border-slate-700">週日 SUNDAY</span>
+            <i class="ph-bold ph-users-three text-2xl text-emerald-400"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">小組團契生活</h3>
+          <div class="text-2xl font-mono font-black text-emerald-300 mb-3">11:30 - 12:30</div>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            崇拜後各小組深入分享、互相關懷扶持、一起享用餐點，建立真實屬靈家人關係。
+          </p>
+        </div>
+
+        <!-- Gathering 4: 門徒訓練 -->
+        <div class="glass-panel p-6 rounded-2xl border-slate-700/70 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all duration-300">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-3 py-1 rounded-md text-xs font-mono bg-purple-500/10 text-purple-300 border border-purple-500/30">週五 FRIDAY</span>
+            <i class="ph-bold ph-sword text-2xl text-purple-400"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">門徒神國精兵裝備</h3>
+          <div class="text-2xl font-mono font-black text-purple-300 mb-3">20:00 - 21:00</div>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            末世靈修裝備、真理研析、事奉技巧操練，培育具備實戰行動力的成熟門徒。
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Quick Add to Calendar Utility -->
+      <div class="mt-8 flex justify-center">
+        <button onclick="downloadCalendarInvite()" class="px-6 py-2.5 rounded-xl glass-panel hover:bg-arkNavy-800 text-slate-300 hover:text-white border border-slate-700 hover:border-arkCyan-400 text-sm font-medium transition-all flex items-center gap-2">
+          <i class="ph-bold ph-calendar-plus text-arkCyan-400 text-base"></i>
+          加入主日行事曆提醒 (.ics)
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SMALL GROUPS SECTION (喜樂羊、良善魚、仁愛喵、和平鴿) -->
+  <section id="groups" class="py-20 relative z-10 bg-arkNavy-900/60 border-t border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-mono tracking-widest text-arkCyan-400 uppercase">Fellowship Units</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-display">小組生活・四個方舟夥伴</h2>
+        <div class="h-1 w-24 bg-gradient-to-r from-transparent via-arkCyan-400 to-transparent mx-auto mb-4"></div>
+        <p class="text-slate-300 text-sm sm:text-base">
+          在方舟裡，沒有人是一座孤島。找到適合您的屬靈家庭，一起並肩作戰、分享喜怒哀樂。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Group 1: 喜樂羊 -->
+        <div class="glass-panel rounded-2xl p-6 border-slate-700/80 hover:border-amber-400 transition-all duration-300 group hover:-translate-y-2">
+          <div class="w-16 h-16 rounded-2xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+            🐑
+          </div>
+          <div class="text-xs font-mono text-amber-400 font-bold mb-1">GROUP 01</div>
+          <h3 class="text-2xl font-black text-white mb-2">喜樂羊小組</h3>
+          <p class="text-xs font-semibold text-amber-300/90 mb-3">「靠耶和華而得的喜樂是你們的力量」</p>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            如同牧者草場上的小羊，充滿歡笑與朝氣。適合渴望在愛中敞開、享受無拘無束團契的朋友。
+          </p>
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span>特色特質</span>
+            <span class="text-amber-300 font-medium">活力熱情・讚美敬拜</span>
+          </div>
+        </div>
+
+        <!-- Group 2: 良善魚 -->
+        <div class="glass-panel rounded-2xl p-6 border-slate-700/80 hover:border-sky-400 transition-all duration-300 group hover:-translate-y-2">
+          <div class="w-16 h-16 rounded-2xl bg-sky-400/10 border border-sky-400/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+            🐟
+          </div>
+          <div class="text-xs font-mono text-sky-400 font-bold mb-1">GROUP 02</div>
+          <h3 class="text-2xl font-black text-white mb-2">良善魚小組</h3>
+          <p class="text-xs font-semibold text-sky-300/90 mb-3">「得人如得魚，以恩慈相待」</p>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            游動於恩典的深水區，注重真理沉澱與敏銳服事。擅長彼此代禱、深入傾聽與屬靈裝備。
+          </p>
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span>特色特質</span>
+            <span class="text-sky-300 font-medium">溫柔聆聽・真理深耕</span>
+          </div>
+        </div>
+
+        <!-- Group 3: 仁愛喵 -->
+        <div class="glass-panel rounded-2xl p-6 border-slate-700/80 hover:border-rose-400 transition-all duration-300 group hover:-translate-y-2">
+          <div class="w-16 h-16 rounded-2xl bg-rose-400/10 border border-rose-400/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+            🐱
+          </div>
+          <div class="text-xs font-mono text-rose-400 font-bold mb-1">GROUP 03</div>
+          <h3 class="text-2xl font-black text-white mb-2">仁愛喵小組</h3>
+          <p class="text-xs font-semibold text-rose-300/90 mb-3">「愛是恆久忍耐，又有恩慈」</p>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            細膩且具有高度凝聚力，以陪伴與無條件接納為核心。陪伴走過生命高山低谷的溫暖避風港。
+          </p>
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span>特色特質</span>
+            <span class="text-rose-300 font-medium">心靈陪伴・愛心互助</span>
+          </div>
+        </div>
+
+        <!-- Group 4: 和平鴿 -->
+        <div class="glass-panel rounded-2xl p-6 border-slate-700/80 hover:border-emerald-400 transition-all duration-300 group hover:-translate-銜2">
+          <div class="w-16 h-16 rounded-2xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">
+            🕊️
+          </div>
+          <div class="text-xs font-mono text-emerald-400 font-bold mb-1">GROUP 04</div>
+          <h3 class="text-2xl font-black text-white mb-2">和平鴿小組</h3>
+          <p class="text-xs font-semibold text-emerald-300/90 mb-3">「使人和睦的人有福了」</p>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            如銜橄欖葉的方舟信鴿，帶下修復與盼望。專注於宣教外展、家庭祝福與使人和睦的使命。
+          </p>
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <span>特色特質</span>
+            <span class="text-emerald-300 font-medium">宣教開拓・和平使者</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PASTOR PROFILE & PUBLICATIONS SECTION -->
+  <section id="pastor" class="py-20 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-mono tracking-widest text-arkCyan-400 uppercase">Spiritual Captain & Mentor</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-display">主任牧師介紹</h2>
+        <div class="h-1 w-24 bg-gradient-to-r from-transparent via-arkCyan-400 to-transparent mx-auto mb-4"></div>
+        <p class="text-slate-300 text-sm sm:text-base">
+          超過三十年堅守牧養現場，深耕教牧諮商、末世靈修與信徒生命建造。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        
+        <!-- Pastor Photo Card (With Direct Preview + One-Click Local Photo Loader) -->
+        <div class="lg:col-span-5 flex flex-col items-center">
+          <div class="relative w-full max-w-md group">
+            <!-- Glow FX -->
+            <div class="absolute -inset-1.5 bg-gradient-to-r from-arkCyan-400 via-sky-500 to-arkGold-400 rounded-3xl blur-lg opacity-40 group-hover:opacity-75 transition duration-500"></div>
+            
+            <div class="relative rounded-2xl glass-panel p-3.5 border border-arkCyan-400/50 shadow-2xl overflow-hidden hud-border">
+              
+              <!-- Photo Display Frame -->
+              <div class="aspect-[9/15] sm:aspect-[4/5] rounded-xl overflow-hidden bg-arkNavy-900 relative flex items-center justify-center">
+                
+                <!-- 1. Actual Uploaded Image Tag (Initially points to local file name, fallback auto handles) -->
+                <img 
+                  id="pastor-image-display" 
+                  src="超萌巨像與潮流型男展場合影.png" 
+                  alt="曾聖輝主任牧師與Q版巨像" 
+                  class="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  onerror="handleImageFallback(this)"
+                />
+
+                <!-- 2. Interactive SVG Recreation fallback when local file path is restricted -->
+                <div id="pastor-art-fallback" class="hidden absolute inset-0 w-full h-full flex flex-col items-center justify-between p-6 bg-gradient-to-b from-arkNavy-900 via-arkNavy-950 to-[#0A1020] text-center">
+                  <div class="w-full flex items-center justify-between text-xs font-mono text-arkCyan-400 border-b border-arkCyan-400/20 pb-2">
+                    <span class="flex items-center gap-1"><i class="ph-bold ph-aperture"></i> 牧者全息投影</span>
+                    <span>Q版我 & 曾聖輝牧師</span>
+                  </div>
+
+                  <!-- Stylized Illustration Representing Image 2 -->
+                  <div class="relative my-auto w-48 h-56 flex items-center justify-center">
+                    <!-- Q Version Big Figurine -->
+                    <div class="absolute left-0 bottom-2 w-32 h-44 rounded-3xl bg-gradient-to-b from-amber-700/80 via-amber-900 to-slate-900 border-2 border-amber-400/50 flex flex-col items-center justify-start p-2 shadow-gold-glow">
+                      <div class="w-16 h-16 rounded-full bg-amber-200/90 border-2 border-amber-400 mt-1 flex items-center justify-center text-2xl font-black text-amber-950">
+                        😊
+                      </div>
+                      <span class="mt-2 text-[10px] font-black text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-400/40 font-mono">Q 版 我</span>
+                      <p class="text-[10px] text-slate-300 mt-2 font-mono">赤子之心・末世開拓</p>
+                    </div>
+
+                    <!-- Senior Pastor Standing -->
+                    <div class="absolute right-0 bottom-0 w-28 h-52 rounded-2xl bg-gradient-to-b from-rose-950/90 via-slate-900 to-slate-950 border-2 border-arkCyan-400/60 flex flex-col items-center justify-start p-2 shadow-cyan-glow z-10">
+                      <div class="w-14 h-14 rounded-full bg-slate-200 border-2 border-arkCyan-400 mt-1 flex items-center justify-center text-xl font-bold text-slate-900">
+                        👔
+                      </div>
+                      <span class="mt-2 text-[10px] font-black text-arkCyan-300 bg-arkNavy-950/80 px-2 py-0.5 rounded border border-arkCyan-400/40 font-mono">曾牧師</span>
+                      <p class="text-[9px] text-slate-300 mt-2">教牧博士</p>
+                    </div>
+                  </div>
+
+                  <p class="text-xs text-slate-400 font-sans">
+                    「親和同理的生命陪伴，堅定剛強的末世守望」
+                  </p>
+                </div>
+
+                <!-- Floating Photo Change Tooltip Overlay -->
+                <label for="pastor-photo-input" class="absolute top-3 right-3 cursor-pointer z-20 px-3 py-1.5 rounded-lg bg-arkNavy-950/85 hover:bg-arkNavy-800 text-arkCyan-300 hover:text-white border border-arkCyan-400/50 backdrop-blur-md text-xs font-mono flex items-center gap-1.5 shadow-lg transition-all">
+                  <i class="ph-bold ph-camera"></i>
+                  <span>替換/載入原照</span>
+                </label>
+                <input type="file" id="pastor-photo-input" accept="image/*" class="hidden" onchange="uploadPastorPhoto(event)" />
+
+                <!-- Bottom Title Overlay -->
+                <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-arkNavy-950 via-arkNavy-950/85 to-transparent z-10">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-xl font-black text-white">曾聖輝 牧師</h4>
+                      <p class="text-xs text-arkGold-300 font-mono font-medium">教牧博士 (D.Min.) / 主任牧師</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded bg-arkCyan-400/20 text-arkCyan-300 text-[10px] font-mono border border-arkCyan-400/40">
+                      30+ 牧養傳承
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo upload action button helper -->
+          <div class="mt-3 text-center">
+            <label for="pastor-photo-input" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-arkCyan-300 cursor-pointer underline underline-offset-4 transition-colors">
+              <i class="ph ph-upload-simple text-sm"></i> 點此直接選取您本機的「超萌巨像與潮流型男展場合影.png」照片檔案
+            </label>
+          </div>
+        </div>
+
+        <!-- Pastor Biography & Qualifications -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <div class="glass-panel p-6 sm:p-8 rounded-2xl border-slate-700">
+            <h3 class="text-2xl sm:text-3xl font-black text-white mb-2 flex items-center gap-3">
+              曾聖輝 牧師
+              <span class="text-xs font-mono px-3 py-1 rounded-full bg-arkCyan-400/10 text-arkCyan-400 border border-arkCyan-400/30">
+                主任牧師
+              </span>
+            </h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+              以嚴謹扎實的神學根基，結合親和敏銳的教牧關懷；致力於傳揚純全義道、喚醒靈魂，建造具末世洞察力的敏捷教會。
+            </p>
+
+            <div class="space-y-4">
+              <!-- Degree -->
+              <div class="flex items-start gap-3.5">
+                <div class="p-2 rounded-lg bg-arkCyan-400/10 text-arkCyan-400 text-lg flex-shrink-0 mt-0.5">
+                  <i class="ph-bold ph-graduation-cap"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white">牧師學歷</h4>
+                  <p class="text-slate-300 text-xs sm:text-sm mt-0.5">
+                    2003年獲得台北衛理諮商神學研究院教牧博士學位
+                  </p>
+                </div>
+              </div>
+
+              <!-- Experience -->
+              <div class="flex items-start gap-3.5">
+                <div class="p-2 rounded-lg bg-arkGold-400/10 text-arkGold-400 text-lg flex-shrink-0 mt-0.5">
+                  <i class="ph-bold ph-briefcase"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white">牧師經歷</h4>
+                  <p class="text-slate-300 text-xs sm:text-sm mt-0.5 leading-relaxed">
+                    1993年神學院學士畢業後，全心委身牧養教會至今。<br/>
+                    現任 <span class="text-arkCyan-300 font-medium">台宣方舟行動教會 主任牧師</span>、<span class="text-arkCyan-300 font-medium">台宣神學院兼任教師</span>。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Publications Holographic Grid -->
+          <div class="glass-panel p-6 sm:p-7 rounded-2xl border-slate-700">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="ph-bold ph-books text-arkCyan-400 text-xl"></i>
+                牧師核心著作與靈修教材
+              </h4>
+              <span class="text-xs text-slate-400 font-mono">裝備專書</span>
+            </div>
+            
+            <p class="text-xs text-slate-400 mb-4">
+              提供信徒扎根默想神話語的實用手抄本、查經導讀與末世應變武裝手冊：
+            </p>
+
+            <!-- Book Badges Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="books-grid">
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-arkCyan-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-book-open text-arkCyan-400"></i>
+                <span>以弗所書靈修書</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-arkCyan-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-notebook text-arkCyan-400"></i>
+                <span>信仰手冊</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-arkCyan-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-sparkle text-arkCyan-400"></i>
+                <span>靈命手冊</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-arkGold-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-pen-nib text-arkGold-400"></i>
+                <span>箴言手抄本</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-arkGold-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-pen-nib text-arkGold-400"></i>
+                <span>馬可福音手抄本</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-arkGold-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-bookmark-simple text-arkGold-400"></i>
+                <span>聖經主題金句手抄</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-emerald-400 transition-colors text-xs text-slate-200 flex items-center gap-2">
+                <i class="ph-fill ph-broadcast text-emerald-400"></i>
+                <span>傳福音工具</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-arkNavy-900 border border-slate-800 hover:border-purple-400 transition-colors text-xs text-slate-200 col-span-2 sm:col-span-2 flex items-center gap-2">
+                <i class="ph-fill ph-shield-check text-purple-400"></i>
+                <span class="truncate">末世信徒裝備手冊 (聖經/靈修上下/應用篇)</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- OFFERING & GIVING SECTION -->
+  <section id="offering" class="py-20 relative z-10 bg-arkNavy-900/60 border-t border-slate-800">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-mono tracking-widest text-arkGold-400 uppercase">Kingdom Stewardship</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-display">奉獻支持神國事工</h2>
+        <div class="h-1 w-24 bg-gradient-to-r from-transparent via-arkGold-400 to-transparent mx-auto mb-4"></div>
+        <p class="text-slate-300 text-sm sm:text-base">
+          「各人要隨本心所酌定的，不要作難，不要勉強，因為捐得樂意的人是神所喜愛的。」
+        </p>
+      </div>
+
+      <!-- Offering Bank Details Card -->
+      <div class="glass-gold rounded-3xl p-6 sm:p-10 border border-arkGold-400/40 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-56 h-56 bg-arkGold-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          
+          <div class="space-y-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-arkGold-400/20 text-arkGold-300 text-xs font-mono font-bold">
+              <i class="ph ph-bank"></i> 國內銀行 / 郵局匯款與ATM轉帳
+            </div>
+            <h3 class="text-2xl font-bold text-white">社團法人桃園市方舟行動協會</h3>
+            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+              您的每一筆十一與甘心奉獻，都將直接投入於末世真理廣傳、弱勢關懷、小組建造及門徒訓練事工。
+            </p>
+            <div class="text-xs text-slate-400 pt-2 flex items-center gap-2">
+              <i class="ph ph-info text-arkGold-400"></i>
+              轉帳後若需奉獻收據，請致電教會幹事留下轉帳後五碼與姓名。
+            </div>
+          </div>
+
+          <div class="bg-arkNavy-950/80 rounded-2xl p-6 border border-arkGold-400/30 space-y-4">
+            
+            <!-- Bank Code -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <div class="text-[11px] font-mono text-slate-400">金融機構代號</div>
+                <div class="text-xl font-mono font-bold text-white">700 <span class="text-xs text-slate-400 font-sans font-normal">(中華郵政)</span></div>
+              </div>
+              <button onclick="copyToClipboard('700', '銀行代號 700 已複製')" class="px-3 py-1.5 rounded-lg glass-panel hover:bg-arkNavy-800 text-xs font-medium text-arkCyan-300 border border-arkCyan-400/40 flex items-center gap-1.5 transition-colors">
+                <i class="ph ph-copy"></i> 複製代號
+              </button>
+            </div>
+
+            <!-- Account Number -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <div class="text-[11px] font-mono text-slate-400">奉獻專屬帳號</div>
+                <div class="text-lg sm:text-xl font-mono font-black text-arkGold-400 tracking-wider">01212050343831</div>
+              </div>
+              <button onclick="copyToClipboard('01212050343831', '奉獻帳號 01212050343831 已複製')" class="px-3 py-1.5 rounded-lg glass-panel hover:bg-arkNavy-800 text-xs font-medium text-arkGold-300 border border-arkGold-400/40 flex items-center gap-1.5 transition-colors">
+                <i class="ph ph-copy"></i> 複製帳號
+              </button>
+            </div>
+
+            <!-- Account Name -->
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-[11px] font-mono text-slate-400">受款戶名</div>
+                <div class="text-sm font-bold text-slate-200">社團法人桃園市方舟行動協會</div>
+              </div>
+              <button onclick="copyToClipboard('社團法人桃園市方舟行動協會', '受款戶名已複製')" class="px-3 py-1.5 rounded-lg glass-panel hover:bg-arkNavy-800 text-xs font-medium text-slate-300 border border-slate-700 flex items-center gap-1.5 transition-colors">
+                <i class="ph ph-copy"></i> 複製戶名
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LOCATION & CONTACT SECTION -->
+  <section id="location" class="py-20 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-mono tracking-widest text-arkCyan-400 uppercase">Landing Coordinates</span>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-display">抵達方舟・地理座標</h2>
+        <div class="h-1 w-24 bg-gradient-to-r from-transparent via-arkCyan-400 to-transparent mx-auto mb-4"></div>
+        <p class="text-slate-300 text-sm sm:text-base">
+          教會坐落於桃園市中心南平路，交通便利，大樓備有電梯直達 5 樓。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Info Cards -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- Address Card -->
+          <div class="glass-panel p-6 rounded-2xl border-slate-700 flex items-start gap-4">
+            <div class="p-3 rounded-xl bg-arkCyan-400/10 text-arkCyan-400 text-2xl flex-shrink-0">
+              <i class="ph-bold ph-map-pin"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-400">教會會址</h4>
+              <p class="text-base sm:text-lg font-bold text-white mt-1">
+                桃園市桃園區南平路478號5F
+              </p>
+              <div class="mt-3 flex items-center gap-2">
+                <a href="https://maps.google.com/?q=桃園市桃園區南平路478號" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-arkCyan-400 text-slate-950 font-bold hover:bg-arkCyan-300 transition-colors">
+                  <i class="ph-bold ph-navigation-arrow"></i> 開啟 Google Maps 導航
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phone Card -->
+          <div class="glass-panel p-6 rounded-2xl border-slate-700 flex items-start gap-4">
+            <div class="p-3 rounded-xl bg-arkGold-400/10 text-arkGold-400 text-2xl flex-shrink-0">
+              <i class="ph-bold ph-phone-call"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-400">教會電話</h4>
+              <p class="text-xl sm:text-2xl font-mono font-bold text-arkGold-400 mt-1">
+                03-3166171
+              </p>
+              <div class="mt-3">
+                <a href="tel:033166171" class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-arkGold-400 text-arkGold-300 hover:bg-arkGold-400 hover:text-slate-950 font-bold transition-all">
+                  <i class="ph-bold ph-phone"></i> 一鍵撥打專線
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrival Notes Card -->
+          <div class="glass-panel p-6 rounded-2xl border-slate-700">
+            <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <i class="ph-bold ph-compass text-arkCyan-400"></i> 前往指引提醒
+            </h4>
+            <ul class="text-xs sm:text-sm text-slate-400 space-y-2 list-disc list-inside">
+              <li>鄰近桃園藝文特區與南平市場商圈。</li>
+              <li>搭乘公車可於周邊站牌下車步行約 2-4 分鐘。</li>
+              <li>進入大樓後請搭乘電梯直上 5 樓即達方舟接待大廳。</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Google Map Embedded Frame -->
+        <div class="lg:col-span-7">
+          <div class="glass-panel rounded-2xl p-2 border border-slate-700 h-[380px] sm:h-full min-h-[350px] relative overflow-hidden">
+            <iframe 
+              title="台宣方舟行動教會地圖定位"
+              src="https://maps.google.com/maps?q=桃園市桃園區南平路478號&t=&z=16&ie=UTF8&iwloc=&output=embed" 
+              class="w-full h-full rounded-xl border-0 filter invert contrast-125 hue-rotate-180 opacity-90 hover:opacity-100 transition-opacity" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+            <!-- Top Map Overlay Pill -->
+            <div class="absolute top-4 left-4 pointer-events-none">
+              <div class="px-3 py-1.5 rounded-lg bg-arkNavy-950/90 backdrop-blur-md border border-arkCyan-400/50 text-[11px] font-mono text-arkCyan-300">
+                ARK LOCATION: 25.016, 121.298
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800 bg-arkNavy-950 pt-12 pb-8 relative z-10 text-slate-400 text-xs sm:text-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
+        
+        <!-- Church Brand -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-arkCyan-400 to-arkGold-400 flex-shrink-0">
+            <img src="方舟正式LOGO色多.png" alt="方舟教會LOGO" class="w-full h-full object-contain rounded-full bg-white p-0.5"/>
+          </div>
+          <div>
+            <span class="text-base font-bold text-white font-display">台宣方舟行動教會</span>
+            <p class="text-[11px] text-arkGold-400 font-mono">TAIWAN MISSION ARK ACTION CHURCH</p>
+          </div>
+        </div>
+
+        <!-- Vision Slogan -->
+        <div class="text-center md:text-right">
+          <p class="text-white font-semibold tracking-wider">傳義道．救靈魂</p>
+          <p class="text-xs text-slate-500 mt-0.5">建立具末世性、啟示性的快速行動教會</p>
+        </div>
+
+      </div>
+
+      <!-- Copyright -->
+      <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <p>© 2026 台宣方舟行動教會．社團法人桃園市方舟行動協會 版權所有</p>
+        <p class="font-mono">ARK PROMETHEUS PROTOCOL // VERSION 3.0</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- FLOATING QUICK ACTION BUTTON (Mobile Speed Access) -->
+  <div class="fixed bottom-6 right-6 z-40 sm:hidden">
+    <a href="tel:033166171" class="w-14 h-14 rounded-full bg-gradient-to-r from-arkCyan-400 to-sky-500 text-slate-950 flex items-center justify-center text-2xl shadow-cyan-glow focus:outline-none" aria-label="撥打電話">
+      <i class="ph-bold ph-phone-call"></i>
+    </a>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & INTERACTIONS -->
+  <script>
+    /* ========================================================
+       0. Image Loading & Robust Local Preview Handling
+       ======================================================== */
+    function handleImageFallback(imgElement) {
+      // If local image isn't loaded due to preview sandbox, switch to interactive vector avatar
+      imgElement.classList.add('hidden');
+      const fallback = document.getElementById('pastor-art-fallback');
+      if (fallback) fallback.classList.remove('hidden');
+    }
+
+    // Allow user to directly drop/select their local photo for immediate high-res view
+    function uploadPastorPhoto(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('pastor-image-display');
+          const fallback = document.getElementById('pastor-art-fallback');
+          img.src = e.target.result;
+          img.classList.remove('hidden');
+          if (fallback) fallback.classList.add('hidden');
+          showToast('成功載入牧師實拍照片！');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    /* ========================================================
+       1. Mobile Navigation Toggle
+       ======================================================== */
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    const mobileLinks = document.querySelectorAll('.mobile-link');
+
+    mobileBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      if (mobileMenu.classList.contains('hidden')) {
+        menuIcon.className = 'ph ph-list';
+      } else {
+        menuIcon.className = 'ph ph-x';
+      }
+    });
+
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        menuIcon.className = 'ph ph-list';
+      });
+    });
+
+    /* ========================================================
+       2. Clipboard Copy & Toast Feedback
+       ======================================================== */
+    function copyToClipboard(text, message) {
+      // Create temporary textarea for guaranteed execution in iframe context
+      const tempInput = document.createElement("textarea");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+        showToast(message || "複製成功！");
+      } catch (err) {
+        showToast("請手動選取複製");
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0', 'translate-y-[-120%]');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-[-120%]');
+      }, 3000);
+    }
+
+    /* ========================================================
+       3. Sunday Service Live Countdown Clock
+       ======================================================== */
+    function getNextSunday10AM() {
+      const now = new Date();
+      const target = new Date();
+      const day = now.getDay();
+      
+      let daysUntilSunday = (7 - day) % 7;
+      
+      // If it's already Sunday
+      if (day === 0) {
+        // If Sunday service (10:00 - 11:30) hasn't started yet
+        const today10AM = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0, 0);
+        if (now < today10AM) {
+          daysUntilSunday = 0;
+        } else {
+          // If already past 10AM, countdown to next Sunday
+          daysUntilSunday = 7;
+        }
+      }
+
+      target.setDate(now.getDate() + daysUntilSunday);
+      target.setHours(10, 0, 0, 0);
+      return target;
+    }
+
+    function updateCountdown() {
+      const now = new Date();
+      const target = getNextSunday10AM();
+      const diff = target - now;
+
+      const daysElem = document.getElementById('cd-days');
+      const hoursElem = document.getElementById('cd-hours');
+      const minutesElem = document.getElementById('cd-minutes');
+      const secondsElem = document.getElementById('cd-seconds');
+      const statusBadge = document.getElementById('service-status-badge');
+
+      // Check if it's currently Sunday during service hours (10:00 - 11:30)
+      if (now.getDay() === 0 && now.getHours() === 10) {
+        daysElem.innerText = '00';
+        hoursElem.innerText = '00';
+        minutesElem.innerText = '00';
+        secondsElem.innerText = '00';
+        statusBadge.innerHTML = '● 主日敬拜進行中！';
+        statusBadge.className = 'px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-400/20 text-arkGold-400 border border-arkGold-400 animate-pulse';
+        return;
+      }
+
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        daysElem.innerText = String(days).padStart(2, '0');
+        hoursElem.innerText = String(hours).padStart(2, '0');
+        minutesElem.innerText = String(minutes).padStart(2, '0');
+        secondsElem.innerText = String(seconds).padStart(2, '0');
+      }
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    /* ========================================================
+       4. Generate ICS Calendar Event for Sunday Gathering
+       ======================================================== */
+    function downloadCalendarInvite() {
+      const nextSunday = getNextSunday10AM();
+      const startStr = nextSunday.toISOString().replace(/-|:|\.\d+/g, '');
+      const endSunday = new Date(nextSunday.getTime() + 90 * 60000);
+      const endStr = endSunday.toISOString().replace(/-|:|\.\d+/g, '');
+
+      const icsContent = 
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Taiwan Mission Ark Action Church//Sunday Gathering//ZH
+BEGIN:VEVENT
+UID:${Date.now()}@arkchurch.tw
+DTSTAMP:${startStr}
+DTSTART:${startStr}
+DTEND:${endStr}
+SUMMARY:台宣方舟行動教會 主日慶典
+DESCRIPTION:傳義道．救靈魂。歡迎登上方舟，與我們同心敬拜！地址：桃園市桃園區南平路478號5F (電話: 03-3166171)
+LOCATION:桃園市桃園區南平路478號5F
+RRULE:FREQ=WEEKLY;BYDAY=SU
+END:VEVENT
+END:VCALENDAR`;
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', '台宣方舟行動教會_主日行事曆.ics');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('已下載行事曆檔案 (.ics)');
+    }
+
+    /* ========================================================
+       5. Interactive Kinetic Background Particle Canvas
+       ======================================================== */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedY = -(Math.random() * 0.4 + 0.1);
+        this.speedX = (Math.random() - 0.5) * 0.2;
+        this.alpha = Math.random() * 0.7 + 0.2;
+        this.color = Math.random() > 0.3 ? '#00E5FF' : '#F5A623';
+      }
+
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX;
+        if (this.y < 0) this.y = height;
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Initialize 60 subtle starlight particles
+    for (let i = 0; i < 60; i++) {
+      particles.push(new Particle());
+    }
+
+    function animateLoop() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Render subtle connections between nearby particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 90) {
+            ctx.save();
+            ctx.strokeStyle = '#00E5FF';
+            ctx.globalAlpha = (1 - dist / 90) * 0.12;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+      }
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      requestAnimationFrame(animateLoop);
+    }
+
+    window.onload = function() {
+      animateLoop();
+    };
+  </script>
+</body>
+</html>
