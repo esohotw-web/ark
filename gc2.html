@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>撒種的比喻 — 聽見、明白與結實百倍的天國法則 | 馬太福音 13:1-23</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Serif TC & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            earth: {
+              50: '#FBF9F5',
+              100: '#F5EFEB',
+              200: '#E8DCD1',
+              300: '#D5C1AF',
+              400: '#B89A80',
+              500: '#9B7859',
+              600: '#7F5E42',
+              700: '#644731',
+              800: '#4D3624',
+              900: '#342316',
+            },
+            harvest: {
+              light: '#FDF6E2',
+              gold: '#C9933E',
+              dark: '#8C6016',
+            },
+            olive: {
+              50: '#F4F7F4',
+              600: '#4A6B4A',
+              800: '#283D28',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* 閱讀優化自訂樣式 */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .sermon-text {
+      font-family: 'Noto Serif TC', serif;
+      line-height: 2.1;
+      letter-spacing: 0.025em;
+    }
+    .scripture-quote {
+      border-left: 3px solid #C9933E;
+      background: linear-gradient(to right, rgba(201, 147, 62, 0.08), transparent);
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* 溫和的主題切換色相 */
+    body.theme-parchment {
+      background-color: #FAF6EE !important;
+      color: #382C1E !important;
+    }
+    body.theme-parchment .card-bg {
+      background-color: #FFFFFF !important;
+      border-color: #EADBCA !important;
+    }
+    body.theme-night {
+      background-color: #171614 !important;
+      color: #E6E1D8 !important;
+    }
+    body.theme-night .card-bg {
+      background-color: #23211D !important;
+      border-color: #38342D !important;
+    }
+    body.theme-night .subtle-bg {
+      background-color: #1D1C19 !important;
+    }
+    /* 溫馨插畫浮動與微動效 */
+    .illustration-float {
+      animation: floatGentle 4s ease-in-out infinite;
+    }
+    @keyframes floatGentle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased min-h-screen flex flex-col selection:bg-amber-200 selection:text-amber-900">
+
+  <!-- =============================== -->
+  <!-- 頂部全域導覽列 (Responsive Header) -->
+  <!-- =============================== -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-stone-900/90 border-b border-stone-200 dark:border-stone-800 transition-colors">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Logo 與講章主題標題 -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('home')">
+        <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700">
+          <i data-lucide="sprout" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">主日講章 & 小組查經</span>
+          <h1 class="text-base sm:text-lg font-bold font-serif text-stone-900 dark:text-stone-100 leading-tight">心田與種子：撒種的比喻</h1>
+        </div>
+      </div>
+
+      <!-- 桌面版選單 -->
+      <nav class="hidden md:flex items-center space-x-1 lg:space-x-2 text-sm font-medium">
+        <button onclick="navigateTo('home')" class="nav-btn px-3 py-2 rounded-lg transition-colors text-stone-600 hover:text-amber-800 hover:bg-stone-100 dark:text-stone-300 dark:hover:text-amber-300 dark:hover:bg-stone-800" data-page="home">
+          首頁總覽
+        </button>
+        <button onclick="navigateTo('point1')" class="nav-btn px-3 py-2 rounded-lg transition-colors text-stone-600 hover:text-amber-800 hover:bg-stone-100 dark:text-stone-300 dark:hover:text-amber-300 dark:hover:bg-stone-800" data-page="point1">
+          信息一：心靈的防衛
+        </button>
+        <button onclick="navigateTo('point2')" class="nav-btn px-3 py-2 rounded-lg transition-colors text-stone-600 hover:text-amber-800 hover:bg-stone-100 dark:text-stone-300 dark:hover:text-amber-300 dark:hover:bg-stone-800" data-page="point2">
+          信息二：生命的深度與除蔓
+        </button>
+        <button onclick="navigateTo('point3')" class="nav-btn px-3 py-2 rounded-lg transition-colors text-stone-600 hover:text-amber-800 hover:bg-stone-100 dark:text-stone-300 dark:hover:text-amber-300 dark:hover:bg-stone-800" data-page="point3">
+          信息三：好土的盛宴
+        </button>
+        <button onclick="navigateTo('scripture')" class="nav-btn px-3 py-2 rounded-lg transition-colors text-stone-600 hover:text-amber-800 hover:bg-stone-100 dark:text-stone-300 dark:hover:text-amber-300 dark:hover:bg-stone-800" data-page="scripture">
+          經文對照
+        </button>
+        <button onclick="navigateTo('application')" class="nav-btn px-3 py-2 rounded-lg transition-colors text-stone-600 hover:text-amber-800 hover:bg-stone-100 dark:text-stone-300 dark:hover:text-amber-300 dark:hover:bg-stone-800" data-page="application">
+          小組查經與反思
+        </button>
+      </nav>
+
+      <!-- 靈修輔助工具 (字體大小 & 閱讀色彩情境切換) -->
+      <div class="flex items-center space-x-2">
+        <!-- 閱讀模式切換 -->
+        <div class="relative">
+          <button id="themeToggleBtn" onclick="cycleTheme()" title="切換閱讀色彩氛圍" class="p-2 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700 flex items-center justify-center">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- 字體大小調整 -->
+        <div class="hidden sm:flex items-center border border-stone-200 dark:border-stone-700 rounded-lg overflow-hidden bg-stone-50 dark:bg-stone-800">
+          <button onclick="changeFontSize(-1)" class="px-2.5 py-1.5 text-xs text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700" title="縮小字體">A-</button>
+          <span class="text-xs px-1 text-stone-400">|</span>
+          <button onclick="changeFontSize(1)" class="px-2.5 py-1.5 text-xs font-bold text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700" title="放大字體">A+</button>
+        </div>
+
+        <!-- 手機版選單按鈕 -->
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+          <i data-lucide="menu" id="menuIcon" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 手機版展開選單 -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 pt-3 pb-5 space-y-2 shadow-lg">
+      <button onclick="navigateTo('home'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center space-x-3">
+        <i data-lucide="home" class="w-4 h-4 text-amber-600"></i>
+        <span>首頁總覽 (講章核心)</span>
+      </button>
+      <button onclick="navigateTo('point1'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center space-x-3">
+        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i>
+        <span>信息一：路旁的心 — 識破飛鳥奪道的危機</span>
+      </button>
+      <button onclick="navigateTo('point2'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center space-x-3">
+        <i data-lucide="layers" class="w-4 h-4 text-amber-600"></i>
+        <span>信息二：土淺與荊棘 — 扎根真理與割捨世慮</span>
+      </button>
+      <button onclick="navigateTo('point3'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center space-x-3">
+        <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i>
+        <span>信息三：好土的盛宴 — 領悟神道與結實百倍</span>
+      </button>
+      <button onclick="navigateTo('scripture'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center space-x-3">
+        <i data-lucide="book-open" class="w-4 h-4 text-amber-600"></i>
+        <span>經文對照與比喻解構</span>
+      </button>
+      <button onclick="navigateTo('application'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center space-x-3">
+        <i data-lucide="message-square" class="w-4 h-4 text-amber-600"></i>
+        <span>小組問題與生活實踐</span>
+      </button>
+      <div class="pt-3 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-xs text-stone-500">
+        <span>字體縮放</span>
+        <div class="flex items-center space-x-3">
+          <button onclick="changeFontSize(-1)" class="px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded font-medium">A- 小字</button>
+          <button onclick="changeFontSize(1)" class="px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded font-medium">A+ 大字</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =============================== -->
+  <!-- 主內容容器 (Single Page View Controller) -->
+  <!-- =============================== -->
+  <main class="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 md:py-10">
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 頁面 1：首頁總覽 (吸引注意 → 理解主題 → 進入段落)              -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="page-home" class="page-view space-y-12 animate-fadeIn">
+      
+      <!-- 主題英雄區塊 (Hero Banner) -->
+      <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950 text-stone-100 p-8 sm:p-12 shadow-xl border border-stone-800">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          <div class="lg:col-span-7 space-y-4">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs tracking-wider uppercase border border-amber-500/30">
+              <i data-lucide="bookmark" class="w-3.5 h-3.5"></i>
+              <span>馬太福音 13:1–23 主日講章精粹</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold font-serif leading-tight text-white tracking-wide">
+              聽見、明白與結實：<br><span class="text-amber-400">當生命的心田遇見天國的種子</span>
+            </h2>
+            <p class="text-stone-300 text-base sm:text-lg leading-relaxed font-light">
+              撒種的人都是同一位，種子同樣滿有生命大能。差別不在於神話語的應許，而在於我們以何種心境迎接這道？今天，你的心田是哪一種土壤？
+            </p>
+            <div class="pt-4 flex flex-wrap gap-4 items-center">
+              <button onclick="navigateTo('point1')" class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium shadow-lg shadow-amber-900/30 transition-all flex items-center space-x-2">
+                <span>開始深入研讀</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+              <button onclick="navigateTo('scripture')" class="px-5 py-3 rounded-xl bg-stone-800/80 hover:bg-stone-700/80 text-stone-200 text-sm font-medium border border-stone-700 transition-all flex items-center space-x-2">
+                <i data-lucide="book" class="w-4 h-4"></i>
+                <span>速覽經文對照</span>
+              </button>
+            </div>
+          </div>
+          <!-- 溫馨繪本風手繪農夫撒種插圖 -->
+          <div class="lg:col-span-5 flex justify-center items-center">
+            <div class="w-full max-w-sm p-3 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl illustration-float">
+              <svg viewBox="0 0 400 300" class="w-full h-auto rounded-2xl" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#FFE8C2"/>
+                    <stop offset="60%" stop-color="#FCD5A2"/>
+                    <stop offset="100%" stop-color="#F9B37E"/>
+                  </linearGradient>
+                  <linearGradient id="fieldGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#8BB368"/>
+                    <stop offset="100%" stop-color="#4F7A3E"/>
+                  </linearGradient>
+                  <linearGradient id="sunGlow" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#FFF5C0"/>
+                    <stop offset="100%" stop-color="#FFA843"/>
+                  </linearGradient>
+                </defs>
+                <!-- 天空背景與柔和晨曦日輪 -->
+                <rect width="400" height="300" rx="16" fill="url(#skyGrad)"/>
+                <circle cx="200" cy="110" r="64" fill="url(#sunGlow)" opacity="0.8"/>
+                <circle cx="200" cy="110" r="85" fill="#FFE8C2" opacity="0.3"/>
+                <!-- 遠山起伏 -->
+                <path d="M0 210 Q90 170 190 200 T400 185 V300 H0 Z" fill="#6A9A5B" opacity="0.6"/>
+                <path d="M0 225 Q120 185 240 215 T400 210 V300 H0 Z" fill="url(#fieldGrad)"/>
+                <!-- 溫暖耕地泥土 -->
+                <path d="M0 260 Q180 230 400 265 V300 H0 Z" fill="#7A5638"/>
+                <!-- 飛翔的和平鴿/小鳥 -->
+                <path d="M70 70 Q80 62 90 70 Q100 62 110 70 Q95 76 70 70 Z" fill="#FFFFFF" opacity="0.9"/>
+                <path d="M120 90 Q128 84 136 90 Q144 84 152 90 Q140 95 120 90 Z" fill="#FFFFFF" opacity="0.8"/>
+                <!-- 親切可愛的撒種人角色 -->
+                <ellipse cx="200" cy="275" rx="35" ry="6" fill="#000000" opacity="0.2"/>
+                <!-- 身體與長袍 -->
+                <path d="M190 185 L180 270 L220 270 L210 185 Z" fill="#E88756"/>
+                <path d="M185 200 Q200 240 215 200 Z" fill="#D36B39" opacity="0.5"/>
+                <!-- 盛裝種子的斜背布袋 -->
+                <path d="M180 190 Q200 230 225 210 L220 195 Q200 210 180 190 Z" fill="#EAD7B2"/>
+                <circle cx="218" cy="214" r="14" fill="#D9BA89"/>
+                <!-- 頭部與寬簷草帽 -->
+                <circle cx="200" cy="165" r="15" fill="#FDD0A2"/>
+                <ellipse cx="200" cy="155" rx="30" ry="8" fill="#F0C375"/>
+                <path d="M185 155 Q200 135 215 155 Z" fill="#D49E48"/>
+                <!-- 揮灑播種的手臂與散播的亮金種子 -->
+                <path d="M210 190 Q235 180 255 175" stroke="#FDD0A2" stroke-width="8" stroke-linecap="round"/>
+                <!-- 飄灑空中散發亮光的金黃種子 -->
+                <circle cx="265" cy="170" r="4" fill="#FFE27A"/>
+                <circle cx="285" cy="180" r="3.5" fill="#FFD043"/>
+                <circle cx="310" cy="195" r="4.5" fill="#FFEAA5"/>
+                <circle cx="295" cy="220" r="3" fill="#FFC933"/>
+                <circle cx="330" cy="215" r="3.5" fill="#FFE27A"/>
+                <circle cx="270" cy="205" r="2.5" fill="#FFB703"/>
+                <!-- 剛萌芽的綠意 -->
+                <path d="M50 265 Q55 245 65 248 Q60 260 50 265 Z" fill="#A7E957"/>
+                <path d="M52 265 Q45 250 37 253 Q43 262 52 265 Z" fill="#8CE242"/>
+                <path d="M350 268 Q355 250 365 252 Q360 262 350 268 Z" fill="#A7E957"/>
+                <path d="M352 268 Q345 253 338 255 Q343 264 352 268 Z" fill="#8CE242"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 講章主題核心架構導覽 (三點核心) -->
+      <section class="space-y-6">
+        <div class="text-center max-w-xl mx-auto space-y-2">
+          <span class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-widest">Sermon Core Pillars</span>
+          <h3 class="text-2xl sm:text-3xl font-bold font-serif text-stone-900 dark:text-stone-100">三大核心信息脈絡</h3>
+          <p class="text-stone-500 dark:text-stone-400 text-sm">點選卡片可直接進入各段獨立的講章內頁，進行深度的靈修與思想。</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- 卡片 1 -->
+          <div onclick="navigateTo('point1')" class="group relative bg-white dark:bg-stone-800/70 p-7 rounded-2xl border border-stone-200/90 dark:border-stone-700/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+            <div>
+              <!-- 溫馨小麻雀與路旁小圖 -->
+              <div class="w-full h-32 rounded-xl bg-red-50/70 dark:bg-red-950/30 flex items-center justify-center mb-5 overflow-hidden border border-red-100 dark:border-red-900/40">
+                <svg viewBox="0 0 160 100" class="w-28 h-auto group-hover:scale-110 transition-transform duration-300" fill="none">
+                  <!-- 硬土路徑 -->
+                  <path d="M10 80 Q80 65 150 80 L150 95 L10 95 Z" fill="#B39274"/>
+                  <path d="M20 82 Q80 70 140 82" stroke="#8A6647" stroke-width="2" stroke-dasharray="4 4"/>
+                  <!-- 掉在路上的金色小種子 -->
+                  <ellipse cx="65" cy="74" rx="4" ry="2.5" fill="#F4B400"/>
+                  <ellipse cx="78" cy="76" rx="3.5" ry="2" fill="#F4B400"/>
+                  <!-- 可愛討喜的小胖鳥 -->
+                  <ellipse cx="108" cy="62" rx="18" ry="14" fill="#C97064"/>
+                  <circle cx="120" cy="52" r="11" fill="#C97064"/>
+                  <circle cx="123" cy="50" r="2.5" fill="#2B1E16"/>
+                  <circle cx="124" cy="49" r="0.8" fill="#FFFFFF"/>
+                  <path d="M130 52 L140 55 L130 58 Z" fill="#F4A261"/>
+                  <ellipse cx="100" cy="65" rx="10" ry="7" fill="#A84C40"/>
+                  <path d="M92 68 L80 72 L86 64 Z" fill="#8E3B30"/>
+                  <!-- 小腳丫 -->
+                  <path d="M105 76 L105 82 M112 76 L112 82" stroke="#5E402B" stroke-width="2"/>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider block mb-1">第一部分 • 心靈的警醒</span>
+              <h4 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 mb-3 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                路旁的心田：<br>識破冷漠與奪道的飛鳥
+              </h4>
+              <p class="text-stone-600 dark:text-stone-300 text-sm leading-relaxed mb-4">
+                腳步踏平了土壤，真理只能停留在表面。聽了卻「不明白」，那惡者便趁機奪去原本能發芽的盼望。
+              </p>
+            </div>
+            <div class="pt-4 border-t border-stone-100 dark:border-stone-700/50 flex items-center justify-between text-xs font-semibold text-amber-700 dark:text-amber-400">
+              <span>閱讀本篇信息 (經文 v.4, 19)</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </div>
+
+          <!-- 卡片 2 -->
+          <div onclick="navigateTo('point2')" class="group relative bg-white dark:bg-stone-800/70 p-7 rounded-2xl border border-stone-200/90 dark:border-stone-700/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+            <div>
+              <!-- 溫馨小太陽與石頭嫩苗圖 -->
+              <div class="w-full h-32 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 flex items-center justify-center mb-5 overflow-hidden border border-amber-100 dark:border-amber-900/40">
+                <svg viewBox="0 0 160 100" class="w-28 h-auto group-hover:scale-110 transition-transform duration-300" fill="none">
+                  <!-- 暖洋洋的小太陽 -->
+                  <circle cx="125" cy="28" r="14" fill="#FFC72C"/>
+                  <path d="M125 7 L125 11 M125 45 L125 49 M104 28 L108 28 M142 28 L146 28 M110 13 L113 16 M137 40 L140 43 M110 43 L113 40 M137 16 L140 13" stroke="#FFA000" stroke-width="2.5" stroke-linecap="round"/>
+                  <!-- 石頭地層 -->
+                  <path d="M15 82 Q80 76 145 82 L145 95 L15 95 Z" fill="#9C9588"/>
+                  <rect x="55" y="70" width="30" height="15" rx="6" fill="#756E62"/>
+                  <rect x="80" y="73" width="22" height="13" rx="5" fill="#888175"/>
+                  <rect x="35" y="75" width="24" height="11" rx="4" fill="#665F54"/>
+                  <!-- 石頭夾縫中的頑皮小嫩芽 -->
+                  <path d="M72 70 Q70 54 62 46" stroke="#489B37" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M62 46 Q54 44 56 36 Q66 38 62 46 Z" fill="#66BB46"/>
+                  <path d="M63 48 Q72 44 76 36 Q68 40 63 48 Z" fill="#81C784"/>
+                  <!-- 荊棘小捲鬚 -->
+                  <path d="M102 73 Q108 58 116 55 Q112 50 104 53" stroke="#8E6E53" stroke-width="2" stroke-linecap="round"/>
+                  <polygon points="107,61 113,60 109,56" fill="#8E6E53"/>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider block mb-1">第二部分 • 扎根與除蔓</span>
+              <h4 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 mb-3 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                淺石與荊棘：<br>跨越試煉與世俗的窒息
+              </h4>
+              <p class="text-stone-600 dark:text-stone-300 text-sm leading-relaxed mb-4">
+                歡喜領受卻無根基，日頭一曬便枯萎；又或生命被今生的焦慮、財富的迷惑緊緊擠住，空有綠葉卻無果實。
+              </p>
+            </div>
+            <div class="pt-4 border-t border-stone-100 dark:border-stone-700/50 flex items-center justify-between text-xs font-semibold text-amber-700 dark:text-amber-400">
+              <span>閱讀本篇信息 (經文 v.5-7, 20-22)</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </div>
+
+          <!-- 卡片 3 -->
+          <div onclick="navigateTo('point3')" class="group relative bg-white dark:bg-stone-800/70 p-7 rounded-2xl border border-stone-200/90 dark:border-stone-700/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+            <div>
+              <!-- 溫馨豐收百倍麥穗圖 -->
+              <div class="w-full h-32 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 flex items-center justify-center mb-5 overflow-hidden border border-emerald-100 dark:border-emerald-900/40">
+                <svg viewBox="0 0 160 100" class="w-28 h-auto group-hover:scale-110 transition-transform duration-300" fill="none">
+                  <!-- 肥沃深黑良土 -->
+                  <path d="M15 80 Q80 75 145 80 L145 95 L15 95 Z" fill="#5D4037"/>
+                  <ellipse cx="80" cy="84" rx="60" ry="6" fill="#4E342E"/>
+                  <!-- 結實累累的金黃麥穗 -->
+                  <path d="M80 80 Q82 50 80 20" stroke="#7CB342" stroke-width="3" stroke-linecap="round"/>
+                  <!-- 飽滿麥粒 -->
+                  <ellipse cx="73" cy="25" rx="6" ry="4" transform="rotate(-30 73 25)" fill="#F9A825"/>
+                  <ellipse cx="87" cy="22" rx="6" ry="4" transform="rotate(30 87 22)" fill="#FBC02D"/>
+                  <ellipse cx="71" cy="36" rx="6" ry="4.5" transform="rotate(-25 71 36)" fill="#F9A825"/>
+                  <ellipse cx="89" cy="33" rx="6" ry="4.5" transform="rotate(25 89 33)" fill="#FBC02D"/>
+                  <ellipse cx="73" cy="48" rx="6.5" ry="4.5" transform="rotate(-20 73 48)" fill="#F57F17"/>
+                  <ellipse cx="87" cy="46" rx="6.5" ry="4.5" transform="rotate(20 87 46)" fill="#FBC02D"/>
+                  <ellipse cx="80" cy="14" rx="4" ry="6" fill="#FDD835"/>
+                  <!-- 歡喜小蝴蝶 -->
+                  <path d="M118 36 Q124 30 128 35 Q125 42 118 39 Q123 46 128 43" fill="#FF8A80" opacity="0.9"/>
+                  <circle cx="117" cy="38" r="1.5" fill="#424242"/>
+                  <!-- 晨露小水滴 -->
+                  <circle cx="65" cy="55" r="2.5" fill="#81D4FA"/>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-stone-400 uppercase tracking-wider block mb-1">第三部分 • 天國的盛放</span>
+              <h4 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 mb-3 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                好土的豐收：<br>「聽見且明白」的繁茂祝福
+              </h4>
+              <p class="text-stone-600 dark:text-stone-300 text-sm leading-relaxed mb-4">
+                經過鬆土、去石、除草的心，以柔順承接真道。生命將湧流出三十倍、六十倍、一百倍的豐盛恩典。
+              </p>
+            </div>
+            <div class="pt-4 border-t border-stone-100 dark:border-stone-700/50 flex items-center justify-between text-xs font-semibold text-amber-700 dark:text-amber-400">
+              <span>閱讀本篇信息 (經文 v.8, 23)</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 快速四土壤圖解小卡 (視覺化理解比喻) -->
+      <section class="bg-amber-50/70 dark:bg-stone-800/40 border border-amber-200/60 dark:border-stone-700 rounded-3xl p-6 sm:p-8">
+        <h4 class="text-lg font-bold font-serif text-stone-900 dark:text-stone-100 mb-6 flex items-center space-x-2">
+          <i data-lucide="layout-grid" class="w-5 h-5 text-amber-700 dark:text-amber-400"></i>
+          <span>撒種比喻四種心田快速對照總覽</span>
+        </h4>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+          <!-- 土壤卡 1 -->
+          <div class="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-col items-center justify-between shadow-sm hover:shadow-md transition">
+            <div class="w-16 h-16 mb-2 flex items-center justify-center">
+              <svg viewBox="0 0 80 80" class="w-14 h-14" fill="none">
+                <circle cx="40" cy="40" r="36" fill="#FEE2E2"/>
+                <path d="M15 55 Q40 48 65 55" stroke="#991B1B" stroke-width="4" stroke-linecap="round"/>
+                <!-- 頑皮飛鳥 -->
+                <ellipse cx="44" cy="38" rx="12" ry="9" fill="#EF4444"/>
+                <circle cx="52" cy="32" r="7" fill="#EF4444"/>
+                <circle cx="54" cy="30" r="1.5" fill="#FFF"/>
+                <polygon points="58,32 66,34 58,37" fill="#F59E0B"/>
+                <path d="M38 40 L28 46 L34 38 Z" fill="#B91C1C"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-stone-800 dark:text-stone-200 text-sm">路旁 (Hardened)</div>
+              <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">硬心、麻木、不明白道</div>
+            </div>
+            <div class="mt-3 w-full text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 py-1.5 rounded-lg">種子被惡者奪去</div>
+          </div>
+          <!-- 土壤卡 2 -->
+          <div class="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-col items-center justify-between shadow-sm hover:shadow-md transition">
+            <div class="w-16 h-16 mb-2 flex items-center justify-center">
+              <svg viewBox="0 0 80 80" class="w-14 h-14" fill="none">
+                <circle cx="40" cy="40" r="36" fill="#FEF3C7"/>
+                <circle cx="56" cy="26" r="8" fill="#F59E0B"/>
+                <!-- 石頭與無根苗 -->
+                <ellipse cx="38" cy="54" rx="18" ry="7" fill="#78716C"/>
+                <path d="M38 48 Q37 36 32 30" stroke="#84CC16" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="30" cy="28" r="3" fill="#A3E635"/>
+                <!-- 汗珠 -->
+                <circle cx="44" cy="36" r="1.5" fill="#38BDF8"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-stone-800 dark:text-stone-200 text-sm">土淺石頭地 (Shallow)</div>
+              <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">情緒狂熱、無深根基</div>
+            </div>
+            <div class="mt-3 w-full text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 py-1.5 rounded-lg">遭日頭曝曬枯乾</div>
+          </div>
+          <!-- 土壤卡 3 -->
+          <div class="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-col items-center justify-between shadow-sm hover:shadow-md transition">
+            <div class="w-16 h-16 mb-2 flex items-center justify-center">
+              <svg viewBox="0 0 80 80" class="w-14 h-14" fill="none">
+                <circle cx="40" cy="40" r="36" fill="#F3E8FF"/>
+                <!-- 纏繞荊棘與垂頭小苗 -->
+                <path d="M25 58 Q40 45 55 58" stroke="#581C87" stroke-width="2.5"/>
+                <polygon points="34,48 37,52 32,53" fill="#581C87"/>
+                <polygon points="46,49 43,53 48,54" fill="#581C87"/>
+                <path d="M40 54 Q38 42 34 38" stroke="#10B981" stroke-width="2.5"/>
+                <path d="M34 38 Q30 36 32 33" stroke="#10B981" stroke-width="2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-stone-800 dark:text-stone-200 text-sm">荊棘地 (Choked)</div>
+              <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">世俗焦慮、錢財誘惑</div>
+            </div>
+            <div class="mt-3 w-full text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 py-1.5 rounded-lg">生機被窒息不能結實</div>
+          </div>
+          <!-- 土壤卡 4 -->
+          <div class="bg-white dark:bg-stone-900 p-4 rounded-2xl border border-stone-200 dark:border-stone-700 flex flex-col items-center justify-between shadow-sm hover:shadow-md transition">
+            <div class="w-16 h-16 mb-2 flex items-center justify-center">
+              <svg viewBox="0 0 80 80" class="w-14 h-14" fill="none">
+                <circle cx="40" cy="40" r="36" fill="#D1FAE5"/>
+                <!-- 繁盛百倍大麥穗 -->
+                <path d="M40 60 L40 24" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+                <ellipse cx="36" cy="26" rx="4" ry="2.5" transform="rotate(-30 36 26)" fill="#F59E0B"/>
+                <ellipse cx="44" cy="24" rx="4" ry="2.5" transform="rotate(30 44 24)" fill="#FBBF24"/>
+                <ellipse cx="35" cy="34" rx="4.5" ry="3" transform="rotate(-25 35 34)" fill="#F59E0B"/>
+                <ellipse cx="45" cy="32" rx="4.5" ry="3" transform="rotate(25 45 32)" fill="#FBBF24"/>
+                <circle cx="55" cy="22" r="2" fill="#F43F5E"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-bold text-stone-800 dark:text-stone-200 text-sm">好土 (Fruitful)</div>
+              <div class="text-xs text-stone-500 dark:text-stone-400 mt-1">謙卑受教、領悟真道</div>
+            </div>
+            <div class="mt-3 w-full text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 py-1.5 rounded-lg">結實百倍、六十倍</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 首頁底端快速呼召行動 -->
+      <div class="flex flex-col sm:flex-row items-center justify-between p-6 bg-stone-100 dark:bg-stone-800/80 rounded-2xl gap-4">
+        <div>
+          <h5 class="font-bold text-stone-900 dark:text-stone-100">準備好進入今天的靈修與思想了嗎？</h5>
+          <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400">建議依序閱讀三個核心信息，並使用小組討論題進行小組或個人禱告反思。</p>
+        </div>
+        <div class="flex space-x-3 w-full sm:w-auto">
+          <button onclick="navigateTo('point1')" class="flex-1 sm:flex-none px-5 py-2.5 bg-stone-900 dark:bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition">
+            開始研讀第一篇
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 頁面 2：信息一【路旁的心田：識破冷漠與奪道的飛鳥】             -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="page-point1" class="page-view hidden space-y-8 animate-fadeIn">
+      
+      <!-- 麵包屑導航與進度標籤 -->
+      <div class="flex items-center space-x-2 text-xs text-stone-500 dark:text-stone-400">
+        <button onclick="navigateTo('home')" class="hover:text-amber-700 underline">首頁</button>
+        <span>/</span>
+        <span class="text-amber-700 dark:text-amber-400 font-medium">核心信息一</span>
+      </div>
+
+      <!-- 信息一專屬繪本風橫幅插圖 -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-100 via-amber-50 to-stone-100 dark:from-stone-800 dark:to-stone-900 p-6 border border-red-200/60 dark:border-stone-700 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 max-w-lg">
+          <div class="inline-block px-3 py-1 rounded bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300 text-xs font-semibold">
+            心田診斷 01 • 路旁 (The Path)
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold font-serif text-stone-900 dark:text-stone-100">
+            心靈的硬化：識破冷漠與奪道的飛鳥
+          </h2>
+          <p class="text-stone-600 dark:text-stone-400 text-xs sm:text-sm italic">
+            「撒的時候，有落在路旁的，飛鳥來吃盡了……凡聽見天國道理不明白的，那惡者就來，把所撒在他心裡的奪了去。」(太 13:4, 19)
+          </p>
+        </div>
+        <div class="shrink-0 w-36 h-28 flex items-center justify-center">
+          <svg viewBox="0 0 150 120" class="w-full h-auto drop-shadow-md" fill="none">
+            <!-- 鋪滿腳印的堅硬道路 -->
+            <path d="M10 95 Q75 80 140 95 L140 115 L10 115 Z" fill="#D7CCC8"/>
+            <path d="M30 98 Q50 90 70 98" stroke="#BCAAA4" stroke-width="2" stroke-linecap="round"/>
+            <path d="M85 96 Q105 88 125 96" stroke="#BCAAA4" stroke-width="2" stroke-linecap="round"/>
+            <!-- 停留在路旁吃種子的小麻雀 -->
+            <ellipse cx="65" cy="75" rx="20" ry="15" fill="#8D6E63"/>
+            <circle cx="80" cy="62" r="13" fill="#8D6E63"/>
+            <circle cx="84" cy="59" r="2.5" fill="#3E2723"/>
+            <circle cx="85" cy="58" r="0.8" fill="#FFFFFF"/>
+            <polygon points="92,62 104,65 92,69" fill="#FFA726"/>
+            <!-- 銜在嘴角的種子 -->
+            <circle cx="107" cy="65" r="3" fill="#FFD54F"/>
+            <!-- 翅膀羽毛 -->
+            <path d="M52 75 Q68 70 65 85 Z" fill="#6D4C41"/>
+            <!-- 小鳥細腳 -->
+            <line x1="60" y1="90" x2="60" y2="98" stroke="#5D4037" stroke-width="2"/>
+            <line x1="70" y1="90" x2="70" y2="98" stroke="#5D4037" stroke-width="2"/>
+            <!-- 警戒的驚嘆號泡泡 -->
+            <g transform="translate(100, 20)">
+              <circle cx="14" cy="14" r="14" fill="#EF5350"/>
+              <rect x="12" y="6" width="4" height="10" rx="2" fill="#FFF"/>
+              <circle cx="14" cy="20" r="2" fill="#FFF"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 經文引用精華卡片 -->
+      <div class="scripture-quote p-5 rounded-r-2xl my-4 text-stone-800 dark:text-stone-200 text-base leading-relaxed">
+        <strong>屬靈焦點：</strong>路旁並不是沒有土壤，而是「天天被人行走踐踏」，使得泥土密實硬化如同堅石。種子無法滲透哪怕一毫米，只能孤單曝露在地表，成了空中的飛鳥隨手可取的食物。
+      </div>
+
+      <!-- 正文內容區 (講章完整論述) -->
+      <article class="sermon-text text-stone-700 dark:text-stone-300 space-y-6 text-base sm:text-lg">
+        <p>
+          在加利利海邊的田野間，農人撒種時，經常有供行人穿越田壟的小徑。這些路徑因日復一日被無數旅客、牲畜踐踏，土壤漸漸失去了呼吸與接納種子的彈性。
+        </p>
+
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 pt-4 text-amber-900 dark:text-amber-300">
+          一、何謂「不明白」？並非智力不足，而是心門緊閉
+        </h3>
+        <p>
+          耶穌對這段經文的親自解釋極其犀利：「凡聽見天國道理<strong>不明白</strong>的，那惡者就來奪了去。」在希臘原文中，「明白」（suniemi）意指「將兩件事拼湊在一起、由心靈深處貫通領會」。
+        </p>
+        <p>
+          很多時候，我們坐在教堂的長椅上，耳朵雖然接收到了講員的聲音，心靈卻如同水泥鋪成的走道。我們帶著成見、日常事務的喧囂、批判的心態或是習慣性的宗教冷漠。道理落在了聽覺的神經上，卻從未落入心房。因為「不想明白」或「自以為早就明白」，這道便停留在了表面。
+        </p>
+
+        <!-- 視覺引導圖卡 -->
+        <div class="my-8 p-6 bg-stone-100 dark:bg-stone-800 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+          <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+            <i data-lucide="alert-octagon" class="w-8 h-8"></i>
+          </div>
+          <div class="text-sm sm:text-base leading-relaxed">
+            <strong class="text-stone-900 dark:text-stone-100 block mb-1">屬靈的隱形掠奪者</strong>
+            仇敵魔鬼最希望信徒呈現的狀態，不是公開反對神，而是「聽而麻木」。當你剛離開主日崇拜，滑開手機社群、陷入八卦、或是轉身發脾氣，那粒神要安慰、修正你的種子，就在一瞬間被飛鳥吞吃無蹤。
+          </div>
+        </div>
+
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 pt-2 text-amber-900 dark:text-amber-300">
+          二、如何翻鬆心靈的硬土？
+        </h3>
+        <p>
+          路旁的心田並非注定永世荒涼。在先知耶利米書四章3節，神呼籲祂的百姓說：<strong>「你們要開墾你們的荒地，不要撒種在荊棘中。」</strong>
+        </p>
+        <ul class="list-disc pl-6 space-y-2 text-stone-700 dark:text-stone-300">
+          <li><strong>渴慕的悔改：</strong>承認自己對真理的無感，求聖靈用眼淚與憂傷痛悔的心當作鐵犁，破碎我們剛硬自義的防線。</li>
+          <li><strong>預備朝見神的心：</strong>在聽道或讀經前五分鐘，安靜呼吸、放下手機，向神禱告：「主啊，請向我說話，僕人敬聽。」</li>
+          <li><strong>刻意默想與複習：</strong>聽完道後不是立刻遺忘，而是在當天寫下感動的一句話，讓種子深入土壤十公分。</li>
+        </ul>
+      </article>
+
+      <!-- 文章底部分頁切換按鈕 -->
+      <footer class="pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+        <button onclick="navigateTo('home')" class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+          ← 回到總覽
+        </button>
+        <button onclick="navigateTo('point2')" class="px-5 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-medium hover:bg-amber-600 transition flex items-center space-x-2">
+          <span>下一篇：土淺與荊棘</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </footer>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 頁面 3：信息二【淺石與荊棘：扎根真理與割捨世慮】               -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="page-point2" class="page-view hidden space-y-8 animate-fadeIn">
+      
+      <!-- 麵包屑導航 -->
+      <div class="flex items-center space-x-2 text-xs text-stone-500 dark:text-stone-400">
+        <button onclick="navigateTo('home')" class="hover:text-amber-700 underline">首頁</button>
+        <span>/</span>
+        <span class="text-amber-700 dark:text-amber-400 font-medium">核心信息二</span>
+      </div>
+
+      <!-- 信息二專屬繪本風橫幅插圖 -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-100 via-orange-50 to-stone-100 dark:from-stone-800 dark:to-stone-900 p-6 border border-amber-200/60 dark:border-stone-700 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 max-w-lg">
+          <div class="inline-block px-3 py-1 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-semibold">
+            心田診斷 02 & 03 • 石頭地與荊棘叢
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold font-serif text-stone-900 dark:text-stone-100">
+            生命的深度與除蔓：跨越試煉與世俗的窒息
+          </h2>
+          <p class="text-stone-600 dark:text-stone-400 text-xs sm:text-sm italic">
+            「日頭出來一曬，因為沒有根，就枯乾了……荊棘長起來，把它擠住了。」(太 13:6, 7)
+          </p>
+        </div>
+        <div class="shrink-0 w-36 h-28 flex items-center justify-center">
+          <svg viewBox="0 0 150 120" class="w-full h-auto drop-shadow-md" fill="none">
+            <!-- 閃耀但炙熱的日頭 -->
+            <circle cx="115" cy="30" r="16" fill="#FFA726"/>
+            <path d="M115 6 L115 10 M115 50 L115 54 M91 30 L95 30 M135 30 L139 30" stroke="#FF9800" stroke-width="3" stroke-linecap="round"/>
+            <!-- 地表土層與石頭底質 -->
+            <path d="M10 95 Q75 88 140 95 L140 115 L10 115 Z" fill="#A1887F"/>
+            <rect x="40" y="86" width="30" height="16" rx="6" fill="#795548"/>
+            <rect x="75" y="88" width="22" height="14" rx="5" fill="#6D4C41"/>
+            <!-- 嬌弱的小植物努力從石縫探頭 -->
+            <path d="M55 86 Q54 66 46 54" stroke="#8BC34A" stroke-width="3" stroke-linecap="round"/>
+            <path d="M46 54 Q38 52 40 44 Q50 46 46 54 Z" fill="#9CCC65"/>
+            <!-- 纏繞過來的荊棘藤蔓與尖刺 -->
+            <path d="M90 92 Q96 70 108 62 Q100 52 88 58" stroke="#5D4037" stroke-width="2.5" stroke-linecap="round"/>
+            <polygon points="98,72 105,70 101,66" fill="#3E2723"/>
+            <polygon points="94,60 90,54 86,59" fill="#3E2723"/>
+            <!-- 象徵剪刀的小圖解 (指引修剪) -->
+            <circle cx="28" cy="40" r="12" fill="#E0F2FE"/>
+            <path d="M22 36 L34 44 M22 44 L34 36" stroke="#0284C7" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 經文引用精華卡片 -->
+      <div class="scripture-quote p-5 rounded-r-2xl my-4 text-stone-800 dark:text-stone-200 text-base leading-relaxed">
+        <strong>屬靈焦點：</strong>這兩類土壤代表了信徒生命中最容易遇見的雙重瓶頸——<strong>外在的艱難考驗（烈日）</strong>使無根者跌倒，而<strong>內在的私慾纏累（荊棘）</strong>則瓜分了生命所有滋養與陽光。
+      </div>
+
+      <!-- 正文內容區 (講章完整論述) -->
+      <article class="sermon-text text-stone-700 dark:text-stone-300 space-y-6 text-base sm:text-lg">
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 text-amber-900 dark:text-amber-300">
+          一、土淺石頭地：情緒的興奮不能代替生命的向下扎根
+        </h3>
+        <p>
+          在巴勒斯坦的許多山坡上，表面覆蓋著一層薄薄的泥土，下方卻是堅硬的石灰岩層。這種地因白天吸熱快，種子播下後發芽極其神速，令人驚豔讚嘆！
+        </p>
+        <p>
+          耶穌說，這代表人「聽了道，當下歡喜領受」。這類基督徒在敬拜讚美時感動流淚，在營會中熱血沸騰。然而，<strong>情感的高峰並不等同於靈命的扎根</strong>。因為皮下隱藏著未曾交出的頑石（隱藏的罪、不願饒恕的怨懟、未釘死的自我）。
+        </p>
+        <p>
+          當日頭出來——亦即「為道受逼迫、遇到生活逆境、禱告未蒙應允」時，缺乏向下汲水能力的脆弱幼苗，便在烈日下迅速焦黑凋萎。試煉本是為了顯露根的深度，若沒有深度，恩典的日頭反而成了枯乾的因由。
+        </p>
+
+        <!-- 荊棘與石頭的圖解分析卡 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+          <div class="p-5 bg-stone-100 dark:bg-stone-800/80 rounded-2xl border border-stone-200 dark:border-stone-700">
+            <h4 class="font-bold font-serif text-amber-900 dark:text-amber-300 flex items-center space-x-2 mb-2">
+              <i data-lucide="sun" class="w-5 h-5 text-amber-600"></i>
+              <span>烈日的試煉 (日頭一曬)</span>
+            </h4>
+            <p class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+              烈日原本是植物行光合作用必不可少的恩典，但唯有根深者方能受惠；若無根，神所容許的環境考驗將成為信心的致命傷。
+            </p>
+          </div>
+          <div class="p-5 bg-stone-100 dark:bg-stone-800/80 rounded-2xl border border-stone-200 dark:border-stone-700">
+            <h4 class="font-bold font-serif text-amber-900 dark:text-amber-300 flex items-center space-x-2 mb-2">
+              <i data-lucide="scissors" class="w-5 h-5 text-emerald-600"></i>
+              <span>荊棘的爭奪 (擠住了道)</span>
+            </h4>
+            <p class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+              荊棘不是外在的逼迫，而是內在的野心。它的根系爭奪水分、枝葉遮蔽陽光，最終信徒看似枝繁葉茂，卻一生「不能結出成熟子粒」。
+            </p>
+          </div>
+        </div>
+
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 text-amber-900 dark:text-amber-300">
+          二、荊棘地：世上的思慮與錢財的迷惑
+        </h3>
+        <p>
+          第三種土地土質深厚肥沃，既沒有被踏成硬路，也沒有地底石層。然而，這塊地最大的悲劇在於「不專一」。種子與荊棘一起生長。
+        </p>
+        <p>
+          耶穌精準指出荊棘的兩個名字：<strong>「世上的思慮」</strong>與<strong>「錢財的迷惑」</strong>。
+        </p>
+        <ul class="list-disc pl-6 space-y-3 text-stone-700 dark:text-stone-300">
+          <li><strong>世上的思慮（焦慮的霸凌）：</strong>為房貸、通膨、孩子前途、身體健康過度擔憂。憂慮像藤蔓一樣勒住呼吸，讓人每天疲於奔命，無暇親近神。</li>
+          <li><strong>錢財的迷惑（價值的錯置）：</strong>以為擁有了更多的物質、更高的社會地位，才能獲得安全感與尊嚴。這是一個美麗的謊言，它無聲無息地榨乾了原本應當奉獻給神國的時間與熱情。</li>
+        </ul>
+        <p>
+          親愛的弟兄姊妹，我們必須拿起屬靈的鐮刀，每天在禱告中修剪那些蔓生在心田中的野藤！
+        </p>
+      </article>
+
+      <!-- 文章底部分頁切換按鈕 -->
+      <footer class="pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+        <button onclick="navigateTo('point1')" class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+          ← 上一篇：心靈的防衛
+        </button>
+        <button onclick="navigateTo('point3')" class="px-5 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-medium hover:bg-amber-600 transition flex items-center space-x-2">
+          <span>下一篇：好土的盛宴</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </footer>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 頁面 4：信息三【好土的盛宴：領悟神道與結實百倍】               -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="page-point3" class="page-view hidden space-y-8 animate-fadeIn">
+      
+      <!-- 麵包屑導航 -->
+      <div class="flex items-center space-x-2 text-xs text-stone-500 dark:text-stone-400">
+        <button onclick="navigateTo('home')" class="hover:text-amber-700 underline">首頁</button>
+        <span>/</span>
+        <span class="text-amber-700 dark:text-amber-400 font-medium">核心信息三</span>
+      </div>
+
+      <!-- 信息三專屬繪本風橫幅插圖 -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-100 via-teal-50 to-stone-100 dark:from-stone-800 dark:to-stone-900 p-6 border border-emerald-200/60 dark:border-stone-700 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 max-w-lg">
+          <div class="inline-block px-3 py-1 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
+            心田診斷 04 • 好土 (The Good Soil)
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-bold font-serif text-stone-900 dark:text-stone-100">
+            好土的豐收盛宴：「聽見且明白」的繁茂祝福
+          </h2>
+          <p class="text-stone-600 dark:text-stone-400 text-xs sm:text-sm italic">
+            「又有落在好土裡的，就結實，有一百倍的，有六十倍的，有三十倍的。有耳可聽的，就應當聽！」(太 13:8-9)
+          </p>
+        </div>
+        <div class="shrink-0 w-36 h-28 flex items-center justify-center">
+          <svg viewBox="0 0 150 120" class="w-full h-auto drop-shadow-md" fill="none">
+            <!-- 肥沃黑土 -->
+            <path d="M10 95 Q75 88 140 95 L140 115 L10 115 Z" fill="#4E342E"/>
+            <!-- 茁壯繁茂的金色麥桿與百倍麥穗 -->
+            <path d="M75 95 Q76 55 75 25" stroke="#689F38" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="68" cy="30" rx="7" ry="4.5" transform="rotate(-30 68 30)" fill="#FBC02D"/>
+            <ellipse cx="82" cy="27" rx="7" ry="4.5" transform="rotate(30 82 27)" fill="#FDD835"/>
+            <ellipse cx="66" cy="42" rx="7" ry="4.5" transform="rotate(-25 66 42)" fill="#F57F17"/>
+            <ellipse cx="84" cy="39" rx="7" ry="4.5" transform="rotate(25 84 39)" fill="#FBC02D"/>
+            <ellipse cx="68" cy="54" rx="7" ry="4.5" transform="rotate(-20 68 54)" fill="#FBC02D"/>
+            <ellipse cx="82" cy="51" rx="7" ry="4.5" transform="rotate(20 82 51)" fill="#F57F17"/>
+            <ellipse cx="75" cy="18" rx="5" ry="7" fill="#FFF176"/>
+            <!-- 結出的小紅果與花朵 -->
+            <circle cx="45" cy="80" r="4" fill="#E53935"/>
+            <circle cx="105" cy="82" r="4" fill="#E53935"/>
+            <!-- 可愛愛心氣泡 -->
+            <path d="M115 25 C115 20 125 15 130 23 C135 15 145 20 145 25 C145 35 130 42 130 45 C130 42 115 35 115 25 Z" fill="#FF8A80"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 經文引用精華卡片 -->
+      <div class="scripture-quote p-5 rounded-r-2xl my-4 text-stone-800 dark:text-stone-200 text-base leading-relaxed">
+        <strong>屬靈焦點：</strong>好土並不是從不長雜草、天生純淨的土地，而是<strong>願意被農夫翻土、拾去石頭、拔除蒺藜</strong>的心。這顆心「聽見、明白、存記，並且忍耐著結實」。
+      </div>
+
+      <!-- 正文內容區 (講章完整論述) -->
+      <article class="sermon-text text-stone-700 dark:text-stone-300 space-y-6 text-base sm:text-lg">
+        <p>
+          在古代近東，一般農作物的收成比例若能達到播種量的一比八或一比十，就已經是令人滿意的好年冬。然而耶穌在這裡所宣告的收成，竟是震撼人心的<strong>「一百倍、六十倍、三十倍」</strong>！
+        </p>
+        <p>
+          這不是一場勉強的維持生命，而是一場超乎人理性所能測度、湧流滿溢的天國奇蹟。
+        </p>
+
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 pt-4 text-amber-900 dark:text-amber-300">
+          一、好土的三重特質：聽道、領受、實踐
+        </h3>
+        <p>
+          綜合路加福音八章與馬太福音十三章的記載，好土的核心特徵是：
+        </p>
+        <div class="space-y-4 my-6">
+          <div class="flex items-start space-x-4 p-4 rounded-xl bg-stone-100 dark:bg-stone-800">
+            <span class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-sm">1</span>
+            <div>
+              <strong class="text-stone-900 dark:text-stone-100 block">誠實善良的心（Honest & Good Heart）</strong>
+              <span class="text-sm text-stone-600 dark:text-stone-300">不戴屬靈面具，在神的光照下赤露敞開，毫無保留地承認自己的軟弱與不足。</span>
+            </div>
+          </div>
+          <div class="flex items-start space-x-4 p-4 rounded-xl bg-stone-100 dark:bg-stone-800">
+            <span class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-sm">2</span>
+            <div>
+              <strong class="text-stone-900 dark:text-stone-100 block">明白而存記（Understands & Retains）</strong>
+              <span class="text-sm text-stone-600 dark:text-stone-300">將真理反覆思想（如馬利亞將神的話存在心裡），使客觀的神學教義內化為掌管行事為人的主觀信念。</span>
+            </div>
+          </div>
+          <div class="flex items-start space-x-4 p-4 rounded-xl bg-stone-100 dark:bg-stone-800">
+            <span class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-sm">3</span>
+            <div>
+              <strong class="text-stone-900 dark:text-stone-100 block">忍耐著結實（Perseveres to Fruitfulness）</strong>
+              <span class="text-sm text-stone-600 dark:text-stone-300">靈命成長不是自動販賣機。種子在地底經歷黑暗、破殼與發芽都需要時間。在考驗中堅持信靠，至終必看見莊稼成熟。</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 pt-2 text-amber-900 dark:text-amber-300">
+          二、三十倍、六十倍、一百倍的真諦
+        </h3>
+        <p>
+          為什麼收成有倍數的差異？神並不對每個人要求相同的產量指標，因為每個人的恩賜、處境與託付各有不同。
+        </p>
+        <p>
+          三十倍不是失敗，六十倍也不是次等；只要是一顆純全結實的好土，在上帝的眼中都是無比珍貴的忠心僕人！這百倍的收成，不僅是信徒內在品格的聖靈果子（仁愛、喜樂、和平、忍耐），也是外在領人歸主、造福家庭與社會的實質見證。
+        </p>
+
+        <!-- 恩典反思小框 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-100/70 to-emerald-100/70 dark:from-stone-800 dark:to-stone-800 border border-amber-300 dark:border-stone-700">
+          <h4 class="font-bold text-stone-900 dark:text-stone-100 mb-2 flex items-center space-x-2">
+            <i data-lucide="heart-handshake" class="w-5 h-5 text-amber-700"></i>
+            <span>講章恩典結論：耕種心靈的偉大農夫</span>
+          </h4>
+          <p class="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
+            我們若靠自己的力量，沒有人能單憑意志把剛硬的心變成良田。但好消息是：<strong>耶穌基督就是那位永不放棄的撒種者與農夫</strong>。祂藉著祂在十架上傾倒的寶血洗淨我們的罪愆，藉著聖靈春雨秋雨的澆灌滋潤我們的乾渴。只要今天你願意向祂敞開：「主啊，求祢來翻耕我」，荒漠亦能長出繁盛的甘霖良田。
+          </p>
+        </div>
+      </article>
+
+      <!-- 文章底部分頁切換按鈕 -->
+      <footer class="pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+        <button onclick="navigateTo('point2')" class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+          ← 上一篇：土淺與荊棘
+        </button>
+        <button onclick="navigateTo('scripture')" class="px-5 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-medium hover:bg-amber-600 transition flex items-center space-x-2">
+          <span>對照經文依據</span>
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+        </button>
+      </footer>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 頁面 5：經文平行對照與釋經頁 (核對聖經依據)                   -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="page-scripture" class="page-view hidden space-y-8 animate-fadeIn">
+      
+      <!-- 導航標頭 -->
+      <div class="flex items-center space-x-2 text-xs text-stone-500 dark:text-stone-400">
+        <button onclick="navigateTo('home')" class="hover:text-amber-700 underline">首頁</button>
+        <span>/</span>
+        <span class="text-amber-700 dark:text-amber-400 font-medium">經文對照與釋經</span>
+      </div>
+
+      <header class="space-y-3 border-b border-stone-200 dark:border-stone-800 pb-6">
+        <div class="inline-block px-3 py-1 rounded bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-semibold">
+          聖經原典對讀 • 馬太福音 13:1–23 和合本
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold font-serif text-stone-900 dark:text-stone-100">
+          比喻本體與耶穌親自解明的平行對照
+        </h2>
+        <p class="text-stone-500 dark:text-stone-400 text-sm">
+          點選任何經節卡片可開啟重點高亮與默想備註。藉由左右或上下對照，清晰明白喻意。
+        </p>
+      </header>
+
+      <!-- 平行對照表區塊 -->
+      <div class="space-y-6">
+
+        <!-- 段落一：引言與場景 (1-3節) -->
+        <div class="bg-white dark:bg-stone-800/60 p-6 rounded-2xl border border-stone-200 dark:border-stone-700 space-y-3">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-400 tracking-wider">
+            <span>經文背景 • 湖邊的講壇</span>
+            <span>太 13:1–3a</span>
+          </div>
+          <p class="font-serif text-base sm:text-lg leading-relaxed text-stone-800 dark:text-stone-200">
+            <sup>1</sup> 當那一天，耶穌從房子裡出來，坐在海邊。
+            <sup>2</sup> 有許多人到他那裡聚集，他只得上船坐下，眾人都站在岸上。
+            <sup>3</sup> 他用比喻對他們講許多道理，說：
+          </p>
+          <div class="text-xs bg-stone-50 dark:bg-stone-900/50 p-3 rounded-lg text-stone-500 dark:text-stone-400">
+            <strong>靈修解讀：</strong>海邊的自然聚音環境形成天然講台；眾人湧來，但耶穌並非只看人數，而是用比喻試驗眾人求道的真心。
+          </div>
+        </div>
+
+        <!-- 段落二：比喻敘述 vs 耶穌親自解明 (4對4對照) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- 對照卡片 1：路旁 -->
+          <div class="bg-white dark:bg-stone-800/80 p-6 rounded-2xl border-l-4 border-l-red-500 border border-stone-200 dark:border-stone-700 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300">① 路旁之心</span>
+                <span class="text-xs text-stone-400">對照經文</span>
+              </div>
+              <div class="space-y-3 text-sm sm:text-base font-serif">
+                <div class="bg-red-50/50 dark:bg-red-950/20 p-3 rounded-lg">
+                  <div class="text-xs text-stone-500 font-sans mb-1 font-semibold">比喻敘事 (太 13:4)</div>
+                  「撒的時候，有落在路旁的，飛鳥來吃盡了。」
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-900/60 p-3 rounded-lg">
+                  <div class="text-xs text-amber-700 dark:text-amber-400 font-sans mb-1 font-semibold">耶穌解明 (太 13:19)</div>
+                  「凡聽見天國道理不明白的，那惡者就來，把所撒在他心裡的奪了去；這就是撒在路旁的了。」
+                </div>
+              </div>
+            </div>
+            <div class="text-xs text-stone-500 dark:text-stone-400 pt-3 border-t border-stone-100 dark:border-stone-700">
+              <strong>關鍵核心：</strong>「不明白」導致「無戒備」，魔鬼的奪取在一瞬間完成。
+            </div>
+          </div>
+
+          <!-- 對照卡片 2：土淺石頭地 -->
+          <div class="bg-white dark:bg-stone-800/80 p-6 rounded-2xl border-l-4 border-l-amber-500 border border-stone-200 dark:border-stone-700 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">② 土淺石頭地</span>
+                <span class="text-xs text-stone-400">對照經文</span>
+              </div>
+              <div class="space-y-3 text-sm sm:text-base font-serif">
+                <div class="bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-lg">
+                  <div class="text-xs text-stone-500 font-sans mb-1 font-semibold">比喻敘事 (太 13:5-6)</div>
+                  「有落在土淺石頭地上的，土既不深，發苗最快，日頭出來一曬，因為沒有根，就枯乾了。」
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-900/60 p-3 rounded-lg">
+                  <div class="text-xs text-amber-700 dark:text-amber-400 font-sans mb-1 font-semibold">耶穌解明 (太 13:20-21)</div>
+                  「撒在石頭地上的，就是人聽了道，當下歡喜領受，只因心裡沒有根，不過是暫時的，及至為道遭了患難，或是受了逼迫，立刻就跌倒了。」
+                </div>
+              </div>
+            </div>
+            <div class="text-xs text-stone-500 dark:text-stone-400 pt-3 border-t border-stone-100 dark:border-stone-700">
+              <strong>關鍵核心：</strong>狂熱短暫，無根的信仰經不起生活火煉。
+            </div>
+          </div>
+
+          <!-- 對照卡片 3：荊棘叢裡 -->
+          <div class="bg-white dark:bg-stone-800/80 p-6 rounded-2xl border-l-4 border-l-purple-500 border border-stone-200 dark:border-stone-700 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">③ 荊棘地</span>
+                <span class="text-xs text-stone-400">對照經文</span>
+              </div>
+              <div class="space-y-3 text-sm sm:text-base font-serif">
+                <div class="bg-purple-50/50 dark:bg-purple-950/20 p-3 rounded-lg">
+                  <div class="text-xs text-stone-500 font-sans mb-1 font-semibold">比喻敘事 (太 13:7)</div>
+                  「有落在荊棘裡的，荊棘長起來，把它擠住了。」
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-900/60 p-3 rounded-lg">
+                  <div class="text-xs text-amber-700 dark:text-amber-400 font-sans mb-1 font-semibold">耶穌解明 (太 13:22)</div>
+                  「撒在荊棘裡的，就是人聽了道，後來有世上的思慮、錢財的迷惑把道擠住了，不能結實。」
+                </div>
+              </div>
+            </div>
+            <div class="text-xs text-stone-500 dark:text-stone-400 pt-3 border-t border-stone-100 dark:border-stone-700">
+              <strong>關鍵核心：</strong>世俗的焦慮與貪慾瓜分心力，使其「有名無實」。
+            </div>
+          </div>
+
+          <!-- 對照卡片 4：好土地 -->
+          <div class="bg-white dark:bg-stone-800/80 p-6 rounded-2xl border-l-4 border-l-emerald-500 border border-stone-200 dark:border-stone-700 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">④ 結實好土</span>
+                <span class="text-xs text-stone-400">對照經文</span>
+              </div>
+              <div class="space-y-3 text-sm sm:text-base font-serif">
+                <div class="bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-lg">
+                  <div class="text-xs text-stone-500 font-sans mb-1 font-semibold">比喻敘事 (太 13:8-9)</div>
+                  「又有落在好土裡的，就結實，有一百倍的，有六十倍的，有三十倍的。有耳可聽的，就應當聽！」
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-900/60 p-3 rounded-lg">
+                  <div class="text-xs text-amber-700 dark:text-amber-400 font-sans mb-1 font-semibold">耶穌解明 (太 13:23)</div>
+                  「撒在好地上的，就是人聽道明白了，後來結實，有一百倍的，有六十倍的，有三十倍的。」
+                </div>
+              </div>
+            </div>
+            <div class="text-xs text-stone-500 dark:text-stone-400 pt-3 border-t border-stone-100 dark:border-stone-700">
+              <strong>關鍵核心：</strong>「明白並持守」，天國的生命力必然自然爆發。
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 夾敘段落：為什麼要用比喻？ (太 13:10-17 焦點插卡) -->
+        <div class="p-6 rounded-2xl bg-amber-50/80 dark:bg-stone-800 border border-amber-200 dark:border-stone-700 space-y-3">
+          <h4 class="font-bold font-serif text-stone-900 dark:text-stone-100 flex items-center space-x-2 text-base">
+            <i data-lucide="help-circle" class="w-5 h-5 text-amber-600"></i>
+            <span>深層神學：耶穌為何在第10至17節插入「比喻的目的」？</span>
+          </h4>
+          <p class="text-sm text-stone-700 dark:text-stone-300 leading-relaxed font-serif">
+            門徒問耶穌：「對眾人講話，為什麼用比喻呢？」耶穌引用以賽亞書六章9-10節指明：<strong>比喻兼具「啟示」與「隱藏」的雙重功能</strong>。對於心靈謙卑渴慕的人，比喻是開啟天國奧祕的鑰匙；對於心蒙脂油、油蒙了心、耳朵發沉的宗教自滿者，比喻則成了他們的審判，因為他們「看是看見卻不曉得，聽是聽見卻不明白」。
+          </p>
+        </div>
+
+      </div>
+
+      <!-- 導航底部按鈕 -->
+      <footer class="pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+        <button onclick="navigateTo('point3')" class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+          ← 上一篇：好土的盛宴
+        </button>
+        <button onclick="navigateTo('application')" class="px-5 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-medium hover:bg-amber-600 transition flex items-center space-x-2">
+          <span>前往小組反思與應用</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </footer>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- 頁面 6：小組查經與生活應用 (反思應用與心田開墾)               -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="page-application" class="page-view hidden space-y-8 animate-fadeIn">
+      
+      <!-- 導航標頭 -->
+      <div class="flex items-center space-x-2 text-xs text-stone-500 dark:text-stone-400">
+        <button onclick="navigateTo('home')" class="hover:text-amber-700 underline">首頁</button>
+        <span>/</span>
+        <span class="text-amber-700 dark:text-amber-400 font-medium">小組查經與生活應用</span>
+      </div>
+
+      <header class="space-y-3 border-b border-stone-200 dark:border-stone-800 pb-6">
+        <div class="inline-block px-3 py-1 rounded bg-olive-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
+          Life Application & Group Discussion
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold font-serif text-stone-900 dark:text-stone-100">
+          心田開墾手冊：小組問題與今日生活實踐
+        </h2>
+        <p class="text-stone-500 dark:text-stone-400 text-sm">
+          神的話不是用來增加知識儲備，而是為了改變生命軌跡。請與團契夥伴或獨自安靜在神面前思想下列問題。
+        </p>
+      </header>
+
+      <!-- 互動式心田診斷測驗卡片 -->
+      <section class="bg-white dark:bg-stone-800/90 rounded-2xl p-6 sm:p-8 border border-stone-200 dark:border-stone-700 shadow-sm">
+        <h3 class="text-lg font-bold font-serif text-stone-900 dark:text-stone-100 mb-2 flex items-center space-x-2">
+          <i data-lucide="activity" class="w-5 h-5 text-amber-600"></i>
+          <span>自我診斷：檢視我此刻的心境狀態</span>
+        </h3>
+        <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-6">點選最貼近你這週心靈狀態的選項，看看專屬的靈修叮嚀：</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button onclick="showSoilAdvice('path')" class="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-amber-500 dark:hover:border-amber-400 transition bg-stone-50/50 dark:bg-stone-900/40 group">
+            <div class="flex items-center space-x-3">
+              <!-- 精緻手繪小麻雀頭像 -->
+              <div class="w-11 h-11 rounded-full bg-red-100 dark:bg-red-950/60 flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 40 40" class="w-7 h-7" fill="none">
+                  <ellipse cx="20" cy="22" rx="12" ry="9" fill="#E57373"/>
+                  <circle cx="27" cy="17" r="7" fill="#E57373"/>
+                  <circle cx="28.5" cy="15.5" r="1.5" fill="#2B1E16"/>
+                  <polygon points="33,17 39,19 33,22" fill="#FFA726"/>
+                  <path d="M12 23 L6 27 L10 21 Z" fill="#C62828"/>
+                </svg>
+              </div>
+              <div>
+                <strong class="text-sm text-stone-800 dark:text-stone-200 group-hover:text-amber-600 block">感覺枯燥麻木，讀經提不起勁</strong>
+                <span class="text-xs text-stone-400">心田疑似：路旁狀態</span>
+              </div>
+            </div>
+          </button>
+
+          <button onclick="showSoilAdvice('stone')" class="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-amber-500 dark:hover:border-amber-400 transition bg-stone-50/50 dark:bg-stone-900/40 group">
+            <div class="flex items-center space-x-3">
+              <!-- 精緻手繪石頭與小太陽頭像 -->
+              <div class="w-11 h-11 rounded-full bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 40 40" class="w-7 h-7" fill="none">
+                  <circle cx="28" cy="14" r="6" fill="#FBBF24"/>
+                  <rect x="10" y="22" width="16" height="9" rx="3.5" fill="#78716C"/>
+                  <path d="M18 22 Q17 14 14 10" stroke="#84CC16" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="13" cy="9" r="2" fill="#A3E635"/>
+                </svg>
+              </div>
+              <div>
+                <strong class="text-sm text-stone-800 dark:text-stone-200 group-hover:text-amber-600 block">遇到困難挫折，信心開始動搖</strong>
+                <span class="text-xs text-stone-400">心田疑似：土淺石頭地</span>
+              </div>
+            </div>
+          </button>
+
+          <button onclick="showSoilAdvice('thorn')" class="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-amber-500 dark:hover:border-amber-400 transition bg-stone-50/50 dark:bg-stone-900/40 group">
+            <div class="flex items-center space-x-3">
+              <!-- 精緻手繪荊棘藤蔓頭像 -->
+              <div class="w-11 h-11 rounded-full bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 40 40" class="w-7 h-7" fill="none">
+                  <path d="M10 30 Q20 18 30 28" stroke="#7E22CE" stroke-width="2.5" stroke-linecap="round"/>
+                  <polygon points="17,21 21,24 16,25" fill="#581C87"/>
+                  <polygon points="25,23 22,27 27,27" fill="#581C87"/>
+                  <path d="M22 28 Q20 18 16 14" stroke="#10B981" stroke-width="2"/>
+                </svg>
+              </div>
+              <div>
+                <strong class="text-sm text-stone-800 dark:text-stone-200 group-hover:text-amber-600 block">工作生活壓力大，心中滿是焦慮</strong>
+                <span class="text-xs text-stone-400">心田疑似：荊棘蔓延</span>
+              </div>
+            </div>
+          </button>
+
+          <button onclick="showSoilAdvice('good')" class="text-left p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-amber-500 dark:hover:border-amber-400 transition bg-stone-50/50 dark:bg-stone-900/40 group">
+            <div class="flex items-center space-x-3">
+              <!-- 精緻手繪好土金色麥穗頭像 -->
+              <div class="w-11 h-11 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 40 40" class="w-7 h-7" fill="none">
+                  <path d="M20 32 L20 10" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+                  <ellipse cx="16" cy="12" rx="3.5" ry="2" transform="rotate(-30 16 12)" fill="#F59E0B"/>
+                  <ellipse cx="24" cy="10" rx="3.5" ry="2" transform="rotate(30 24 10)" fill="#FBBF24"/>
+                  <ellipse cx="15" cy="18" rx="4" ry="2.2" transform="rotate(-25 15 18)" fill="#F59E0B"/>
+                  <ellipse cx="25" cy="16" rx="4" ry="2.2" transform="rotate(25 25 16)" fill="#FBBF24"/>
+                </svg>
+              </div>
+              <div>
+                <strong class="text-sm text-stone-800 dark:text-stone-200 group-hover:text-amber-600 block">渴望神的話語，期待生命結出果實</strong>
+                <span class="text-xs text-stone-400">心田狀態：渴慕好土</span>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- 動態診斷結果回饋區 -->
+        <div id="diagnosticFeedback" class="mt-6 p-4 rounded-xl bg-amber-50 dark:bg-stone-900 border border-amber-200 dark:border-stone-700 text-sm hidden">
+          <span id="diagnosticTitle" class="font-bold text-amber-900 dark:text-amber-300 block mb-1"></span>
+          <p id="diagnosticText" class="text-stone-700 dark:text-stone-300 leading-relaxed"></p>
+        </div>
+      </section>
+
+      <!-- 小組討論四大破冰與深思題目 -->
+      <section class="space-y-6">
+        <h3 class="text-xl font-bold font-serif text-stone-900 dark:text-stone-100 flex items-center space-x-2">
+          <i data-lucide="users" class="w-5 h-5 text-amber-700 dark:text-amber-400"></i>
+          <span>團契 / 小組查經四層次討論題</span>
+        </h3>
+
+        <div class="space-y-4">
+          
+          <!-- 題目 1 -->
+          <div class="bg-white dark:bg-stone-800 p-5 rounded-2xl border border-stone-200 dark:border-stone-700">
+            <div class="flex items-center space-x-3 mb-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200">觀察題 • 破冰</span>
+              <h4 class="font-bold text-stone-900 dark:text-stone-100 text-base">一、回想這星期的生活節奏</h4>
+            </div>
+            <p class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+              在過去這週中，哪一隻「飛鳥」（例如短影音、工作繁雜、瑣碎八卦）最常搶奪你原本打算讀經或禱告的時間？你通常在什麼時刻發現道已經不見了？
+            </p>
+          </div>
+
+          <!-- 題目 2 -->
+          <div class="bg-white dark:bg-stone-800 p-5 rounded-2xl border border-stone-200 dark:border-stone-700">
+            <div class="flex items-center space-x-3 mb-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">解釋題 • 扎根</span>
+              <h4 class="font-bold text-stone-900 dark:text-stone-100 text-base">二、面對隱藏在心中的「大石頭」</h4>
+            </div>
+            <p class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+              耶穌提到「心裡沒有根，及至為道遭了患難或是受了逼迫，立刻就跌倒了」。回顧你的信仰歷程，曾遇過什麼樣的「烈日」考驗？是什麼幫助你的信仰沒有完全乾枯？
+            </p>
+          </div>
+
+          <!-- 題目 3 -->
+          <div class="bg-white dark:bg-stone-800 p-5 rounded-2xl border border-stone-200 dark:border-stone-700">
+            <div class="flex items-center space-x-3 mb-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300">反思題 • 割捨</span>
+              <h4 class="font-bold text-stone-900 dark:text-stone-100 text-base">三、辨識纏住心靈的「荊棘藤蔓」</h4>
+            </div>
+            <p class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+              「世上的思慮」與「錢財的迷惑」目前哪一個正悄悄地消耗你的精神？如果神今天邀請你修剪其中一根枝條，那會是什麼具體的人事物？
+            </p>
+          </div>
+
+          <!-- 題目 4 -->
+          <div class="bg-white dark:bg-stone-800 p-5 rounded-2xl border border-stone-200 dark:border-stone-700">
+            <div class="flex items-center space-x-3 mb-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">應用題 • 行道</span>
+              <h4 class="font-bold text-stone-900 dark:text-stone-100 text-base">四、預備成為結果三十倍、百倍的好土</h4>
+            </div>
+            <p class="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+              好土的關鍵在於「聽見、明白、且忍耐著結實」。為了讓神的話在接下來這週生根發芽，你願意採取哪一個微小而具體的行動？（例如：清晨先靈修10分鐘再看手機、寫下代禱日記等）
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 互動式個人靈修心得筆記框 (可直接打字並複製匯出) -->
+      <section class="bg-stone-100 dark:bg-stone-800/60 p-6 rounded-2xl border border-stone-200 dark:border-stone-700 space-y-4">
+        <div class="flex items-center justify-between">
+          <h4 class="font-bold font-serif text-stone-900 dark:text-stone-100 flex items-center space-x-2 text-base">
+            <i data-lucide="edit-3" class="w-4 h-4 text-amber-700"></i>
+            <span>隨手靈修筆記本（可複製到小組群組分享）</span>
+          </h4>
+          <button onclick="copyJournalNotes()" class="text-xs px-3 py-1.5 rounded-lg bg-white dark:bg-stone-700 border border-stone-300 dark:border-stone-600 hover:bg-stone-50 text-stone-700 dark:text-stone-200 flex items-center space-x-1">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="copyBtnText">複製筆記</span>
+          </button>
+        </div>
+        <textarea id="journalNotes" rows="4" placeholder="在此寫下神今天透過這篇講章觸摸你心田的感動、一句承諾，或一項代禱..." class="w-full p-4 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-stone-800 dark:text-stone-200 leading-relaxed"></textarea>
+        <div class="flex justify-between items-center text-xs text-stone-400">
+          <span>※ 內容僅保存在您的瀏覽器當前畫面中，請善用複製保存。</span>
+        </div>
+      </section>
+
+      <!-- 導航底部按鈕 -->
+      <footer class="pt-8 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+        <button onclick="navigateTo('scripture')" class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+          ← 上一篇：經文對照
+        </button>
+        <button onclick="navigateTo('home')" class="px-5 py-2.5 rounded-xl bg-stone-900 dark:bg-amber-600 text-white text-sm font-medium hover:bg-stone-800 transition flex items-center space-x-2">
+          <i data-lucide="home" class="w-4 h-4"></i>
+          <span>返回首頁</span>
+        </button>
+      </footer>
+    </div>
+
+  </main>
+
+  <!-- =============================== -->
+  <!-- 頁尾 (Footer) -->
+  <!-- =============================== -->
+  <footer class="mt-16 border-t border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-900/50 py-8 text-center text-xs text-stone-500 dark:text-stone-400 space-y-2">
+    <div class="flex justify-center items-center space-x-2">
+      <i data-lucide="sparkle" class="w-4 h-4 text-amber-600"></i>
+      <span class="font-serif font-bold text-stone-700 dark:text-stone-300">「凡有耳可聽的，就應當聽！」</span>
+    </div>
+    <p>馬太福音 13:1–23 數位靈修講章手冊 • 專為個人安靜、講章精讀與門徒小組查經設計</p>
+  </footer>
+
+  <!-- =============================== -->
+  <!-- 頁面邏輯、互動控制器與導覽機制 -->
+  <!-- =============================== -->
+  <script>
+    // 1. 初始化 Lucide Icons
+    lucide.createIcons();
+
+    // 2. 頁面切換控制 (SPA Navigation)
+    function navigateTo(pageId) {
+      // 隱藏所有頁面
+      const pages = document.querySelectorAll('.page-view');
+      pages.forEach(p => p.classList.add('hidden'));
+
+      // 顯示目標頁面
+      const targetPage = document.getElementById('page-' + pageId);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+      }
+
+      // 更新頂部導覽列按鈕高亮
+      const navButtons = document.querySelectorAll('.nav-btn');
+      navButtons.forEach(btn => {
+        if (btn.getAttribute('data-page') === pageId) {
+          btn.classList.add('bg-amber-100', 'text-amber-900', 'dark:bg-amber-950', 'dark:text-amber-300');
+        } else {
+          btn.classList.remove('bg-amber-100', 'text-amber-900', 'dark:bg-amber-950', 'dark:text-amber-300');
+        }
+      });
+
+      // 自動平滑捲動回頂部
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // 重新觸發圖標渲染（若有動態生成元素）
+      lucide.createIcons();
+    }
+
+    // 3. 手機版選單切換
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // 4. 字體大小動態調整 (Accessibility)
+    let currentFontSizeLevel = 0; // -1: 較小, 0: 標準, 1: 較大, 2: 特大
+    function changeFontSize(delta) {
+      currentFontSizeLevel = Math.max(-1, Math.min(2, currentFontSizeLevel + delta));
+      const sermonTexts = document.querySelectorAll('.sermon-text');
+      
+      sermonTexts.forEach(el => {
+        if (currentFontSizeLevel === -1) {
+          el.style.fontSize = '0.95rem';
+          el.style.lineHeight = '1.85';
+        } else if (currentFontSizeLevel === 0) {
+          el.style.fontSize = '1.125rem'; // 預設 18px
+          el.style.lineHeight = '2.1';
+        } else if (currentFontSizeLevel === 1) {
+          el.style.fontSize = '1.25rem'; // 20px
+          el.style.lineHeight = '2.2';
+        } else if (currentFontSizeLevel === 2) {
+          el.style.fontSize = '1.4rem'; // 22px
+          el.style.lineHeight = '2.3';
+        }
+      });
+    }
+
+    // 5. 閱讀色彩氛圍切換 (日落羊皮紙 / 深邃晚禱 / 清新晨光)
+    const themes = ['default', 'parchment', 'night'];
+    let currentThemeIdx = 0;
+
+    function cycleTheme() {
+      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+      const theme = themes[currentThemeIdx];
+      const body = document.body;
+
+      // 重置所有模式 class
+      body.classList.remove('dark', 'theme-parchment', 'theme-night');
+
+      if (theme === 'default') {
+        // 標準白晝模式
+      } else if (theme === 'parchment') {
+        // 溫潤羊皮紙模式
+        body.classList.add('theme-parchment');
+      } else if (theme === 'night') {
+        // 沉思暗黑模式
+        body.classList.add('dark', 'theme-night');
+      }
+    }
+
+    // 6. 心田自我診斷小回饋互動
+    function showSoilAdvice(soilType) {
+      const box = document.getElementById('diagnosticFeedback');
+      const title = document.getElementById('diagnosticTitle');
+      const text = document.getElementById('diagnosticText');
+
+      box.classList.remove('hidden');
+
+      if (soilType === 'path') {
+        title.textContent = '🌿 牧者叮嚀：為心靈鬆土，抵抗奪道飛鳥';
+        text.textContent = '你最近可能經歷了過多的資訊轟炸或精神疲憊。建議這兩天試著在睡前或起床後，安排10分鐘完全關閉螢幕，安靜禱告：「主啊，求祢打破我的習慣性麻木，賜我一顆渴慕受教的心。」';
+      } else if (soilType === 'stone') {
+        title.textContent = '🪨 牧者叮嚀：向下深扎真理的根基';
+        text.textContent = '感到信心受挫時，別停留在表層的情緒自責中。回到經文的應許上，背誦羅馬書八章38-39節，並找一位成熟屬靈同伴或小組長分享你的脆弱，讓禱告的根穿透岩層。';
+      } else if (soilType === 'thorn') {
+        title.textContent = '✂️ 牧者叮嚀：勇敢剪斷繁複的枝蔓';
+        text.textContent = '這不是你的能力問題，而是你承擔了太多上帝沒有要你背負的憂慮。列出今天讓你最焦慮的三件事，在禱告中逐一交託給神，勇敢向一件無益的世俗牽絆說「不」。';
+      } else if (soilType === 'good') {
+        title.textContent = '🌾 牧者叮嚀：存記於心，安靜等候百倍豐收';
+        text.textContent = '感謝神賜你渴慕的心！請保持每日穩定讀經與靈修，並且將今天領受到的恩典化為一項具體的愛心行動（例如發信息問候一位需要鼓勵的朋友）。';
+      }
+
+      // 平滑滾動到回饋區
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // 7. 靈修筆記複製功能 (相容 iframe 與各類裝置)
+    function copyJournalNotes() {
+      const textarea = document.getElementById('journalNotes');
+      const btnText = document.getElementById('copyBtnText');
+      
+      if (!textarea.value.trim()) {
+        const originalText = textarea.placeholder;
+        textarea.value = "【我的靈修反思 — 馬太福音13章撒種的比喻】\n心田診斷：願神開墾我的心成為結實百倍的好土。\n行動實踐：每天早晨給神安靜的10分鐘。";
+      }
+
+      textarea.select();
+      textarea.setSelectionRange(0, 99999); // 手機相容
+
+      try {
+        document.execCommand('copy');
+        btnText.textContent = "已複製！";
+        setTimeout(() => {
+          btnText.textContent = "複製筆記";
+        }, 2500);
+      } catch (err) {
+        btnText.textContent = "請手動選取複製";
+      }
+    }
+
+    // 預設進入首頁並標示
+    document.addEventListener('DOMContentLoaded', () => {
+      navigateTo('home');
+    });
+  </script>
+</body>
+</html>
